@@ -1,0 +1,16 @@
+INSTALLATION:
+
+Linux & MAC OS:
+Go to your main gLike directory and type 'make'.
+
+
+RUNNING gLike:
+An example to load the gLike environment is shown in the rootlogon.C file under ./scripts. Then you can execute a script such as 'jointLklDM.C' that will read a config file from ./rcfiles such as 'JointLklDM.rc'.
+
+
+CAUTION:
+On MAC OS, one might have to add the path to the gLike library (/path/to/gLike/lib) to 'DYLD_LIBRARY_PATH' to succesfully run scripts using gLike.
+
+
+DOCUMENTATION:
+Go to your main gLike directory and type 'make doc'. The documentation will be generated under ./htmldoc. You can navigate in it openning the file './htmldoc/index.html'.
