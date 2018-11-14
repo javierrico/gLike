@@ -1,4 +1,5 @@
-![gLike](https://github.com/javierrico/gLike/raw/master/logo/gLike_logo_small.png "gLike logo")
+![gLike logo](https://github.com/javierrico/gLike/raw/master/logo/gLike_logo_small.png "gLike logo")
+------------------------------------------------------------------------------------------------
 
 gLike is a general-purpose [ROOT](root.cern.ch)-based code framework for the numerical maximization of joint likelihood functions.
 
