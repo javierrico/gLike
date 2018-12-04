@@ -27,11 +27,13 @@ void rootlogon()
 {
     cout << endl;
 
-    TString pwd = gSystem->pwd();
-    TString libdir = pwd + "/../lib/";
-    TString outdir = pwd + "/../out/";
+    const TString libfilename = "libgLike.so"; // default
+    const Bool_t  fileexist   = !gSystem->AccessPathName(libfilename.Data(), kFileExists);
+    TString       gLikeDir    = fileexist ? "" : gSystem->Getenv("GLIKESYS");
+    
+    TString libdir = gLikeDir + "/lib/";
+    TString outdir = gLikeDir + "/out/";
     gSystem->AddDynamicPath(outdir);
-    TString libfilename = "libgLike.so"; // default (ok for linux machines)
 
     if (!libdir.IsNull()) {
      cout << "\033[34m\033[1m" << "Searching gLike in " << libdir << "\033[0m" << endl ;
