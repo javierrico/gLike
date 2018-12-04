@@ -5,7 +5,7 @@ gLike is a general-purpose [ROOT](root.cern.ch)-based code framework for the num
 
 The joint likelihood function has **one** *free* parameter and as many *nuisance* parameters as wanted, which will be profiled in the  maximization process. 
 
-A (non-exhaustive) list of examples where g$\mathcal{L}$ike is useful are (in order of increasingly complexity):
+A (non-exhaustive) list of examples where gLike is useful are (in order of increasingly complexity):
 
  - Estimating the number of signal events (with uncertainties) in a dataset whose background content is in turn estimated from an independent measurement in a signal-free control-region.
  - Same as before, but considering in addition a systematic uncertainty in the estimation of the background. 
