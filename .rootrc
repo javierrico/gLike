@@ -1,0 +1,45 @@
+#############################################################################
+#                                                                           #
+# This is the path where root seraches for macros                           #
+# to execute (eg. .x merpp.C)                                               #
+#                                                                           #
+#############################################################################
+
+Unix.*.Root.MacroPath:       .:./scripts
+
+#############################################################################
+#                                                                           #
+# This is the path where the dynamic loader (eg. gSystem->Load("mars.so")   #
+# is searching for the shared objects                                       #
+#                                                                           #
+#############################################################################
+
+Unix.*.Root.DynamicPath:     .:./lib
+
+#############################################################################
+#                                                                           #
+# This is the name of the logon macro (executed at root startup) and the    #
+# logoff macro (executed when quiting root)                                 #
+#                                                                           #
+#############################################################################
+
+Rint.Logon:                  rootlogon.C
+Rint.Logoff:                 rootlogoff.C
+
+#############################################################################
+#                                                                           #
+# This is used if you want to use the root documentation facility to        #
+# create the documentation of the code out of the code                      #
+#                                                                           #
+#############################################################################
+
+Root.Html.DescriptionStyle:  Doc++
+
+Root.Html.Author:            !   Author(s): J. Rico et al. (the gLike development team)
+Root.Html.Copyright:         !   Copyright: gLike development team
+Root.Html.Modified:          !   Modified:
+Root.Html.Description        // ----
+
+Root.Html.Root:              http://root.cern.ch
+Root.Html.HomePage:          https://github.com/javierrico/gLike
+
