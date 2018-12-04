@@ -2,3 +2,5 @@
 *.a
 *.so
 *.o
+.#README.md
+out
