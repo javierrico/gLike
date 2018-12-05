@@ -49,10 +49,10 @@ gLike contains two main basic classes:
 Within the gLike library, there is not any particular assumption about the physical meaning of the free parameter g. That needs to be assigned externally in the macros or executables using the gLike library.
 The gLike distribution provides a few example macros/executables for the most common use cases. In particular `scripts/jointLklDM.C` can be used to search for dark matter, set limits in case of no detection and combine results from different targets and or instruments. 
 
-The macro itself does not need to be edited. You can find some documentation in the wiki. It is important to run it in compiled mode, i.e. with the ROOT command:
+The macro itself does not need to be edited. You can find some documentation in the [wiki](https://github.com/javierrico/gLike/wiki/jointLklDM.C). It is important to run it in compiled mode, i.e. with the ROOT command:
  `.x jointLklDM.C+(<rcfilename>)`
 
-Example configuration files can be found in the `rcfiles` directory. There is a detailed documentation both in the wiki, and the rcfile itself on how to configure it correctly. 
+Example configuration files can be found in the `rcfiles` directory. There is a detailed documentation on how to configure it correctly both in the [wiki](https://github.com/javierrico/gLike/wiki/rc-files-for-jointLklDM.C), and the jointLklDM.rc rcfile provided with the distribution. 
 
 
 ### Transition from old cvs mdm distribution to the git gLike standalone distribution
