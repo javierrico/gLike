@@ -4,3 +4,4 @@
 *.o
 .#README.md
 out
+*_C.d
