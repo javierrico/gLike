@@ -58,23 +58,4 @@ Example configuration files can be found in the [`rcfiles`](https://github.com/j
 
 ### Transition from old cvs mdm distribution to the git gLike standalone distribution
 
-In order allow for gLike future expansion, several actions have been recently taken:
-- gLike classes have been removed from the dark matter oriented mdm library and the resulting standalone gLike distribution has been moved to the gitHub repository
-- More importantly, the naming convention of the different classes have changed. The following table provides the correspondence between old and new class names
-
-
- |Class old name| Class new name|
-  |----:|-----:|
-  |`MLkl`  | [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h) |
-  |`MJointLkl`  | [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h) |
-  |`MFullLkl`  | [`Iact1dUnbinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dUnbinnedLkl.h) |
-  |`MBinnedFullLkl`  | [`Iact1dBinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dBinnedLkl.h) |
-  |`MBinnedFluxLkl`  | [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/FermiTables2016Lkl.h) |
-  |`MPoissonLkl`  | [`PoissonLkl`](https://github.com/javierrico/gLike/blob/master/include/PoissonLkl.h) |
-  |`MParabolaLkl`  | [`Parabola`](https://github.com/javierrico/gLike/blob/master/include/Parabola.h) |
-  |[`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h)|[`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/IactEventListIrf.h)| 
-
-
-- These changes should be transparent to the user except for two aspects:
-	- The class names are used in the rcfile for the definition of the joint likelihood, and the new naming convention should be used from now on. This means that if you used to run gLike in the old mdm times, you need to change your rcfiles according to the previous table.
-	- Data+IRF input files produced in the format defined in [`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h) will not work anymore. The new files should store data+IRF in the format defined in [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/IactEventListIrf.h). In order to facilitate the conversion, the macro [`convertGLikeInputFiles.C`](https://github.com/javierrico/gLike/blob/master/scripts/convertGLikeInputFiles.C) is provided. For the same reason, the old class [`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h) has not been yet removed from gLike yet. Both [`convertGLikeInputFiles.C`](https://github.com/javierrico/gLike/blob/master/scripts/convertGLikeInputFiles.C) and [`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h) will be removed from the gLike distribution in future releases.
+If you are a pre-gitHub gLike user, and you whish to keep using new gLike distribututions with some old input files, you may need to adapt them following the advice of this [wiki entry](https://github.com/javierrico/gLike/wiki/Transition-from-old-cvs-mdm-distribution-to-the-git-gLike-standalone-distribution).
