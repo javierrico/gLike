@@ -34,7 +34,7 @@ In gLike you find the following directories:
 2. [`include`](https://github.com/javierrico/gLike/tree/master/include): include files (*.h) with declaration of every class 
 3. [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts): root macros and scripts with some gLike example applications
 4. [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles): examples of rcfiles (in principle the only thing a regular user should edit and modify)
-5. [`log`](https://github.com/javierrico/gLike/tree/master/log): the gLike logo
+5. [`logo`](https://github.com/javierrico/gLike/tree/master/logo): the gLike logo
 
 ### Fast description of the code
  gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.
