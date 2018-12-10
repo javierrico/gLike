@@ -71,7 +71,7 @@ In order to prepare gLike to grow, several actions have been recently taken:
   |`MFullLkl`  | [`Iact1dUnbinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dUnbinnedLkl.h) |
   |`MBinnedFullLkl`  | [`Iact1dBinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dBinnedLkl.h) |
   |`MBinnedFluxLkl`  | [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/FermiTables2016Lkl.h) |
-  |`MPoissonLkl`  | [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/PoissonLkl.h) |
+  |`MPoissonLkl`  | [`PoissonLkl`](https://github.com/javierrico/gLike/blob/master/include/PoissonLkl.h) |
   |`MParabolaLkl`  | [`Parabola`](https://github.com/javierrico/gLike/blob/master/include/Parabola.h) |
   |[`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h)|[`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/IactEventListIrf.h)| 
 
