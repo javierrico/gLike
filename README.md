@@ -40,11 +40,11 @@ In gLike you find the following directories:
  gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.
  
 gLike consists of two main basic classes, [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h)
-      and `JointLkl`:
+      and [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h):
 -  [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h) contains all the machinery related to finding the minimum of the -2logL function and scanning it in the relevant range to be able to compute the confidence intervals with the desired confidence level. [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h) is an abstract class and almost all the rest of gLike classes inherit from it. It does not implement any particular likelihood function, which is precisely what the daughter classes do.
-- `JointLkl` inherits from [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h), it holds a list of [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h)-based objects and implements a particular likelihood function that is simply the product of the particular likelihood functions in the list. Because of its inheritance from [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h), `JointLkl`can include other `JointLkl`terms as part of the list. This is where one of the main strengths of gLike resides, because it allows to build joint likelihood functions of any level of complexity. 
+- [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h) inherits from [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h), it holds a list of [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h)-based objects and implements a particular likelihood function that is simply the product of the particular likelihood functions in the list. Because of its inheritance from [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h), [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h)can include other [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h) terms as part of the list. This is where one of the main strengths of gLike resides, because it allows to build joint likelihood functions of any level of complexity. 
  
- Almost all the other gLike classes (`Iact1dUnbinnedLkl`,`Iact1dBinnedLkl`, `FermiTables2016Lkl`, `ParabolaLkl`, `PoissonLkl`) just implement a particular likelihood function. Adding other likelihood functions can be easily done starting from the basic skeleton provided at `TemplateLkl`and following one of the previously listed classes as example.
+ Almost all the other gLike classes ([`Iact1dUnbinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dUnbinnedLkl.h),[`Iact1dBinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dBinnedLkl.h), [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/FermiTables2016Lkl.h), `ParabolaLkl`, [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/PoissonLkl.h)) just implement a particular likelihood function. Adding other likelihood functions can be easily done starting from the basic skeleton provided at `TemplateLkl`and following one of the previously listed classes as example.
 
 ### Basic Usage for dark matter searches
 Within the gLike library, there is not any particular assumption about the physical meaning of the free parameter g. That needs to be assigned externally in the macros or executables using the gLike library.
@@ -67,16 +67,16 @@ In order to prepare gLike to grow, several actions have been recently taken:
  |Class old name| Class new name|
   |----:|-----:|
   |`MLkl`  | [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h) |
-  |`MJointLkl`  | `JointLkl` |
-  |`MFullLkl`  | `Iact1dUnbinnedLkl` |
-  |`MBinnedFullLkl`  | `Iact1dBinnedLkl` |
-  |`MBinnedFluxLkl`  | `FermiTables2016Lkl` |
-  |`MPoissonLkl`  | `PoissonLkl` |
-  |`MParabolaLkl`  | `Parabola` |
-  |`MIACTEventListIRF`|`IactEventListIrf`| 
+  |`MJointLkl`  | [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h) |
+  |`MFullLkl`  | [`Iact1dUnbinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dUnbinnedLkl.h) |
+  |`MBinnedFullLkl`  | [`Iact1dBinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dBinnedLkl.h) |
+  |`MBinnedFluxLkl`  | [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/FermiTables2016Lkl.h) |
+  |`MPoissonLkl`  | [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/PoissonLkl.h) |
+  |`MParabolaLkl`  | [`Parabola`](https://github.com/javierrico/gLike/blob/master/include/Parabola.h) |
+  |[`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h)|[`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/IactEventListIrf.h)| 
 
 </center>
 
 - These changes should be transparent to the user except for two aspects:
 	- The class names are used in the rcfile, and the new naming convention should be used from now on. This means that if you used to run gLike in the old mdm times, you need to change your rcfiles according to the previous table.
-	- Data+IRF input files produced in the format defined in `MIACTEventListIRF`will not work anymore. The new files should store date in the format defined in `IactEventListIrf`. At the moment both formats are identical, and in order to facilitate the conversion, the macro `convertSegueIntoIACTFormat.C` is provided. For the same reason, the old class `MIACTEventListIRF` has not been yet removed. Both the conversion macro and the class will be removed from the gLike distribution in future releases.
+	- Data+IRF input files produced in the format defined in [`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h)will not work anymore. The new files should store date in the format defined in [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/IactEventListIrf.h). At the moment both formats are identical, and in order to facilitate the conversion, the macro `convertSegueIntoIACTFormat.C` is provided. For the same reason, the old class [`MIACTEventListIRF`](https://github.com/javierrico/gLike/blob/master/include/MIACTEventListIRF.h) has not been yet removed. Both the conversion macro and the class will be removed from the gLike distribution in future releases.
