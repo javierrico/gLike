@@ -1,6 +1,12 @@
 //######################################################################
 //## convert file containing (old) MIACTEventListIRF object
 //## into new one with the equivalent IactEventListIrf object
+//##
+//## Run macro in the ROOT command line as:
+//##
+//## convertGLikeInputFiles(<oldfilename>,<newfilename>)
+//##
+//## to convert from file <oldfilename> into <newfilename>
 //######################################################################
 
 #include <iostream>
