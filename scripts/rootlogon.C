@@ -7,7 +7,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////
 
-bool load(TString &dir, TString &libfilename)
+bool load(TString &dir, const TString &libfilename)
 {
     cout << "\033[33m\033[1m" << "Loading " << dir << libfilename << " \033[0m" << flush;
 
