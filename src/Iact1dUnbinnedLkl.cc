@@ -365,7 +365,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
   if(CheckEnergyLimits())
     cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: energy limits out of allowed bounds!" << endl;
   
-  if(ifile) delete ifile;
+  if(ifile) {ifile->Close(); delete ifile;}
   
   return 0;
 }

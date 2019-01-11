@@ -9,7 +9,7 @@ I/O CONFIGURATION
 #################
 
 # Label to indentify this analysis (for naming plots and output files)
-jointLklDM.Label: MAGIC_SegueStereo_Annihilation_bb_Unbinned_GisFree_JisFixed
+jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisFree_JisFixed
 
 # configuration for plots
 jointLklDM.showSamplePlots:   TRUE
@@ -23,10 +23,10 @@ jointLklDM.plotmax: 1e-22
 
 
 # Path (will be added to all specified files and directories in this rcfile)
-jointLklDM.path: /path/to/analysis/main/directory
+jointLklDM.path: ./
 
 # Directory with dN/dE files
-jointLklDM.dNdEDir: dNdE
+jointLklDM.dNdEDir: DM/dNdE/Cirelli/
 
 # Directory for output plots
 jointLklDM.plotsDir: plots
@@ -35,7 +35,7 @@ jointLklDM.plotsDir: plots
 # Comment out if you don't want to save or read the histograms but create them on the fly
 # (that is slower but safer because you make sure you use the proper histograms and not
 #  some pre-existing version created for a different set of IRFs or samples)
-jointLklDM.dNdEpSignalDir: dNdEpSignal
+jointLklDM.dNdEpSignalDir: DM/dNdEpSignal
 
 ######################
 ANALYSIS CONFIGURATION
@@ -111,11 +111,5 @@ JOINT LIKELIHOOD CONFIGURATION
 #   DlogJ indicates that the uncertainty in the units of a particular lkl term is an *independent* random variable.
 #
 jointLklDM.lklTerm000: JointLkl -   DlogJ=0
-jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C6_W1_dataIRF.root       
-jointLklDM.lklTerm002: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C6_W2_dataIRF.root      
-jointLklDM.lklTerm003: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C7_part1_W1_dataIRF.root
-jointLklDM.lklTerm004: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C7_part1_W2_dataIRF.root
-jointLklDM.lklTerm005: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C7_part2_W1_dataIRF.root
-jointLklDM.lklTerm006: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C7_part2_W2_dataIRF.root
-jointLklDM.lklTerm007: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C8_W1_dataIRF.root      
-jointLklDM.lklTerm008: Iact1dUnbinnedLkl  0   logJ=19.0214  DlogJ=0  inputfile=dataIRF/C8_W2_dataIRF.root      
+jointLklDM.lklTerm001: Iact1dBinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  nbins=20
+jointLklDM.lklTerm002: Iact1dBinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root  nbins=20
