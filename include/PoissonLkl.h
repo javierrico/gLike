@@ -14,18 +14,19 @@ class PoissonLkl : public virtual Lkl
   enum         parIndex_t {gGIndex,gBIndex,gTauIndex,gEffIndex};        // Indeces of parametersstatic
   
   // constructors
-  PoissonLkl(UInt_t non,UInt_t noff,Float_t tau=1,Float_t dTau=0,TString name="",TString title="");
+  PoissonLkl(UInt_t non,UInt_t noff,Float_t tau=1,Float_t dTau=0, Float_t dEff=0,TString name="",TString title="");
   PoissonLkl(TString fileName,TString name="",TString title="");
   
   // destructor
   virtual ~PoissonLkl();
 
   // configure minuit
-  inline  void     SetGFractionInOff(Float_t f)       {fGFractionInOff  = f;}
-  inline  void     SetFrgNEvents(Float_t frgn)        {fFrgNEvents      = frgn;}
-  inline  void     SetTau(Float_t tau)                {fTau             = tau;}
-  inline  void     SetDEff(Float_t deff)              {fDEff            = deff;}
-  inline  void     SetKnownBackground(Bool_t k=kTRUE) {fKnownBackground = k;}
+  inline  void     SetGFractionInOff(Float_t f)       {fGFractionInOff  = f;    SetChecked(kFALSE);}
+  inline  void     SetFrgNEvents(Float_t frgn)        {fFrgNEvents      = frgn; SetChecked(kFALSE);}
+  inline  void     SetTau(Float_t tau)                {fTau             = tau;  SetChecked(kFALSE);}
+  inline  void     SetDTau(Float_t dtau)              {fDTau            = dtau; SetChecked(kFALSE);}    
+  inline  void     SetDEff(Float_t deff)              {fDEff            = deff; SetChecked(kFALSE);}
+  inline  void     SetKnownBackground(Bool_t k=kTRUE) {fKnownBackground = k;    SetChecked(kFALSE);}
   
   // getters
   inline  UInt_t   GetNon()            const    {return fNon;}

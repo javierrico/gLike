@@ -76,8 +76,8 @@ static TMinuit* minuit = NULL;
 // Also you can provide tau (default = 1) and DeltaTau
 // (default = 0, i.e. tau is a fixed parameter)
 //
-PoissonLkl::PoissonLkl(UInt_t non,UInt_t noff,Float_t tau,Float_t dTau,TString name,TString title) : 
-  Lkl(gNPars," ",name,title), fNon(non), fNoff(noff), fTau(tau), fDTau(dTau), fDEff(0),
+PoissonLkl::PoissonLkl(UInt_t non,UInt_t noff,Float_t tau,Float_t dTau,Float_t dEff,TString name,TString title) : 
+  Lkl(gNPars," ",name,title), fNon(non), fNoff(noff), fTau(tau), fDTau(dTau), fDEff(dEff),
   fGFractionInOff(0), fFrgNEvents(0), fKnownBackground(kFALSE)
 {
   // if no name/title are provided use default ones
