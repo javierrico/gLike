@@ -22,10 +22,10 @@ void testPoissonLkl()
   
   // access to the gLike results
   const Double_t gmin = p->GetGLklMin();                // get the value of g that minimizes -2logL
-  const Double_t gerr = p->GetGLklMinErr();             // get value of g for which -2logL crosses -2logLmin+fErrorDef
+  const Double_t gerr = p->GetGLklMinErr();             // get the value of gerr such that -2logL(gmin+/-gerr)=-2logLmin+fErrorDef
   const Double_t sig  = sqrt(p->GetLklVsG()->Eval(0)) ; // compute significance of detection
 
-  // compute significnace with LiMa formula for comparison
+  // compute significance with LiMa formula for comparison
   const Double_t LiMasig = sqrt(2.*(Non*log((tau+1.)*(1.*Non/(Non+Noff)))+Noff*log((tau+1)/tau*(1.*Noff/(Non+Noff)))));
 
   // compare confidence interval with Rolke method for comparison
@@ -42,4 +42,13 @@ void testPoissonLkl()
   cout << "The Rolke    value of g = " << grolke << ",\t with 2-sigma error bar = " << grolkeerr << endl;
   cout << "The gLike significance of the detection of signal is " << sig     << " sigma" << endl;
   cout << "The Li&Ma significande of the detection of signal is " << LiMasig << " sigma" << endl;
+
+
+  Double_t Deff  = 0.1;
+  Double_t Dtau  = 0.1;
+  p->SetDEff(Deff);
+  p->SetDTau(Dtau);
+  p->ComputeLklVsG();
+  p->PrintOverview();     // print the details from the fit
+  p->GetLklVsG()->Draw("same"); // plot the -2logL vs g curve
 }
