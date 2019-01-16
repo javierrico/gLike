@@ -182,6 +182,24 @@ void  PoissonLkl::SetFunctionAndPars(Double_t ginit)
   
 }  
 
+//////////////////////////////////////////////////////////////////
+//
+// Function called by Lkl::PrintOverview
+// Print info about the experimental data
+//
+void PoissonLkl::PrintData(Int_t level) 
+{
+  Lkl::PrintData(level);
+  
+  Margin(level); cout << "                     Non  = " << fNon  << endl;
+  Margin(level); cout << "                     Noff = " << fNoff << endl;
+  Margin(level); cout << "            Measured tau  = " << fTau << " +/- " << fDTau << endl;
+  Margin(level); cout << "            Measured Deff = " << "1 +/- " << fDEff << endl;
+  Margin(level); cout << "     Fraction of G in Off = " <<  fGFractionInOff << endl;
+  Margin(level); cout << "  Foreground events in On = " <<  fFrgNEvents << endl;
+  Margin(level); cout << "    Background in On (b) is " <<  (fKnownBackground? "FIXED" : "NUISANCE") << endl;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //
 // Poisson likelihood function (-2logL) 

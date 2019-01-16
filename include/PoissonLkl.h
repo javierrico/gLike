@@ -36,6 +36,9 @@ class PoissonLkl : public virtual Lkl
   inline  Float_t  GetDEff()           const    {return fDEff;}
   inline  Float_t  GetGFractionInOff() const    {return fGFractionInOff;}
   inline  Float_t  GetFrgNEvents()     const    {return fFrgNEvents;}
+
+  // print data in the overview
+  virtual void PrintData(Int_t level=0);
   
  protected:
   virtual void     SetFunctionAndPars(Double_t ginit=0);
