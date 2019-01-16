@@ -3,7 +3,7 @@
 // Date: Jan 2019
 // For beginners, to understand the basic usage of the JointLkl class
 // IMPORTANT NOTE: for some still-to-be-understood "feature", macros
-// containing JointLkl objects MUST be run in compiled mode, i.e.
+// containing Lkl-based objects MUST be run in compiled mode, i.e.
 // run this macro with:
 // .x testJointLkl.C+
 
