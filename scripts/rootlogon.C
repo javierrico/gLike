@@ -42,7 +42,7 @@ void rootlogon()
 
     if (!load(libdir,libfilename)) return;
 
-    gInterpreter->AddIncludePath(gLikeDir+"include");
+    gInterpreter->AddIncludePath(gLikeDir+"/include");
     gStyle->SetCanvasColor(0);
     gStyle->SetCanvasBorderMode(0);
     gStyle->SetFrameBorderMode(0);

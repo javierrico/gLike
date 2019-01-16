@@ -73,10 +73,10 @@
 #include "TROOT.h"
 #include "TSystem.h"
 
-#include "../include/Iact1dUnbinnedLkl.h"
-#include "../include/Iact1dBinnedLkl.h"
-#include "../include/FermiTables2016Lkl.h"
-#include "../include/JointLkl.h"
+#include "Iact1dUnbinnedLkl.h"
+#include "Iact1dBinnedLkl.h"
+#include "FermiTables2016Lkl.h"
+#include "JointLkl.h"
 
 using namespace std;
 
