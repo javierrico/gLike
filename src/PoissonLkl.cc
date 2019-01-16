@@ -184,7 +184,7 @@ void  PoissonLkl::SetFunctionAndPars(Double_t ginit)
 
 //////////////////////////////////////////////////////////////////
 //
-// Print info about the experimental data
+// Print the values of the parameters of the Lkl-based object
 //
 void PoissonLkl::PrintData(Int_t level) 
 {
