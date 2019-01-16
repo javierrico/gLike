@@ -767,8 +767,7 @@ Int_t Iact1dBinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH
 
 //////////////////////////////////////////////////////////////////
 //
-// Function called by Lkl::PrintOverview
-// Print info about the experimental data
+// Print the values of the parameters of the Lkl-based object
 //
 void Iact1dBinnedLkl::PrintData(Int_t level) 
 {

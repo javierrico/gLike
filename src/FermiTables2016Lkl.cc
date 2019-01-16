@@ -550,8 +550,7 @@ Int_t FermiTables2016Lkl::ComputeEFluxIntegrals()
 
 //////////////////////////////////////////////////////////////////
 //
-// Function called by Lkl::PrintOverview
-// Print info about the experimental data
+// Print the values of the parameters of the Lkl-based object
 //
 void FermiTables2016Lkl::PrintData(Int_t level)
 {

@@ -1056,7 +1056,6 @@ void Lkl::PrintOverview(Int_t level)
 
   // lkl value
   Margin(level); cout << "  -2logL_min        = " << fLklMin << endl;
-  //  PrintData(level);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 

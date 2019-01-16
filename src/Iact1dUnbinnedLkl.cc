@@ -1657,8 +1657,7 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
 
 //////////////////////////////////////////////////////////////////
 //
-// Function called by Lkl::PrintOverview
-// Print info about the experimental data
+// Print the values of the parameters of the Lkl-based object
 //
 void Iact1dUnbinnedLkl::PrintData(Int_t level) 
 {
