@@ -289,7 +289,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
     }
   
   // open and read input files with data and IRFs
-  TFile* ifile = new TFile(path+"/"+inputfileName,"READ");
+  TFile* ifile = new TFile(path+(path==""?"":"/")+inputfileName,"READ");
   IactEventListIrf* dataSet = (IactEventListIrf*) ifile->Get("IactEventListIrf");
   if(!dataSet)
     {
