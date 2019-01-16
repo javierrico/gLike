@@ -1,3 +1,12 @@
+// Macro testPoissonLkl.C
+// Author: J. Rico
+// Date: Jan 2019
+// For beginners, to understand the basic works of a simple Lkl-based object
+// and, in particular, a standalone PoissonLkl object, configured with
+// different level of complexities (i.e. number of nuisance parameters)
+// Recommendation: copy line by line into the command line and have a look
+// to the effect/output of each of them
+
 void testPoissonLkl()
 {
   // create and configure the simplest possible PoissonLkl object
