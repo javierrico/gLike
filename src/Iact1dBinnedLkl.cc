@@ -501,7 +501,7 @@ Int_t Iact1dBinnedLkl::ConfigureJointLkl()
   Double_t totalw = 0;
   for(Int_t ibin=0;ibin<fNBins-fNRemovedBins;ibin++)
     {
-      PoissonLkl* pLkl = new PoissonLkl(fHNOn->GetBinContent(ibin+1),fHNOff->GetBinContent(ibin+1),GetTau(),(fTauEDepFluct? GetDTau() : 0),Form("%s_Bin_%d",GetName(),ibin));
+      PoissonLkl* pLkl = new PoissonLkl(fHNOn->GetBinContent(ibin+1),fHNOff->GetBinContent(ibin+1),GetTau(),(fTauEDepFluct? GetDTau() : 0),0,Form("%s_Bin_%d",GetName(),ibin));
       Double_t lemin  = fHNOn->GetBinLowEdge(ibin+1);
       Double_t lemax  = fHNOn->GetBinLowEdge(ibin+1)+fHNOn->GetBinWidth(ibin+1);
       
@@ -767,8 +767,7 @@ Int_t Iact1dBinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH
 
 //////////////////////////////////////////////////////////////////
 //
-// Function called by Lkl::PrintOverview
-// Print info about the experimental data
+// Print the values of the parameters of the Lkl-based object
 //
 void Iact1dBinnedLkl::PrintData(Int_t level) 
 {

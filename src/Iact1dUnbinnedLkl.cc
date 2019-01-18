@@ -289,7 +289,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
     }
   
   // open and read input files with data and IRFs
-  TFile* ifile = new TFile(path+"/"+inputfileName,"READ");
+  TFile* ifile = new TFile(path+(path==""?"":"/")+inputfileName,"READ");
   IactEventListIrf* dataSet = (IactEventListIrf*) ifile->Get("IactEventListIrf");
   if(!dataSet)
     {
@@ -365,7 +365,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
   if(CheckEnergyLimits())
     cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: energy limits out of allowed bounds!" << endl;
   
-  if(ifile) delete ifile;
+  if(ifile) {ifile->Close(); delete ifile;}
   
   return 0;
 }
@@ -1657,8 +1657,7 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
 
 //////////////////////////////////////////////////////////////////
 //
-// Function called by Lkl::PrintOverview
-// Print info about the experimental data
+// Print the values of the parameters of the Lkl-based object
 //
 void Iact1dUnbinnedLkl::PrintData(Int_t level) 
 {

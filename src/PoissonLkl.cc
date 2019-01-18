@@ -76,8 +76,8 @@ static TMinuit* minuit = NULL;
 // Also you can provide tau (default = 1) and DeltaTau
 // (default = 0, i.e. tau is a fixed parameter)
 //
-PoissonLkl::PoissonLkl(UInt_t non,UInt_t noff,Float_t tau,Float_t dTau,TString name,TString title) : 
-  Lkl(gNPars," ",name,title), fNon(non), fNoff(noff), fTau(tau), fDTau(dTau), fDEff(0),
+PoissonLkl::PoissonLkl(UInt_t non,UInt_t noff,Float_t tau,Float_t dTau,Float_t dEff,TString name,TString title) : 
+  Lkl(gNPars," ",name,title), fNon(non), fNoff(noff), fTau(tau), fDTau(dTau), fDEff(dEff),
   fGFractionInOff(0), fFrgNEvents(0), fKnownBackground(kFALSE)
 {
   // if no name/title are provided use default ones
@@ -181,6 +181,23 @@ void  PoissonLkl::SetFunctionAndPars(Double_t ginit)
     }
   
 }  
+
+//////////////////////////////////////////////////////////////////
+//
+// Print the values of the parameters of the Lkl-based object
+//
+void PoissonLkl::PrintData(Int_t level) 
+{
+  Lkl::PrintData(level);
+  
+  Margin(level); cout << "                     Non  = " << fNon  << endl;
+  Margin(level); cout << "                     Noff = " << fNoff << endl;
+  Margin(level); cout << "            Measured tau  = " << fTau << " +/- " << fDTau << endl;
+  Margin(level); cout << "            Measured Deff = " << "1 +/- " << fDEff << endl;
+  Margin(level); cout << "     Fraction of G in Off = " <<  fGFractionInOff << endl;
+  Margin(level); cout << "  Foreground events in On = " <<  fFrgNEvents << endl;
+  Margin(level); cout << "    Background in On (b) is " <<  (fKnownBackground? "FIXED" : "NUISANCE") << endl;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //

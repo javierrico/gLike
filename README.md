@@ -30,11 +30,13 @@ Follows a non-exhaustive list of examples where gLike is useful (in order of inc
 
 ### gLike distribution structure
 In gLike you find the following directories:
-1. [`src`](https://github.com/javierrico/gLike/tree/master/src): source files (*.cc) with definition of every class
-2. [`include`](https://github.com/javierrico/gLike/tree/master/include): include files (*.h) with declaration of every class 
-3. [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts): root macros and scripts with some gLike example applications
-4. [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles): examples of rcfiles (in principle the only thing a regular user should edit and modify)
-5. [`logo`](https://github.com/javierrico/gLike/tree/master/logo): the gLike logo
+1. [`src`](https://github.com/javierrico/gLike/tree/master/src): source files (*.cc) with definition of every class,
+2. [`include`](https://github.com/javierrico/gLike/tree/master/include): include files (*.h) with declaration of every class,
+3. [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts): root macros and scripts with some gLike example applications,
+4. [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles): examples of rcfiles (in principle the only thing a regular user should edit and modify),
+5. [`data`](https://github.com/javierrico/gLike/tree/master/data): examples of input data files, e.g. events and corresponding IRFs mimicking a generic IACT telescope of the 2nd generation like MAGIC,
+6. [`DM`](https://github.com/javierrico/gLike/tree/master/DM): files for DM-related analysis, e.g. the dN/dE functions for different masses and annihilation channels,
+7. [`logo`](https://github.com/javierrico/gLike/tree/master/logo): the gLike logo
 
 ### Fast description of the code
  gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.

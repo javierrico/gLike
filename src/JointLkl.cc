@@ -109,7 +109,8 @@ using namespace std;
 static const TString  gName            = "JointLkl";
 static const TString  gTitle           = "Joint Likelihood";
 static const Int_t    gNPars           = 1;         // Number of free+nuisance parameters
-
+static const TString  gInputString     = "DlinG=0";
+  
 // -2logL function for minuit
 void jointLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
 
@@ -123,7 +124,7 @@ static TMinuit* minuit = NULL;
 // samples, which can be later expanded by AddSample
 //
 JointLkl::JointLkl(TString inputString) : 
-  Lkl(gNPars,inputString,gName,gTitle), fSampleArray(NULL)
+  Lkl(gNPars,(inputString==""?gInputString:inputString) ,gName,gTitle), fSampleArray(NULL)
 {
   fSampleArray = new TObjArray();
 }

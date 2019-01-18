@@ -447,6 +447,22 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
   // if the range was too narrow, expand it
   Double_t lklval;
 
+  // contract the lower end
+  while((lklval=MinimizeLkl(glow,kTRUE,kFALSE,kTRUE))>fgmin+4*fErrorDef)
+    {
+      Double_t save  = glow;
+      glow+=TMath::Abs(glow-gmin)/2.;
+      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(glow) = " << lklval << ", glow rised from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
+    }
+  
+  // expand the upper end
+  while((lklval=MinimizeLkl(glow,kTRUE,kFALSE,kTRUE))<fgmin+fErrorDef || (centerAtZero && glow>0))
+    {
+      Double_t save  = glow;      
+      glow-=(glow>0? 2*TMath::Abs(glow) : TMath::Abs(glow));
+      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", glow lowered from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
+    }
+  
   // if only positive values set glow to zero
   if(fGIsPositive && glow<0)
     {
@@ -456,26 +472,27 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
       
       if(fParVal[gGParIndex]<0)
 	{
-	  fLklMin = MinimizeLkl(0,kTRUE,kFALSE,kTRUE);
+	  fgmin = fLklMin = MinimizeLkl(0,kTRUE,kFALSE,kTRUE);
 	  gmin    = 0;
 	}
     }
 
   // contract the upper end
-  while((lklval=MinimizeLkl(gupp,kTRUE,kFALSE,kTRUE))>fLklMin+4*fErrorDef)
+  while((lklval=MinimizeLkl(gupp,kTRUE,kFALSE,kTRUE))>fgmin+4*fErrorDef)
     {
       Double_t save  = gupp;      
       gupp-=TMath::Abs(gupp-gmin)/2.;
-      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", gupp lowered from " << save << " to " << gupp <<" (fLklMin = " << fLklMin << ")"<< endl;
+      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", gupp lowered from " << save << " to " << gupp <<" (fLklMin = " << fgmin << ")"<< endl;
     }
   
   // expand the upper end
-  while((lklval=MinimizeLkl(gupp,kTRUE,kFALSE,kTRUE))<fLklMin+fErrorDef || (centerAtZero && gupp<0))
+  while((lklval=MinimizeLkl(gupp,kTRUE,kFALSE,kTRUE))<fgmin+fErrorDef || (centerAtZero && gupp<0))
     {
       Double_t save  = gupp;      
       gupp+=(gupp<0? 2*TMath::Abs(gupp) : TMath::Abs(gupp));
-      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", gupp rised lowered from " << save << " to " << gupp <<" (fLklMin = " << fLklMin << ")"<< endl;
+      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", gupp rised from " << save << " to " << gupp <<" (fLklMin = " << fgmin << ")"<< endl;
     }
+  fLklMin=fgmin;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -577,7 +594,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
       fParVal[ipar] = parval;
       fParErr[ipar] = parerr;
     }
-    fLklMin     = lkl;
+  fLklMin     = lkl;
 
   return lkl;
 }
@@ -1039,7 +1056,6 @@ void Lkl::PrintOverview(Int_t level)
 
   // lkl value
   Margin(level); cout << "  -2logL_min        = " << fLklMin << endl;
-  //  PrintData(level);
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
