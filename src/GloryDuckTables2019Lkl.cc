@@ -59,7 +59,7 @@ static TMinuit* minuit = NULL;
 //
 GloryDuckTables2019Lkl::GloryDuckTables2019Lkl(TString inputString) :
   Lkl(gNPars,inputString,gName,gTitle), fMass(NULL), fNMasses(0),
- fsvMin(NULL), fsvMax(NULL), fLogJ(0), fSampleArray(NULL)
+  fActiveMass(0), fNsvVals(0), fsvVals(NULL), fSampleArray(NULL)
 {
   if(InterpretInputString(inputString))
     cout << "GloryDuckTables2019Lkl::GloryDuckTables2019Lkl Warning: there were problems interpreting the input string" << endl;
@@ -107,8 +107,7 @@ Int_t GloryDuckTables2019Lkl::InterpretInputString(TString inputString)
 GloryDuckTables2019Lkl::~GloryDuckTables2019Lkl()
 {
   if(fSampleArray) delete fSampleArray;
-  if(fsvMin)       delete [] fsvMin;
-  if(fsvMax)       delete [] fsvMax;
+  if(fsvVals)      delete [] fsvVals;
   if(fMass)        delete [] fMass;
 }
 
@@ -143,7 +142,7 @@ void GloryDuckTables2019Lkl::SetFunctionAndPars(Double_t ginit)
   delete iter;
 
   Double_t pStart[gNPars] = {(ginit==0? gRefsv :ginit)};
-  Double_t pDelta[gNPars] = {1};
+  Double_t pDelta[gNPars] = {gRefsv}; // to be fine tuned when applied to real data
 
   SetParameters(gParName,pStart,pDelta);
 }  
@@ -157,6 +156,34 @@ void GloryDuckTables2019Lkl::SetFunctionAndPars(Double_t ginit)
 Int_t GloryDuckTables2019Lkl::MakeChecks()
 {
   if(IsChecked()) return 0;
+
+  // Check that the number of mass is not 0
+  if(!fNMasses)
+    {
+      cout << "GloryDuckTables2019Lkl::MakeChecks (" << GetName() << ") Warning: fNMasses = 0" << endl;
+      return 1;
+    }
+
+  // Check that the array of masses is not NULL 
+  if(!fMass)
+    {
+      cout << "GloryDuckTables2019Lkl::MakeChecks (" << GetName() << ") Warning: fMass is empty" << endl;
+      return 1;
+    }
+
+  // Check that the number of <sv> values scanned is not 0
+  if(!fNsvVals)
+    {
+      cout << "GloryDuckTables2019Lkl::MakeChecks (" << GetName() << ") Warning: fNsvVals = 0" << endl;
+      return 1;
+    }
+
+  // Check that the array of <sv> values is not NULL 
+  if(!fsvVals)
+    {
+      cout << "GloryDuckTables2019Lkl::MakeChecks (" << GetName() << ") Warning: fsvVals is empty" << endl;
+      return 1;
+    }
 
   // Check all parabolas
   TObjArrayIter* iter = (TObjArrayIter*) GetSampleArray()->MakeIterator();
@@ -212,8 +239,16 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   Double_t field;
   while (row>> field)
     {
+      fNsvVals++;
       vsigma.push_back(field);
     }
+
+  Double_t* newSvList = new Double_t[fNsvVals];
+  for(Int_t ibin=0;ibin<fNsvVals;ibin++)
+    {
+       newSvList[ibin] = vsigma[ibin];
+    }
+  fsvVals = newSvList;
 
   Double_t readingMass = 0.;
   Double_t readingLkl = 0.;
@@ -234,7 +269,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
         }
 
       // add new parabola
-      CreateAndAddNewParabola(readingMass,vsigma[0],vsigma[vsigma.size()-1],vsigma.size(),vsigma.data(),vlkl.data());
+      CreateAndAddNewParabola(readingMass,vsigma.size(),vsigma.data(),vlkl.data());
 
       // check if line was complete or not
       if(vlkl.size() != vsigma.size())
@@ -255,19 +290,23 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
 
 ////////////////////////////////////////////////////////////////
 //
-// Add a new ParabolaLkl object representing the -2logL values vs
-// <sv> for one DM mass
+// Add a new ParabolaLkl object representing the -2logL values 
+// vs <sv> for one DM mass
+//
+// Parameters:
+// mass    = mass of the DM particle to which this parabola corresponds
+// npoints = number of likelihood values to store in the parabola
+// *sv     = vector of <sv> values
+// *logL   = vector of likelihood values
 //
 // Return 0 in case of success, 1 otherwise
 //
-Int_t GloryDuckTables2019Lkl::CreateAndAddNewParabola(Double_t mass,Double_t svmin,Double_t svmax,Int_t npoints,Double_t* sv,Double_t* logL) 
+Int_t GloryDuckTables2019Lkl::CreateAndAddNewParabola(Double_t mass,Int_t npoints,Double_t* sv,Double_t* logL) 
 {
   fNMasses++;
 
   // Add new bin bounds to the list
   Double_t* newMassList = new Double_t[fNMasses];
-  Double_t* newSvMinList = new Double_t[fNMasses];
-  Double_t* newSvMaxList = new Double_t[fNMasses];
 
   // copy old lists into new ones
   if(fNMasses>1)
@@ -275,20 +314,12 @@ Int_t GloryDuckTables2019Lkl::CreateAndAddNewParabola(Double_t mass,Double_t svm
       for(Int_t ibin=0;ibin<fNMasses-1;ibin++)
 	{
 	  newMassList[ibin] = fMass[ibin];
-	  newSvMinList[ibin] = fsvMin[ibin];
-	  newSvMaxList[ibin] = fsvMax[ibin];
 	}
       delete [] fMass;
-      delete [] fsvMin;
-      delete [] fsvMax;
     }
 
   newMassList[fNMasses-1] = mass;
-  newSvMinList[fNMasses-1] = svmin;
-  newSvMaxList[fNMasses-1] = svmax;
   fMass = newMassList;
-  fsvMin = newSvMinList;
-  fsvMax = newSvMaxList;
 
   // Create and add the new ParabolaLkl object
   ParabolaLkl* newparabola = new ParabolaLkl(npoints,sv,logL,Form("ParabolaLkl_%d",GetSampleArray()->GetEntries()));
@@ -307,9 +338,28 @@ void GloryDuckTables2019Lkl::PrintData(Int_t level)
 {
   Lkl::PrintData(level);
 
-  Margin(level); cout << "                of masses = " << fNMasses <<endl;
-  Margin(level); cout << "                 <sv>_min = " << fsvMin[0]        << " [cm^3 s^-1]" << endl;
-  Margin(level); cout << "                 <sv>_max = " << fsvMax[fNMasses-1] << " [cm^3 s^-1]" << endl;
+  Margin(level); cout << "                of masses = " << fNMasses << endl;
+  Margin(level); cout << "                 <sv>_min = " << fsvVals[0]        << " [cm^3 s^-1]" << endl;
+  Margin(level); cout << "                 <sv>_max = " << fsvVals[fNsvVals-1] << " [cm^3 s^-1]" << endl;
+  Margin(level); cout << "                            " << endl;
+  Margin(level); cout << " Parabola's content:        " << endl;
+  Margin(level); cout << " Masses [GeV]     <sv> [cm^3/s] -->  " ;
+  for(Int_t ibin=0;ibin<fNsvVals-1;ibin++)
+    {
+      cout << fsvVals[ibin] << "  ";
+    }
+  cout << endl;
+
+  for(Int_t ibin=0;ibin<fNMasses-1;ibin++)
+    {
+      Margin(level); cout << "    " << fMass[ibin] << "                              ";
+      for(Int_t jbin=0;jbin<fNsvVals-1;jbin++)
+        {
+          cout << GetSample(ibin)->GetLklVsG(kFALSE)->Eval(fsvVals[jbin]) << "  ";
+        }
+      cout << endl;
+    }
+  cout << endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -325,7 +375,7 @@ TCanvas* GloryDuckTables2019Lkl::PlotInputData()
   Int_t ncols = TMath::Ceil(fNMasses/Float_t(nlines)); // number of columns in parabolas canvas
 
   // create and divide canvas
-  TCanvas* canvas = new TCanvas("inputDataCanvas","-2logL value per energy bin and energy flux",ncols*250,nlines*250);
+  TCanvas* canvas = new TCanvas("inputDataCanvas","-2logL value for range of <sv> values scanned",ncols*250,nlines*250);
   canvas->Divide(ncols,nlines);
 
   for(Int_t ibin=0;ibin<fNMasses;ibin++)
@@ -334,7 +384,7 @@ TCanvas* GloryDuckTables2019Lkl::PlotInputData()
       TGraph*      grprbla = prbla->GetParabola(kFALSE);
 
       canvas->cd(ibin+1);
-      TH1I *dummypr = new TH1I(Form("dummypr_%d",ibin),Form("-2logLkl vs <sv> for m_{DM}=%.1f \\ and <sv>=[%.1f,%.1f] [cm^3 s^-1]",fMass[ibin],fsvMin[ibin],fsvMax[ibin]),1,grprbla->GetX()[1]*0.1,grprbla->GetX()[grprbla->GetN()-1]);
+      TH1I *dummypr = new TH1I(Form("dummypr_%d",ibin),Form("-2logLkl vs <sv> for m_{DM}=%.1f \\ and <sv>=[%.1f,%.1f] [cm^3 s^-1]",fMass[ibin],fsvVals[0],fsvVals[fNsvVals- 1]),1,grprbla->GetX()[1]*0.1,grprbla->GetX()[grprbla->GetN()-1]);
       dummypr->SetDirectory(0);
       dummypr->SetStats(0);
       dummypr->SetXTitle("<sv> [cm^3 s^-1]");
@@ -356,21 +406,43 @@ TCanvas* GloryDuckTables2019Lkl::PlotInputData()
 
 ////////////////////////////////////////////////////////////////////////
 //
-// Set mass index to the current active one
+// Set mass index to the current active mass using the mass value
 //
-void GloryDuckTables2019Lkl::SetActiveMass(Double_t mass)
+// Return 0 in case of success, 1 otherwise
+//
+Int_t GloryDuckTables2019Lkl::SetActiveMass(Double_t mass)
 {
+  // check if the mass exists in fMass[]
   for (Int_t counter = 0; counter < fNMasses; counter++)
     {
       if(TMath::Abs(fMass[counter]-mass) < 1e-3)
         {
           fActiveMass = counter;
-          return;
+          return 0;
         }
     }
 
   cout << "GloryDuckTables2019Lkl::SetActiveMass() Message: Mass " << mass << " doesn't exist." << endl;
-  return;
+  return 1;
+}
+
+////////////////////////////////////////////////////////////////////////
+//
+// Set mass index to the current active mass using the index
+//
+// Return 0 in case of success, 1 otherwise
+//
+Int_t GloryDuckTables2019Lkl::SetActiveMass(Int_t index)
+{
+  // check if the index is positive and smaller than the number of masses
+  if(index >=0 && index < fNMasses)
+    {
+      fActiveMass = index;
+      return 0;
+     }
+
+  cout << "GloryDuckTables2019Lkl::SetActiveMass() Message: Index " << index << " isn't correct." << endl;
+  return 1;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -395,8 +467,7 @@ void gloryDuckTables2019Lkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *p
   Double_t g = par[0];
 
   // get likelihood for current active mass
-  Lkl* sample = mylkl->GetSample(mylkl->GetActiveMass());
-  //ParabolaLkl* sample = (ParabolaLkl*)mylkl->GetSample(mylkl->GetActiveMass());
+  ParabolaLkl* sample = dynamic_cast<ParabolaLkl*>(mylkl->GetSample(mylkl->GetActiveMass()));
 
   // minimize
   f=sample->MinimizeLkl(g,kTRUE,kFALSE);
