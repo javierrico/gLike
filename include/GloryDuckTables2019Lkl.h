@@ -29,9 +29,6 @@ class GloryDuckTables2019Lkl : public Lkl
   inline       UInt_t     GetNMasses()         const {return fNMasses;}
   inline       UInt_t     GetActiveMass()      const {return fActiveMass;}
 
-  // unable SetUnitsOfG, dPhi/dE_signal must have proper units
-  virtual void SetUnitsOfG(Double_t unit);
-
   // set mass index to the current active one
   Int_t SetActiveMass(Double_t mass); // using the mass
   Int_t SetActiveMass(Int_t index);   // using the index
@@ -61,7 +58,6 @@ class GloryDuckTables2019Lkl : public Lkl
   Double_t*   fMass;          //-> [GeV] array with dark matter particle mass
   TObjArray*  fSampleArray;   //-> Array of Lkl objects (one for each mass) 
   UInt_t      fNsvVals;       //   Number of <sv> values
-  Double_t*   fsvVals;        //-> Array with <sv> values
 
   ClassDef(GloryDuckTables2019Lkl,1) // Likelihood vs <sv>
 };

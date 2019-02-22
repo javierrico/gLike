@@ -11,8 +11,6 @@
 //
 // This class takes as input a list of values of -2logL vs <sv> for 
 // different masses (in the framework of the Glory Duck project).
-// The likelihood values are already using the correct units, 
-// therefore SetUnitsOfG is deactivated for this class.
 // 
 // Usage example:
 // --------------
@@ -59,7 +57,7 @@ static TMinuit* minuit = NULL;
 //
 GloryDuckTables2019Lkl::GloryDuckTables2019Lkl(TString inputString) :
   Lkl(gNPars,inputString,gName,gTitle), fMass(NULL), fNMasses(0),
-  fActiveMass(0), fNsvVals(0), fsvVals(NULL), fSampleArray(NULL)
+  fActiveMass(0), fNsvVals(0), fSampleArray(NULL)
 {
   if(InterpretInputString(inputString))
     cout << "GloryDuckTables2019Lkl::GloryDuckTables2019Lkl Warning: there were problems interpreting the input string" << endl;
@@ -107,7 +105,6 @@ Int_t GloryDuckTables2019Lkl::InterpretInputString(TString inputString)
 GloryDuckTables2019Lkl::~GloryDuckTables2019Lkl()
 {
   if(fSampleArray) delete fSampleArray;
-  if(fsvVals)      delete [] fsvVals;
   if(fMass)        delete [] fMass;
 }
 
@@ -178,13 +175,6 @@ Int_t GloryDuckTables2019Lkl::MakeChecks()
       return 1;
     }
 
-  // Check that the array of <sv> values is not NULL 
-  if(!fsvVals)
-    {
-      cout << "GloryDuckTables2019Lkl::MakeChecks (" << GetName() << ") Warning: fsvVals is empty" << endl;
-      return 1;
-    }
-
   // Check all parabolas
   TObjArrayIter* iter = (TObjArrayIter*) GetSampleArray()->MakeIterator();
   Lkl* sample;
@@ -196,16 +186,6 @@ Int_t GloryDuckTables2019Lkl::MakeChecks()
 
   SetChecked();
   return 0;
-}
-
-////////////////////////////////////////////////////////////////
-//
-// Disable SetUnitsOfG, since units are used internally by the 
-// class and should not be changed.
-//
-void GloryDuckTables2019Lkl::SetUnitsOfG(Double_t units)
-{
-  cout<< "GloryDuckTables2019Lkl::SetUnitsOfG (" << GetName() << ") Warning: cannot set units for GloryDuckTables2019Lkl." << endl;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -242,13 +222,6 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
       fNsvVals++;
       vsigma.push_back(field);
     }
-
-  Double_t* newSvList = new Double_t[fNsvVals];
-  for(Int_t ibin=0;ibin<fNsvVals;ibin++)
-    {
-       newSvList[ibin] = vsigma[ibin];
-    }
-  fsvVals = newSvList;
 
   Double_t readingMass = 0.;
   Double_t readingLkl = 0.;
@@ -338,24 +311,27 @@ void GloryDuckTables2019Lkl::PrintData(Int_t level)
 {
   Lkl::PrintData(level);
 
-  Margin(level); cout << "                of masses = " << fNMasses << endl;
-  Margin(level); cout << "                 <sv>_min = " << fsvVals[0]        << " [cm^3 s^-1]" << endl;
-  Margin(level); cout << "                 <sv>_max = " << fsvVals[fNsvVals-1] << " [cm^3 s^-1]" << endl;
+  TGraph* grprbla = GetSample(0)->GetLklVsG(kFALSE);
+  Double_t* sv = grprbla->GetX();
+
+  Margin(level); cout << "         Number of masses = " << fNMasses << endl;
+  Margin(level); cout << "                 <sv>_min = " << sv[0] << " [cm^3 s^-1]" << endl;
+  Margin(level); cout << "                 <sv>_max = " << sv[grprbla->GetN()-1] << " [cm^3 s^-1]" << endl;
   Margin(level); cout << "                            " << endl;
   Margin(level); cout << " Parabola's content:        " << endl;
   Margin(level); cout << " Masses [GeV]     <sv> [cm^3/s] -->  " ;
-  for(Int_t ibin=0;ibin<fNsvVals-1;ibin++)
+  for(Int_t ibin=0;ibin<grprbla->GetN();ibin++)
     {
-      cout << fsvVals[ibin] << "  ";
+      cout << sv[ibin] << "  ";
     }
   cout << endl;
 
-  for(Int_t ibin=0;ibin<fNMasses-1;ibin++)
+  for(Int_t ibin=0;ibin<fNMasses;ibin++)
     {
       Margin(level); cout << "    " << fMass[ibin] << "                              ";
-      for(Int_t jbin=0;jbin<fNsvVals-1;jbin++)
+      for(Int_t jbin=0;jbin<grprbla->GetN();jbin++)
         {
-          cout << GetSample(ibin)->GetLklVsG(kFALSE)->Eval(fsvVals[jbin]) << "  ";
+          cout << GetSample(ibin)->GetLklVsG(kFALSE)->Eval(sv[jbin]) << "  ";
         }
       cout << endl;
     }
@@ -380,11 +356,12 @@ TCanvas* GloryDuckTables2019Lkl::PlotInputData()
 
   for(Int_t ibin=0;ibin<fNMasses;ibin++)
     {
-      ParabolaLkl* prbla   = (ParabolaLkl*)GetSample(ibin);
-      TGraph*      grprbla = prbla->GetParabola(kFALSE);
+      ParabolaLkl* prbla = (ParabolaLkl*)GetSample(ibin);
+      TGraph*    grprbla = prbla->GetParabola(kFALSE);
+      Double_t*       sv = grprbla->GetX();
 
       canvas->cd(ibin+1);
-      TH1I *dummypr = new TH1I(Form("dummypr_%d",ibin),Form("-2logLkl vs <sv> for m_{DM}=%.1f \\ and <sv>=[%.1f,%.1f] [cm^3 s^-1]",fMass[ibin],fsvVals[0],fsvVals[fNsvVals- 1]),1,grprbla->GetX()[1]*0.1,grprbla->GetX()[grprbla->GetN()-1]);
+      TH1I *dummypr = new TH1I(Form("dummypr_%d",ibin),Form("-2logLkl vs <sv> for m_{DM}=%.1f \\ and <sv>=[%.1f,%.1f] [cm^3 s^-1]",fMass[ibin],sv[0],sv[grprbla->GetN()-1]),1,grprbla->GetX()[1]*0.1,grprbla->GetX()[grprbla->GetN()-1]);
       dummypr->SetDirectory(0);
       dummypr->SetStats(0);
       dummypr->SetXTitle("<sv> [cm^3 s^-1]");
