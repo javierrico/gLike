@@ -7,7 +7,7 @@ LIBDIR     = ./lib
 CXX        = g++ -fPIC
 ROOTLIBS   = `root-config --libs` -lMinuit
 ROOTCFLAGS = `root-config --cflags`
-SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedLkl IactEventListIrf FermiTables2016Lkl TemplateLkl MIACTEventListIRF
+SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedLkl IactEventListIrf FermiTables2016Lkl TemplateLkl MIACTEventListIRF GloryDuckTables2019Lkl
 SOURCES    = $(SRCFILES:%=$(SRCDIR)/%.cc)
 HEADERS    = $(SRCFILES:%=$(INCLDIR)/%.h)
 OBJECTS    = $(SRCFILES:%=$(OUTDIR)/%.o)

@@ -9,6 +9,7 @@
 #pragma link C++ class IactEventListIrf+;
 #pragma link C++ class MIACTEventListIRF+;
 #pragma link C++ class FermiTables2016Lkl+;
+#pragma link C++ class GloryDuckTables2019Lkl+;
 #pragma link C++ class TemplateLkl+;
 
 #endif
