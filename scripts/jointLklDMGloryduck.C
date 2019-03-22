@@ -573,7 +573,7 @@ void jointLklDMGloryduck(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc
       if(imass==0)
         {
           cout << "massval: " << massval[imass] << endl;
-          myfile.open("./plots/Gloryduck_example_file.txt", std::ofstream::trunc);
+          myfile.open("gLike_outputfile.txt", std::ofstream::trunc);
           myfile << logJ << " ";
           for(Int_t ipoint=0;ipoint<nPoints;ipoint++)
             {
@@ -589,7 +589,7 @@ void jointLklDMGloryduck(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc
       else
         {
           cout << "massval: " << massval[imass] << endl;
-          myfile.open("./plots/Gloryduck_example_file.txt", std::ios_base::app);
+          myfile.open("gLike_outputfile.txt", std::ios_base::app);
           myfile << massval[imass] << " ";
           myfile.close();
         }

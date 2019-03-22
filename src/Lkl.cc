@@ -335,7 +335,7 @@ Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Doub
       if(className.CompareTo("JointLkl_00")==0 && glow==glow_fixrange && gupp==gupp_fixrange)
         {
           ofstream myfile;
-          myfile.open("./plots/Gloryduck_example_file.txt", std::ios_base::app);
+          myfile.open("gLike_outputfile.txt", std::ios_base::app);
           /*
           for(Int_t ipoint=0;ipoint<realNPoints;ipoint++)
             {
