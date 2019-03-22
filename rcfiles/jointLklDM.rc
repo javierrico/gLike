@@ -110,6 +110,7 @@ JOINT LIKELIHOOD CONFIGURATION
 #   dLogJ only once for their common parent term. This is so because logJ is used to transform excess events into <sv> units whereas a non-zero
 #   DlogJ indicates that the uncertainty in the units of a particular lkl term is an *independent* random variable.
 #
+jointLklDM.logJ: 19.
 jointLklDM.lklTerm000: JointLkl -   DlogJ=0
 jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
 jointLklDM.lklTerm002: Iact1dBinnedLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root  nbins=20

@@ -106,6 +106,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include "TMath.h"
 #include "TH1.h"
@@ -251,6 +253,16 @@ Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Doub
       Lkl::MinimizeLkl();
       FindGLowAndGUpp(glow,gupp,centerAtZero);
     }
+
+  npoints = 200;
+  Double_t sigmaVlow = 1.e-28;
+  Double_t sigmaVupp = 2.e-22;
+
+  Double_t unitsOfG = GetUnitsOfG();
+  Double_t glow_fixrange = sigmaVlow/unitsOfG;
+  Double_t gupp_fixrange = sigmaVupp/unitsOfG;
+  glow = glow_fixrange;
+  gupp = gupp_fixrange;
  
   // expansion of glow and gupp from daughter likelihoods
   expCoeff = GetExpansionCoefficient();
@@ -318,6 +330,26 @@ Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Doub
 	  yval[ipoint] = MinimizeLkl(xval[ipoint],kTRUE,kFALSE);
 
 	}
+
+      TString className = GetName();
+      if(className.CompareTo("JointLkl_00")==0 && glow==glow_fixrange && gupp==gupp_fixrange)
+        {
+          ofstream myfile;
+          myfile.open("./plots/Gloryduck_example_file.txt", std::ios_base::app);
+          /*
+          for(Int_t ipoint=0;ipoint<realNPoints;ipoint++)
+            {
+              myfile << xval[ipoint]*unitsOfG << " ";
+            }
+          myfile << "\n";
+          */
+          for(Int_t ipoint=0;ipoint<realNPoints;ipoint++)
+            {
+              myfile << yval[ipoint] << " ";
+            }
+          myfile << "\n";
+          myfile.close();
+        }
       if(isVerbose)
 	cout << " Completed " << realNPoints << " points" << endl;
       
