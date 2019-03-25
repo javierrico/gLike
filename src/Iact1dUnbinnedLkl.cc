@@ -889,6 +889,69 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString filename)
   return status;
 }
 
+Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString* filenames, Float_t* branchingRatios, Int_t numFiles)
+{
+  // open file and look for histo
+  TFile* dNdESignalFile[numFiles];
+  TH1F*  hProvdNdESignal[numFiles];
+  TH1F*  linCHdNdESignal;
+
+  Int_t status      = 0;
+  Int_t nBins       = 0;
+  Double_t lowEdge  = 0.0;
+  Double_t highEdge = 0.0;
+  for(Int_t file=0;file<numFiles;file++)
+    {
+      dNdESignalFile[file]  = new TFile(filenames[file]);
+      hProvdNdESignal[file] = (TH1F*) dNdESignalFile[file]->Get("hdNdE");
+      if(!hProvdNdESignal[file]) status=1;
+      if(nBins!=0)
+        {
+          if(hProvdNdESignal[file]->GetNbinsX()!=nBins) status=1;
+          if(hProvdNdESignal[file]->GetBinLowEdge(1)!=lowEdge) status=1;
+          if(hProvdNdESignal[file]->GetBinLowEdge(nBins+1)!=highEdge) status=1;
+        }
+      else
+        {
+          nBins = hProvdNdESignal[file]->GetNbinsX();
+          lowEdge = hProvdNdESignal[file]->GetBinLowEdge(1);
+          highEdge = hProvdNdESignal[file]->GetBinLowEdge(nBins+1);
+          cout << "nBin:" << nBins << "  lowEdge:" << lowEdge << "  highEdge:" << highEdge << endl;
+        }
+     }
+
+  // perform the linear combination
+  if(status==0)
+    {
+      Double_t linC;
+      for(Int_t ibin=1;ibin<nBins+1;ibin++)
+        {
+          linC = 0;
+          for(Int_t file=0;file<numFiles;file++)
+            {
+              //cout << "BR:" << branchingRatios[file] << "  val:" << hProvdNdESignal[file]->GetBinContent(ibin) << endl;
+              linC += (branchingRatios[file]*hProvdNdESignal[file]->GetBinContent(ibin));
+            }
+          //cout << "linC=" << linC << endl;
+          // create linear combination histogram of dNdESignal
+          linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
+          linCHdNdESignal->SetDirectory(0);
+          linCHdNdESignal->SetXTitle("log_{10}(E [GeV])");
+          linCHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
+          linCHdNdESignal->SetBinContent(ibin,linC);
+          //cout << "i=" << ibin << "  " << linCHdNdESignal->GetBinContent(ibin) << endl;
+        }
+      status = SetdNdESignal(linCHdNdESignal);
+    }
+
+  for(Int_t file=0;file<numFiles;file++)
+     {
+       delete dNdESignalFile[file];
+     }
+
+  return status;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
 // Read dN/dE' for signal from file in the Segue Stereo input format
