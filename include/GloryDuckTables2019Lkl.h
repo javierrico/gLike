@@ -58,6 +58,7 @@ class GloryDuckTables2019Lkl : public Lkl
   Double_t*   fMass;          //-> [GeV] array with dark matter particle mass
   TObjArray*  fSampleArray;   //-> Array of Lkl objects (one for each mass) 
   UInt_t      fNsvVals;       //   Number of <sv> values
+  Double_t    logJ;           //   Value of logJ
 
   ClassDef(GloryDuckTables2019Lkl,1) // Likelihood vs <sv>
 };

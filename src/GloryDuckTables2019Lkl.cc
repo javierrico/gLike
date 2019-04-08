@@ -207,17 +207,17 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   else
     cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Message: Reading masses and <sigmav> values from file " << filename << endl;
 
-  // get the number of lines of the file
-  Int_t numRows = 0;
+  // get the number of lines (=number of <sv> values - 1) in the file
   string line;
   while (getline(ff, line))
-    numRows++;
+    fNsvVals++;
+  fNsvVals -= 1;
   ff.clear();
   ff.seekg(0, ios::beg);
 
   vector<Double_t> sigmav ;                   // vector with <sv> values
   vector<Double_t> mass ;                     // vector with mass values
-  vector<vector<Double_t> > vlkl2D(numRows-1);// 2D vector with -2logL values
+  vector<vector<Double_t> > vlkl2D(fNsvVals); // 2D vector with -2logL values
   vector<Double_t> vlkl;                      // vector with -2logL values
 
   // get first line of the file (with mass values)
@@ -226,18 +226,23 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
 
   // read first line of the file
   std::istringstream first_line(massLine);
+  Bool_t read_logJ = kTRUE;
   Double_t field;
   while (first_line >> field)
     {
-      if(fNsvVals != 0)
+      if(read_logJ)
+        {
+          logJ = field;
+          read_logJ = kFALSE;
+        }
+      else
         mass.push_back(field);
-      fNsvVals++;
     }
 
   Double_t readingSigmav = 0.;
   Double_t readingLkl = 0.;
-  Int_t col = 0;
   Int_t row = 0;
+  Int_t col = 0;
 
   // get <sv> (first column)
   while(ff >> readingSigmav)
@@ -250,28 +255,27 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
       getline(ff,LklLine);
 
       // read rest of the line
-      vlkl2D[col] = vector<Double_t>(mass.size());
-      row = 0;
+      vlkl2D[row] = vector<Double_t>(mass.size());
+      col = 0;
       std::istringstream line(LklLine);
       while (line >> readingLkl)
         {
-          vlkl2D[col][row] = readingLkl;
-          row++;
+          vlkl2D[row][col] = readingLkl;
+          col++;
         }
-      // check if line was complete or not HERE -1 LATER
-      if(vlkl2D[col].size() != mass.size())
+      if(col != mass.size())
         {
-          cout << "You have a different line size length for line " << col+1 << " ! Number of mass values = " << mass.size() << " while number of likelihood values = " << vlkl2D[col].size() << endl;
+          cout << "You have a different line size length for line " << row+1 << " ! Number of mass values = " << mass.size() << " while number of likelihood values = " << col << endl;
         }
-      col++;
+      row++;
     }
 
   // add new parabolas
-  for (row = 0; row < fNsvVals-1; row++) {
-    for (col = 0; col < numRows-1; col++) {
-      vlkl.push_back(vlkl2D[col][row]);
+  for (col = 0; col < mass.size(); col++) {
+    for (row = 0; row < fNsvVals; row++) {
+      vlkl.push_back(vlkl2D[row][col]);
     }
-    CreateAndAddNewParabola(mass[row],sigmav.size(),sigmav.data(),vlkl.data());
+    CreateAndAddNewParabola(mass[col],sigmav.size(),sigmav.data(),vlkl.data());
     vlkl.clear();
   }
 
