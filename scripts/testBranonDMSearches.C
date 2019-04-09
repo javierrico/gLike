@@ -1,6 +1,6 @@
 // Macro testBranonDMSearches.C
-// Author: J. Rico
-// Date: Jan 2019
+// Author: T. Miener
+// Date: Mar 2019
 // For beginners, to understand the basic usage of the Iact1dUnbinned and Iact1dBinned classes
 // IMPORTANT NOTE: for some still-to-be-understood "feature", macros
 // containing Lkl-based objects MUST be run in compiled mode, i.e.
@@ -19,16 +19,23 @@ void testBranonDMSearches()
   const Double_t logJ         = 19.;   // [GeV^2 cm^-5] log_10 of J-factor of the assumed DM source
   const Double_t DlogJ        = 0;     // [GeV^2 cm^-5] statistical error in log_10 of J-factor of the assumed DM source
   const Double_t mass         = 1000.; // [GeV] mass of the DM particle
+
+
   TString* dNdEFileNamePointer;
   Float_t* branchingRatiosPointer;
-  Int_t numFiles = 2;
-  TString  dNdEFileName[numFiles];
-  Float_t branchingRatios[numFiles];
+  Int_t nFiles = 2;
+  TString  dNdEFileName[nFiles];
+  Float_t branchingRatios[nFiles];
+ 
+  // You cann change here the annihilation channels
   dNdEFileName[0] = TString(Form("./DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root",mass)); // dN/dE input file  
   dNdEFileName[1] = TString(Form("./DM/dNdE/Cirelli/dNdESignal_tautau_%.1fmass.root",mass)); // dN/dE input file  
   TString dNdEFileNameBn = TString(Form("./DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root",mass)); // dN/dE input file  
+  
+  // You can change here the branching ratios! It seems to be working, if you don't have 100% annihilation in one channel
   branchingRatios[0] = 1.0;
   branchingRatios[1] = 0.0;
+
   dNdEFileNamePointer = dNdEFileName;
   branchingRatiosPointer = branchingRatios;
 
@@ -39,9 +46,9 @@ void testBranonDMSearches()
   // create and configure an Iact1dUnbinnedLkl object for 1D unbinned likelihood analysis
   Iact1dUnbinnedLkl* unbn = new Iact1dUnbinnedLkl(Form("logJ=%.2f DlogJ=0 inputfile=%s",logJ,inputFile1.Data()));
 
-  // Selection of the ReaddNdESignal functions
-  //unbn->ReaddNdESignal(dNdEFileNamePointer,branchingRatiosPointer,numFiles); // new function
-  unbn->ReaddNdESignal(dNdEFileNameBn); // conventional function
+  // Selection of the ReaddNdESignal functions (Pick one of the two functions
+  unbn->ReaddNdESignal(nFiles, dNdEFileNamePointer,branchingRatiosPointer); // new function
+  //unbn->ReaddNdESignal(dNdEFileNameBn); // conventional function
 
   unbn->SetDMAnnihilationUnitsForG(mass);    // set units for DM annihilation <sv>
 

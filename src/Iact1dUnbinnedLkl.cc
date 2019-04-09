@@ -889,33 +889,45 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString filename)
   return status;
 }
 
-Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString* filenames, Float_t* branchingRatios, Int_t numFiles)
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+// Read multiple dN_i/dE for signal from file in
+// the Segue Stereo input format produced by Jelena
+// and their corresponding branching ratios BR_i.
+// Then perform a linear combination
+// dN/dE = sum(BR_i * dN_i/dE).
+// Replacement of existing file is allowed
+// Return 0 in case of success
+//        1 if file is not found
+//
+Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Float_t* branchingRatios)
 {
-  // open file and look for histo
-  TFile* dNdESignalFile[numFiles];
-  TH1F*  hProvdNdESignal[numFiles];
+  // Initialize the array of pointers and other variables
+  TFile* dNdESignalFile[nFiles];
+  TH1F*  hProvdNdESignal[nFiles];
   TH1F*  linCHdNdESignal;
 
   Int_t status      = 0;
   Int_t nBins       = 0;
   Double_t lowEdge  = 0.0;
   Double_t highEdge = 0.0;
-  for(Int_t file=0;file<numFiles;file++)
+  // open file and look for histograms
+  for(Int_t iFile=0;iFile<nFiles;iFile++)
     {
-      dNdESignalFile[file]  = new TFile(filenames[file]);
-      hProvdNdESignal[file] = (TH1F*) dNdESignalFile[file]->Get("hdNdE");
-      if(!hProvdNdESignal[file]) status=1;
+      dNdESignalFile[iFile]  = new TFile(filenames[iFile]);
+      hProvdNdESignal[iFile] = (TH1F*) dNdESignalFile[iFile]->Get("hdNdE");
+      if(!hProvdNdESignal[iFile]) status=1;
       if(nBins!=0)
         {
-          if(hProvdNdESignal[file]->GetNbinsX()!=nBins) status=1;
-          if(hProvdNdESignal[file]->GetBinLowEdge(1)!=lowEdge) status=1;
-          if(hProvdNdESignal[file]->GetBinLowEdge(nBins+1)!=highEdge) status=1;
+          if(hProvdNdESignal[iFile]->GetNbinsX()!=nBins) status=1;
+          if(hProvdNdESignal[iFile]->GetBinLowEdge(1)!=lowEdge) status=1;
+          if(hProvdNdESignal[iFile]->GetBinLowEdge(nBins+1)!=highEdge) status=1;
         }
       else
         {
-          nBins = hProvdNdESignal[file]->GetNbinsX();
-          lowEdge = hProvdNdESignal[file]->GetBinLowEdge(1);
-          highEdge = hProvdNdESignal[file]->GetBinLowEdge(nBins+1);
+          nBins = hProvdNdESignal[iFile]->GetNbinsX();
+          lowEdge = hProvdNdESignal[iFile]->GetBinLowEdge(1);
+          highEdge = hProvdNdESignal[iFile]->GetBinLowEdge(nBins+1);
           cout << "nBin:" << nBins << "  lowEdge:" << lowEdge << "  highEdge:" << highEdge << endl;
         }
      }
@@ -923,14 +935,14 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString* filenames, Float_t* branchingRa
   // perform the linear combination
   if(status==0)
     {
-      Double_t linC;
-      for(Int_t ibin=1;ibin<nBins+1;ibin++)
+      Double_t linC = 0;
+      for(Int_t ibin=0;ibin<nBins;ibin++)
         {
           linC = 0;
-          for(Int_t file=0;file<numFiles;file++)
+          for(Int_t iFile=0;iFile<nFiles;iFile++)
             {
-              //cout << "BR:" << branchingRatios[file] << "  val:" << hProvdNdESignal[file]->GetBinContent(ibin) << endl;
-              linC += (branchingRatios[file]*hProvdNdESignal[file]->GetBinContent(ibin));
+              //cout << "BR:" << branchingRatios[iFile] << "  val:" << hProvdNdESignal[iFile]->GetBinContent(ibin+1) << endl;
+              linC += (branchingRatios[iFile]*hProvdNdESignal[iFile]->GetBinContent(ibin+1));
             }
           //cout << "linC=" << linC << endl;
           // create linear combination histogram of dNdESignal
@@ -938,15 +950,17 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString* filenames, Float_t* branchingRa
           linCHdNdESignal->SetDirectory(0);
           linCHdNdESignal->SetXTitle("log_{10}(E [GeV])");
           linCHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
-          linCHdNdESignal->SetBinContent(ibin,linC);
-          //cout << "i=" << ibin << "  " << linCHdNdESignal->GetBinContent(ibin) << endl;
+          linCHdNdESignal->SetBinContent(ibin+1,linC);
+          //cout << "i=" << ibin+1 << "  " << linCHdNdESignal->GetBinContent(ibin+1) << endl;
         }
       status = SetdNdESignal(linCHdNdESignal);
     }
 
-  for(Int_t file=0;file<numFiles;file++)
+  // free the memory 
+  delete linCHdNdESignal;
+  for(Int_t iFile=0;iFile<nFiles;iFile++)
      {
-       delete dNdESignalFile[file];
+       delete dNdESignalFile[iFile];
      }
 
   return status;

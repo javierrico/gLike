@@ -93,7 +93,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Int_t AdddNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
   Int_t SetTrueTau(Float_t truetau) {fTrueTau=truetau; return 0;}
   Int_t ReaddNdESignal(TString filename);
-  Int_t ReaddNdESignal(TString* filenames,Float_t* branchingRatios, Int_t numFiles);
+  Int_t ReaddNdESignal(Int_t nFiles, TString* filenames,Float_t* branchingRatios);
   Int_t ReaddNdEpSignal(TString filename);
   Int_t ReaddNdEpSignalOff(TString filename);
   Int_t ReadCTAIRF(TString filename);
