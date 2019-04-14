@@ -932,26 +932,17 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Float_
         }
      }
 
-  // perform the linear combination
   if(status==0)
     {
-      Double_t linC = 0;
-      for(Int_t ibin=0;ibin<nBins;ibin++)
+      // create histogram for the linear combination of dNdESignal
+      linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
+      linCHdNdESignal->SetDirectory(0);
+      linCHdNdESignal->SetXTitle("log_{10}(E [GeV])");
+      linCHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
+      // perform the linear combination
+      for(Int_t iFile=0;iFile<nFiles;iFile++)
         {
-          linC = 0;
-          for(Int_t iFile=0;iFile<nFiles;iFile++)
-            {
-              //cout << "BR:" << branchingRatios[iFile] << "  val:" << hProvdNdESignal[iFile]->GetBinContent(ibin+1) << endl;
-              linC += (branchingRatios[iFile]*hProvdNdESignal[iFile]->GetBinContent(ibin+1));
-            }
-          //cout << "linC=" << linC << endl;
-          // create linear combination histogram of dNdESignal
-          linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
-          linCHdNdESignal->SetDirectory(0);
-          linCHdNdESignal->SetXTitle("log_{10}(E [GeV])");
-          linCHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
-          linCHdNdESignal->SetBinContent(ibin+1,linC);
-          //cout << "i=" << ibin+1 << "  " << linCHdNdESignal->GetBinContent(ibin+1) << endl;
+          linCHdNdESignal->Add(hProvdNdESignal[iFile],branchingRatios[iFile]);
         }
       status = SetdNdESignal(linCHdNdESignal);
     }
