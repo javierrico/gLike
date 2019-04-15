@@ -905,6 +905,7 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Float_
   // Initialize the array of pointers and other variables
   TFile* dNdESignalFile[nFiles];
   TH1F*  hProvdNdESignal[nFiles];
+  TH1F*  hProvdNdESignalTemp;
   TH1F*  linCHdNdESignal;
 
   Int_t status      = 0;
@@ -915,30 +916,33 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Float_
   for(Int_t iFile=0;iFile<nFiles;iFile++)
     {
       dNdESignalFile[iFile]  = new TFile(filenames[iFile]);
-      hProvdNdESignal[iFile] = (TH1F*) dNdESignalFile[iFile]->Get("hdNdE");
-      if(!hProvdNdESignal[iFile]) status=1;
-      if(nBins!=0)
+      hProvdNdESignalTemp = (TH1F*) dNdESignalFile[iFile]->Get("hdNdE");
+      // check that dN/dE histograms are found
+      if(!hProvdNdESignalTemp) status=1;
+      // store the histogram binning from the first historgram
+      if(nBins==0)
         {
-          if(hProvdNdESignal[iFile]->GetNbinsX()!=nBins) status=1;
-          if(hProvdNdESignal[iFile]->GetBinLowEdge(1)!=lowEdge) status=1;
-          if(hProvdNdESignal[iFile]->GetBinLowEdge(nBins+1)!=highEdge) status=1;
+          nBins = hProvdNdESignalTemp->GetNbinsX();
+          lowEdge = hProvdNdESignalTemp->GetBinLowEdge(1);
+          highEdge = hProvdNdESignalTemp->GetBinLowEdge(nBins+1);
         }
-      else
+      // check that the following histograms have the same binning than the first histogram
+      if(hProvdNdESignalTemp->GetNbinsX()!=nBins || hProvdNdESignalTemp->GetBinLowEdge(1)!=lowEdge || hProvdNdESignalTemp->GetBinLowEdge(nBins+1)!=highEdge)
         {
-          nBins = hProvdNdESignal[iFile]->GetNbinsX();
-          lowEdge = hProvdNdESignal[iFile]->GetBinLowEdge(1);
-          highEdge = hProvdNdESignal[iFile]->GetBinLowEdge(nBins+1);
-          cout << "nBin:" << nBins << "  lowEdge:" << lowEdge << "  highEdge:" << highEdge << endl;
+          cout << "Iact1dUnbinnedLkl::ReaddNdESignal, histogram read from file " << filenames[iFile] << " has " << hProvdNdESignalTemp->GetNbinsX() << " bins (should be " << nBins << " bins), lowEdge = " << hProvdNdESignalTemp->GetBinLowEdge(1) << " (should be " << lowEdge << ") and highEdge = " << hProvdNdESignalTemp->GetBinLowEdge(nBins+1) << " (should be " << highEdge << ")" << endl;
         }
-     }
+      // interpolate if historgram binning divers from the binning of the first histogram
+      if(hProvdNdESignal[iFile]) delete hProvdNdESignal[iFile];
+      hProvdNdESignal[iFile] = new TH1F("hProvdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
+      hProvdNdESignal[iFile]->SetDirectory(0);
+      readAndInterpolate(hProvdNdESignalTemp,hProvdNdESignal[iFile]);
+      delete hProvdNdESignalTemp;
+    }
 
   if(status==0)
     {
       // create histogram for the linear combination of dNdESignal
       linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
-      linCHdNdESignal->SetDirectory(0);
-      linCHdNdESignal->SetXTitle("log_{10}(E [GeV])");
-      linCHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
       // perform the linear combination
       for(Int_t iFile=0;iFile<nFiles;iFile++)
         {
@@ -947,7 +951,7 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Float_
       status = SetdNdESignal(linCHdNdESignal);
     }
 
-  // free the memory 
+  // free the memory
   delete linCHdNdESignal;
   for(Int_t iFile=0;iFile<nFiles;iFile++)
      {
