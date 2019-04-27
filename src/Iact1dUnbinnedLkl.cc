@@ -900,63 +900,48 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString filename)
 // Return 0 in case of success
 //        1 if file is not found
 //
-Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Float_t* branchingRatios)
+Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Double_t* brs)
 {
-  // Initialize the array of pointers and other variables
-  TFile* dNdESignalFile[nFiles];
-  TH1F*  hProvdNdESignal[nFiles];
+  // initialize the array of pointers and other variables
+  TFile* dNdESignalFile;
+  TH1F*  hProvdNdESignal;
   TH1F*  hProvdNdESignalTemp;
-  TH1F*  linCHdNdESignal;
-
-  Int_t status      = 0;
-  Int_t nBins       = 0;
-  Double_t lowEdge  = 0.0;
-  Double_t highEdge = 0.0;
-  // open file and look for histograms
+  Int_t status = 0;
+  Double_t sumBR = 0.0;
+  // create histogram for the linear combination
+  TH1F*  linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
+  // open file, look for histograms and perform the linear combination
   for(Int_t iFile=0;iFile<nFiles;iFile++)
     {
-      dNdESignalFile[iFile]  = new TFile(filenames[iFile]);
-      hProvdNdESignalTemp = (TH1F*) dNdESignalFile[iFile]->Get("hdNdE");
+      dNdESignalFile  = new TFile(filenames[iFile]);
+      hProvdNdESignalTemp = (TH1F*) dNdESignalFile->Get("hdNdE");
       // check that dN/dE histograms are found
-      if(!hProvdNdESignalTemp) status=1;
-      // store the histogram binning from the first historgram
-      if(nBins==0)
+      if(!hProvdNdESignalTemp)
+        status=1;
+      else
         {
-          nBins = hProvdNdESignalTemp->GetNbinsX();
-          lowEdge = hProvdNdESignalTemp->GetBinLowEdge(1);
-          highEdge = hProvdNdESignalTemp->GetBinLowEdge(nBins+1);
+          // transform it to the Iact1dUnbinnedLkl format 
+          hProvdNdESignal = new TH1F("hProvdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
+          hProvdNdESignal->SetDirectory(0);
+          readAndInterpolate(hProvdNdESignalTemp,hProvdNdESignal);
+          // perform linear combination
+          sumBR += brs[iFile];
+          linCHdNdESignal->Add(hProvdNdESignal,brs[iFile]);
         }
-      // check that the following histograms have the same binning than the first histogram
-      if(hProvdNdESignalTemp->GetNbinsX()!=nBins || hProvdNdESignalTemp->GetBinLowEdge(1)!=lowEdge || hProvdNdESignalTemp->GetBinLowEdge(nBins+1)!=highEdge)
-        {
-          cout << "Iact1dUnbinnedLkl::ReaddNdESignal, histogram read from file " << filenames[iFile] << " has " << hProvdNdESignalTemp->GetNbinsX() << " bins (should be " << nBins << " bins), lowEdge = " << hProvdNdESignalTemp->GetBinLowEdge(1) << " (should be " << lowEdge << ") and highEdge = " << hProvdNdESignalTemp->GetBinLowEdge(nBins+1) << " (should be " << highEdge << ")" << endl;
-        }
-      // interpolate if historgram binning divers from the binning of the first histogram
-      if(hProvdNdESignal[iFile]) delete hProvdNdESignal[iFile];
-      hProvdNdESignal[iFile] = new TH1F("hProvdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
-      hProvdNdESignal[iFile]->SetDirectory(0);
-      readAndInterpolate(hProvdNdESignalTemp,hProvdNdESignal[iFile]);
+      // free the memory
+      delete hProvdNdESignal;
       delete hProvdNdESignalTemp;
+      delete dNdESignalFile;
     }
-
-  if(status==0)
+  // check that the sum of the branching ratios is 1 (or at least <= 1)
+  if(sumBR <= 1.0)
+    status = SetdNdESignal(linCHdNdESignal);
+  else
     {
-      // create histogram for the linear combination of dNdESignal
-      linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",nBins,lowEdge,highEdge);
-      // perform the linear combination
-      for(Int_t iFile=0;iFile<nFiles;iFile++)
-        {
-          linCHdNdESignal->Add(hProvdNdESignal[iFile],branchingRatios[iFile]);
-        }
-      status = SetdNdESignal(linCHdNdESignal);
+      status = 1;
+      cout << "Iact1dUnbinnedLkl::ReaddNdESignal, the sum of the branching ratios is  " << sumBR << ". It supposes to be 1. Check the branching ratios!" << endl;
     }
-
-  // free the memory
   delete linCHdNdESignal;
-  for(Int_t iFile=0;iFile<nFiles;iFile++)
-     {
-       delete dNdESignalFile[iFile];
-     }
 
   return status;
 }
