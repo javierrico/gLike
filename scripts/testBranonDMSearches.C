@@ -22,10 +22,10 @@ void testBranonDMSearches()
 
 
   TString* dNdEFileNamePointer;
-  Float_t* branchingRatiosPointer;
+  Double_t* brPointer;
   Int_t nFiles = 2;
   TString  dNdEFileName[nFiles];
-  Float_t branchingRatios[nFiles];
+  Double_t branchingRatios[nFiles];
  
   // You cann change here the annihilation channels
   dNdEFileName[0] = TString(Form("./DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root",mass)); // dN/dE input file  
@@ -37,7 +37,7 @@ void testBranonDMSearches()
   branchingRatios[1] = 0.0;
 
   dNdEFileNamePointer = dNdEFileName;
-  branchingRatiosPointer = branchingRatios;
+  brPointer = branchingRatios;
 
   const TString  inputFile1   = "./data/genericIact_dataIRF_01.root";  // input file with event list and their associated IRF
   const TString  inputFile2   = "./data/genericIact_dataIRF_02.root";  // input file with event list and their associated IRF
@@ -45,16 +45,15 @@ void testBranonDMSearches()
 
   // create and configure an Iact1dUnbinnedLkl object for 1D unbinned likelihood analysis
   Iact1dUnbinnedLkl* unbn = new Iact1dUnbinnedLkl(Form("logJ=%.2f DlogJ=0 inputfile=%s",logJ,inputFile1.Data()));
-
   // Selection of the ReaddNdESignal functions (Pick one of the two functions
-  unbn->ReaddNdESignal(nFiles, dNdEFileNamePointer,branchingRatiosPointer); // new function
+  unbn->ReaddNdESignal(nFiles, dNdEFileNamePointer,brPointer); // new function
   //unbn->ReaddNdESignal(dNdEFileNameBn); // conventional function
-
   unbn->SetDMAnnihilationUnitsForG(mass);    // set units for DM annihilation <sv>
 
   // create and configure an Iact1dBinnedLkl object for 1D unbinned likelihood analysis
   Iact1dBinnedLkl* bn = new Iact1dBinnedLkl(Form("logJ=%.2f DlogJ=0 inputfile=%s",logJ,inputFile2.Data()));
-  bn->ReaddNdESignal(dNdEFileNameBn);
+  bn->ReaddNdESignal(nFiles, dNdEFileNamePointer,brPointer); // new function
+  //bn->ReaddNdESignal(dNdEFileNameBn); // conventional function
   bn->SetDMAnnihilationUnitsForG(mass);    // set units for DM annihilation <sv>
 
   // create and fill a JointLkl object for the combined analysis of both datasets

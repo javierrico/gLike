@@ -35,14 +35,24 @@ jointLklDM.plotsDir: plots
 # Comment out if you don't want to save or read the histograms but create them on the fly
 # (that is slower but safer because you make sure you use the proper histograms and not
 #  some pre-existing version created for a different set of IRFs or samples)
-jointLklDM.dNdEpSignalDir: DM/dNdEpSignal
+# Comment out for the channel 'branon' for now!!!
+# Comment out for the channel 'custom' always!!!
+#jointLklDM.dNdEpSignalDir: DM/dNdEpSignal
 
 ######################
 ANALYSIS CONFIGURATION
 ######################
 
-# channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0 or pi0gamma)
-jointLklDM.Channel: bb
+# channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0, pi0gamma, branon or custom)
+jointLklDM.Channel: custom
+
+# ONLY used if the channel 'custom' is selected. Otherwise, the lists will be ignored!
+# ChannelList contains a set of channels. 
+# Combinations of bb, tautau, mumu and WW are valid!
+# BRList contains the corresponding branching ratios.
+# The length of ChannelList and BRList have to be equal and the sum of the  BRList have to be1. 
+jointLklDM.ChannelList: bb tautau mumu WW
+jointLklDM.BRList: 1 0 0 0 
 
 # process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
 # (remember to change consistently the list of masses and J-factor value and uncertainty)

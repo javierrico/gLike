@@ -103,7 +103,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << "***********************************************************************************" << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***" << endl;
-  cout << "*** CONFIGURATION FILE  : " << configFileName << endl;
+  cout << "*** CONFIGURATION FILE    : " << configFileName << endl;
   if (gSystem->AccessPathName(configFileName, kFileExists))
     {
       cout << endl << "    Oops! problems reading config file file " << configFileName << " <---------------- FATAL ERROR!!!"<< endl;
@@ -131,12 +131,31 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   TString  fdNdEpSignalDir   = fInputDataPath+"/"+provval+"/";
   Float_t  mcG               = env->GetValue("jointLklDM.mcG",0.);  //assumed value of <sv> for simulations
   TString  massList          = env->GetValue("jointLklDM.MassList","");
+  TString  channelList       = env->GetValue("jointLklDM.ChannelList","");
+  TString  brList            = env->GetValue("jointLklDM.BRList","");
         
   // fill the list of masses to be studied
   UInt_t  nmass0  = re.Split(massList);
   Double_t* massval0 = new Double_t[nmass0];
   for(UInt_t imass=0;imass<nmass0;imass++)
     massval0[imass] = re[imass].Atof();
+
+  // fill the list of channels and branching ratios
+  UInt_t  nChannels  = re.Split(channelList);
+  TString* channelval = new TString[nChannels];
+  for(UInt_t iChannel=0;iChannel<nChannels;iChannel++)
+      channelval[iChannel] = re[iChannel];
+  UInt_t  nBrs  = re.Split(brList);
+  Double_t* brval = new Double_t[nBrs];
+  for(UInt_t iBr=0;iBr<nBrs;iBr++)
+      brval[iBr] = re[iBr].Atof();
+
+  // check that ChannelList and BRList have the same length
+  if(nChannels != nBrs)
+    {
+      cout << " ## Oops! The length of the ChannelList (" << nChannels << ") and BRList (" << nBrs << ") should be the same!  <---------------- FATAL ERROR!!!"<< endl;
+      return;
+    }
 
   // Set some flags
   Bool_t  isSimulation       = seed>=0;
@@ -158,6 +177,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   else if(!channel.CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel = "#pi^{0}#pi^{0}";    minmass=0.135;}
   else if(!channel.CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel = "#pi^{0}#gamma";     minmass=0.135/2.;}
   else if(!channel.CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel = "#pi^{0}#gamma";     minmass=0.135/2.;}
+  else if(!channel.CompareTo("branon",TString::kIgnoreCase))     {strchannel = "#branon";           minmass=0;}
+  else if(!channel.CompareTo("custom",TString::kIgnoreCase))     {strchannel = "#custom";           minmass=0;}
   else strchannel = "";
   if(isDecay) minmass*=2;
   
@@ -167,26 +188,39 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   const Double_t* massval      = massval0+nskippedmass;
   
   // Print-out configuration info (part 2)
-  cout << "*** I/O PATH            : " << fInputDataPath << endl;
+  cout << "*** I/O PATH              : " << fInputDataPath << endl;
   cout << "***" << endl;
-  cout << "*** LABEL               : " << label <<  endl;
-  cout << "*** PROCESS             : " << strprocess << endl;
-  cout << "*** CHANNEL             : " << channel << endl;
-  cout << "*** DATA/MC             : " << simulationlabel << endl;
+  cout << "*** LABEL                 : " << label <<  endl;
+  cout << "*** PROCESS               : " << strprocess << endl;
+  cout << "*** CHANNEL               : " << channel << endl;
+  cout << "*** DATA/MC               : " << simulationlabel << endl;
   if(isSimulation)
-    cout << " ** Seed                : " << seed << endl;
-  cout << "*** G IS POSITIVE       : " << (isGpositive? "YES" : "NO") << endl;
+    cout << " ** Seed                  : " << seed << endl;
+  cout << "*** G IS POSITIVE         : " << (isGpositive? "YES" : "NO") << endl;
       
   // how many and which mass values are we considering?
-  cout << "*** NUMBER OF MASSES    : " << nmass << endl;
-  cout << " ** Mass values         : "; 
+  cout << "*** NUMBER OF MASSES      : " << nmass << endl;
+  cout << " ** Mass values           : "; 
   for(Int_t imass=0;imass<nmass;imass++)
     cout << massval[imass] << ((imass<nmass-1)? ", " : "");
   cout << " GeV" << endl;
+  // how many and which channel values are we considering, if 'custom' channel is selected?
+  cout << "*** If CHANNEL = 'custom' :" << endl;
+  cout << " ** NUMBER OF CHANNELS    : " << nChannels << endl;
+  cout << "  * Channel values        : "; 
+  for(UInt_t iChannel=0;iChannel<nChannels;iChannel++)
+    cout << channelval[iChannel] << ((iChannel<nChannels-1)? ", " : "");
+  cout << endl;
+  // how many and which branching ratio values are we considering, if 'custom' channel is selected?
+  cout << " ** NUMBER OF BRS         : " << nBrs << endl;
+  cout << "  * Branching ratio values: "; 
+  for(UInt_t iBr=0;iBr<nBrs;iBr++)
+    cout << brval[iBr] << ((iBr<nBrs-1)? ", " : "");
+  cout << endl;
   
-  cout << "*** IRF/DATA PLOTS      : " << (showSamplePlots?   "YES" : "NO") << endl;
-  cout << "*** PARABOlA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
-  cout << "*** Plot y-axis range   : " << plotmin << " to " << plotmax << Form(" %s", (isDecay? "s" : "cm^3/s")) << endl;
+  cout << "*** IRF/DATA PLOTS        : " << (showSamplePlots?   "YES" : "NO") << endl;
+  cout << "*** PARABOlA PLOTS        : " << (showParabolaPlots? "YES" : "NO") << endl;
+  cout << "*** Plot y-axis range     : " << plotmin << " to " << plotmax << Form(" %s", (isDecay? "s" : "cm^3/s")) << endl;
   cout << "***" << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***********************************************************************************" << endl;
@@ -451,20 +485,64 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	      }
 	    else
 	      {
-		TString dNdESignalFileNameForm   = fdNdEDir+"dNdESignal_"+channel+Form("_%smass.root",mprecform.Data());
-		const TString dNdESignalFileName = Form(dNdESignalFileNameForm,(isDecay? mass/2. : mass));
-		cout << "   * Reading dN/dE for signal from file " << dNdESignalFileName  << "... " << flush;
-		
-		// Try to read dNdE from existing file
-		if(fullLkl->ReaddNdESignal(dNdESignalFileName))
-		  {
-		    cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		    return;
-		  } 
-		else
-		  cout << "Ok!" << endl;
+                if(!channel.CompareTo("custom",TString::kIgnoreCase))
+                  {
+                    TString  dNdEFileName[nChannels];
+                    for(UInt_t iChannel=0;iChannel<nChannels;iChannel++)
+                      {
+                        dNdEFileName[iChannel] = fdNdEDir+"dNdESignal_"+channelval[iChannel]+Form("_%.1fmass.root",mass);
+                        cout << "      " << iChannel+1 << ") " << dNdEFileName[iChannel] << " (with BR_" << iChannel+1 << " = " << brval[iChannel] << ") ... " << endl;
+                      }
+                    TString* dNdEFileNamePointer = dNdEFileName;
+                    // Try to read dNdE from existing files
+                    if(fullLkl->ReaddNdESignal(nChannels,dNdEFileNamePointer,brval))
+                      {
+                        cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
+                        return;
+                      }
+                    else
+                      cout << "Ok!" << endl;
+                  }
+                else if(!channel.CompareTo("branon",TString::kIgnoreCase))
+                  {
+                    //
+                    // This is a placeholder for the function that calculate the BR in the branon model
+                    //
+                    // The only input of this function is the dark matter mass ('mass' at this point in gLike)
+                    //
+                    TString  dNdEFileName[nChannels];
+                    for(UInt_t iChannel=0;iChannel<nChannels;iChannel++)
+                      {
+                        dNdEFileName[iChannel] = fdNdEDir+"dNdESignal_"+channelval[iChannel]+Form("_%.1fmass.root",mass);
+                        cout << "      " << iChannel+1 << ") " << dNdEFileName[iChannel] << " (with BR_" << iChannel+1 << " = " << brval[iChannel] << ") ... " << endl;
+                      }
+                    TString* dNdEFileNamePointer = dNdEFileName;
+                    // Try to read dNdE from existing file
+                    if(fullLkl->ReaddNdESignal(nChannels,dNdEFileNamePointer,brval))
+                      {
+                        cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
+                        return;
+                      }
+                    else
+                      cout << "Ok!" << endl;
+                  }
+                else
+                  {
+                    TString dNdESignalFileNameForm   = fdNdEDir+"dNdESignal_"+channel+Form("_%smass.root",mprecform.Data());
+                    const TString dNdESignalFileName = Form(dNdESignalFileNameForm,(isDecay? mass/2. : mass));
+                    cout << "   * Reading dN/dE for signal from file " << dNdESignalFileName  << "... " << flush;
+
+                    // Try to read dNdE from existing file
+                    if(fullLkl->ReaddNdESignal(dNdESignalFileName))
+                      {
+                        cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
+                        return;
+                      }
+                    else
+                      cout << "Ok!" << endl;
+                  }
 	      }
-	    
+
 	    // Read or create dN/dE' for signal
 	    TString dNdEpSignalFileName;
 	    if(ioHdNdEpSignal)
