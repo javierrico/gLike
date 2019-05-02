@@ -207,7 +207,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   else
     cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Message: Reading masses and <sigmav> values from file " << filename << endl;
 
-  // get the number of lines (=number of <sv> values - 1) in the file
+  // get the number of values (which is one less than the number of lines in the file)
   string line;
   while (getline(ff, line))
     fNsvVals++;
@@ -265,7 +265,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
         }
       if(col != mass.size())
         {
-          cout << "You have a different line size length for line " << row+1 << " ! Number of mass values = " << mass.size() << " while number of likelihood values = " << col << endl;
+          cout << "You have a different line size length for line " << row+2 << " ! Number of mass values = " << mass.size() << " while number of likelihood values = " << col << endl;
         }
       row++;
     }
