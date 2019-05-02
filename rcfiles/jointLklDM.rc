@@ -21,6 +21,13 @@ jointLklDM.plotmax: 1e-22
 # scale factor for results (e.g. to simulate for a Tobs and get results for another Tobs)
 # jointLklDM.plotScale: 1
 
+# Configuration for data exporter
+jointLklDM.exportData: FALSE
+jointLklDM.svMin: 1e-28
+jointLklDM.svMax: 1e-18
+jointLklDM.svNPoints: 1000
+jointLklDM.svLogStep: TRUE
+jointLklDM.logJ: 19.
 
 # Path (will be added to all specified files and directories in this rcfile)
 jointLklDM.path: ./

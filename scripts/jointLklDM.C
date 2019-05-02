@@ -58,6 +58,8 @@
 //######################################################################
 
 #include <iostream>
+#include <iomanip>
+#include <fstream>
 
 #include "TPRegexp.h"
 #include "TMath.h"
@@ -76,6 +78,7 @@
 #include "Iact1dUnbinnedLkl.h"
 #include "Iact1dBinnedLkl.h"
 #include "FermiTables2016Lkl.h"
+#include "GloryDuckTables2019Lkl.h"
 #include "JointLkl.h"
 
 using namespace std;
@@ -131,7 +134,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   TString  fdNdEpSignalDir   = fInputDataPath+"/"+provval+"/";
   Float_t  mcG               = env->GetValue("jointLklDM.mcG",0.);  //assumed value of <sv> for simulations
   TString  massList          = env->GetValue("jointLklDM.MassList","");
-        
+  Bool_t   exportData        = env->GetValue("jointLklDM.exportData",kFALSE);
+  Double_t svMin             = env->GetValue("jointLklDM.svMin",0.);
+  Double_t svMax             = env->GetValue("jointLklDM.svMax",0.);
+  Bool_t   svLogStep         = env->GetValue("jointLklDM.svLogStep",kFALSE);
+  Int_t    svNPoints         = env->GetValue("jointLklDM.svNPoints",0.);  
+  Double_t logJ              = env->GetValue("jointLklDM.logJ",0.);  
+      
   // fill the list of masses to be studied
   UInt_t  nmass0  = re.Split(massList);
   Double_t* massval0 = new Double_t[nmass0];
@@ -147,7 +156,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   TString simulationlabel    = (isSimulation?  "MC"    : "Data");
   TString strprocess         = (isDecay?       "Decay" : "Annihilation");
   
-    // annihilation/decay channel string
+  // annihilation/decay channel string
   TString  strchannel;
   Double_t minmass = 0;
   if     (!channel.CompareTo("bb",TString::kIgnoreCase))         {strchannel = "b #bar{b}";         minmass=5;}
@@ -165,7 +174,44 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   Int_t           nskippedmass = GetNSkippedMasses(nmass0,massval0,minmass);
   Int_t           nmass        = nmass0-nskippedmass; 
   const Double_t* massval      = massval0+nskippedmass;
-  
+
+  // Create stream to export data
+  std::ofstream data;
+
+  // Exporting data to Glory Duck format
+  Double_t svStep = 0.;
+  Double_t isv = svMax;
+  Double_t svScan[svNPoints+1];
+  vector<vector<Double_t> > vlkl2D(svNPoints+1);
+  if (exportData)
+    {
+      // Create directory and open file for data export
+      gSystem->Exec(Form("mkdir -p %s/Data/txt",fPlotsDir.Data()));
+      TString dataFile = fPlotsDir+"Data/txt/"+label+".txt";
+      data.open(dataFile);
+
+      // Write first line of the file
+      data << left << setw(15) << logJ;
+      for(Int_t imass=0;imass<nmass;imass++)
+        data << left << setw(15) << massval[imass];
+      data << endl;
+
+      // Define svStep
+      Int_t counter = 0;
+      if (svLogStep) svStep = TMath::Exp(TMath::Log(TMath::Abs(svMax/svMin))/svNPoints);
+      else           svStep = TMath::Abs(svMax-svMin)/svNPoints;
+
+      // Initialise svScan with all <sv> values
+      for(Int_t i=0; i<=svNPoints; i++)
+        {
+          svScan[counter] = isv;
+          counter++;
+          if (svLogStep) isv/=svStep;
+          else           isv-=svStep;
+          vlkl2D[i] = vector<Double_t>(nmass);
+        }
+    }
+
   // Print-out configuration info (part 2)
   cout << "*** I/O PATH            : " << fInputDataPath << endl;
   cout << "***" << endl;
@@ -187,6 +233,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << "*** IRF/DATA PLOTS      : " << (showSamplePlots?   "YES" : "NO") << endl;
   cout << "*** PARABOlA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
   cout << "*** Plot y-axis range   : " << plotmin << " to " << plotmax << Form(" %s", (isDecay? "s" : "cm^3/s")) << endl;
+  cout << "*** EXPORT DATA         : " << (exportData? "YES" : "NO") << endl;
   cout << "***" << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***********************************************************************************" << endl;
@@ -300,6 +347,11 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	{
 	  lkl[iLkl] =  new FermiTables2016Lkl(inputString);
 	  lkl[iLkl]->SetName(Form("FermiTables2016Lkl_%02d",iLkl));
+	}
+      else if(classType.CompareTo("GloryDuckTables2019Lkl")==0)
+	{
+	  lkl[iLkl] =  new GloryDuckTables2019Lkl(inputString);
+	  lkl[iLkl]->SetName(Form("GloryDuckTables2019Lkl_%02d",iLkl));
 	}
       else
 	{
@@ -624,10 +676,34 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	  gPad->Modified();
 	  gPad->Update();
 	}
-      
+
+      // Save -2logLkl vs <sv> in file
+      //////////////////////////////////////////////////////////////
+      if (exportData)
+        {
+          for (Int_t isv=0; isv<=svNPoints; isv++)
+            vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]+lkl[0]->GetGLklMin());
+        }
+
     } // end of loop over DM masses
-  
-  
+
+    if (exportData)
+      {
+        for (Int_t isv=0; isv<=svNPoints; isv++)
+          {
+            data << left << setw(15) << svScan[isv];
+
+            for(Int_t imass=0;imass<nmass;imass++)
+              data << left << setw(15) << vlkl2D[isv][imass];
+
+            // go to next line in the file
+            data << endl;
+          }
+      }
+
+  // Close file for exporting data
+  if (exportData) data.close();
+
   //################
   // FINAL RESULTS
   //################

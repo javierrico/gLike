@@ -208,7 +208,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
     cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Message: Reading masses and <sigmav> values from file " << filename << endl;
 
   vector<Double_t> vsigma ;    // vector with <sv> values
-  vector<Double_t> vlkl ;      // vecot with -2logL values
+  vector<Double_t> vlkl ;      // vector with -2logL values
 
   // get first line of the file (with <sv> values)
   string sigmavLine;
