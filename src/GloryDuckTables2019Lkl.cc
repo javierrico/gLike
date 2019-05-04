@@ -207,7 +207,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   else
     cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Message: Reading masses and <sigmav> values from file " << filename << endl;
 
-  // get the number of values (which is one less than the number of lines in the file)
+  // get the number of <sv> values (which is one less than the number of lines in the file)
   string line;
   while (getline(ff, line))
     fNsvVals++;
@@ -232,7 +232,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
     {
       if(read_logJ)
         {
-          logJ = field;
+          fLogJ = field;
           read_logJ = kFALSE;
         }
       else
