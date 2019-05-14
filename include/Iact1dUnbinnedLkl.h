@@ -87,13 +87,13 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   // Read input dN/dE files and related functions
   Int_t ResetdNdESignal();
   Int_t SetdNdESignal(TH1F* hdNdESignal);
+  Int_t AdddNdESignal(TString filename,Float_t br=1.0);
   Int_t SetdNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
   Int_t AdddNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
   Int_t SetdNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
-  Int_t AdddNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
+  Int_t AdddNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9,Float_t br=1.0);
   Int_t SetTrueTau(Float_t truetau) {fTrueTau=truetau; return 0;}
   Int_t ReaddNdESignal(TString filename);
-  Int_t ReaddNdESignal(Int_t nFiles, TString* filenames,Double_t* brs);
   Int_t ReaddNdEpSignal(TString filename);
   Int_t ReaddNdEpSignalOff(TString filename);
   Int_t ReadCTAIRF(TString filename);

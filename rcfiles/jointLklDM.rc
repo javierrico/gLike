@@ -43,10 +43,10 @@ jointLklDM.plotsDir: plots
 ANALYSIS CONFIGURATION
 ######################
 
-# channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0, pi0gamma, branon or linear combination of bb, tautau, mumu and WW)
+# channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0, pi0gamma, ee, branon or an arbitrary linear combination of them)
 # The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
-#jointLklDM.Channel: 1.0*bb+0.0*tautau
-jointLklDM.Channel: bb
+jointLklDM.Channel: 1.0*bb+0.0*tautau
+#jointLklDM.Channel: bb
 
 # process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
 # (remember to change consistently the list of masses and J-factor value and uncertainty)

@@ -649,6 +649,40 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignal(TH1F* hdNdESignal)
 
 //////////////////////////////////////////////////////////////////
 // 
+// Add to a previously existing dN/dE histogram for signal from file
+// in the Segue Stereo input format produced by Jelena
+// No replacement of existing histo is allowed
+// Return 0 in case of success
+//        1 if file is not found
+//
+Int_t Iact1dUnbinnedLkl::AdddNdESignal(TString filename,Float_t br)
+{
+  // open file and look for histo
+  TFile* dNdESignalFile  = new TFile(filename);
+  TH1F*  hdNdESignal = (TH1F*) dNdESignalFile->Get("hdNdE");
+
+  // pathologies
+  if(!hdNdESignal)
+    {
+      cout << "Iact1dUnbinnedLkl::AdddNdESignal Warning: input histo does not exist" << endl;
+      return 1;
+    }
+
+  // transform it to the Iact1dUnbinnedLkl format
+  TH1F* fHdNdESignal_temp = new TH1F("fHdNdESignal_temp","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
+  readAndInterpolate(hdNdESignal,fHdNdESignal_temp);
+
+  for(Int_t ibin=0;ibin<fHdNdESignal->GetNbinsX();ibin++)
+      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(fHdNdESignal_temp->GetBinContent(ibin+1)));
+
+  // clean and exit
+  delete dNdESignalFile;
+  SetChecked(kFALSE);
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////
+// 
 // Recreate a fresh new version of fHdNdESignal
 //
 // Return 0 in case of success
@@ -715,11 +749,13 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TString function,Float_t p0,Float
 // If <function>=="line"
 // <p0> = E0, the energy of the line
 // <p1> = scale, i.e. the number of photons per annihilation (e.g 2 for XX->gamma gamma)
+// <p2> = br, the branching ratio
 //
 // If <function>=="box"
 // <p0> = Emin, lower border of the box
 // <p1> = Emax, upper border of the box
 // <p2> = scale, i.e. the number of photons per annihilation (e.g 4 for XX->pi0 pi0)
+// <p3> = br, the branching ratio
 //
 // Return 0 in case of success
 //        1 if file is not found
@@ -749,8 +785,9 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
   // Add to the histogram according to specified function and parameters
   if(functionType==gLine)
     {
-      Float_t E0 = p0;
+      Float_t E0    = p0;
       Float_t scale = p1;
+      Float_t br    = p2;
       
       Float_t log10E0 = TMath::Log10(E0);
       
@@ -763,17 +800,18 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
 	}
          
       // fill histo
-      Int_t ibin = fNFineBins*(log10E0-fFineLEMin)/(fFineLEMax-fFineLEMin);
+      Int_t ibin   = fNFineBins*(log10E0-fFineLEMin)/(fFineLEMax-fFineLEMin);
       Float_t Emin = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1));
       Float_t Emax = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+fHdNdESignal->GetBinWidth(ibin+1));
       Float_t dE   = Emax-Emin;
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+scale/dE);
+      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
     }
   else if(functionType==gBox)
     {
       Float_t Emin  = p0;
       Float_t Emax  = p1;
       Float_t scale = p2;
+      Float_t br    = p3;
       
       Float_t log10Emin = TMath::Log10(Emin);
       Float_t log10Emax = TMath::Log10(Emax);
@@ -793,7 +831,7 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
       Float_t realEmax  = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibinmax+1)+fHdNdESignal->GetBinWidth(ibinmax+1));
       Float_t dE        = realEmax-realEmin;
       for(Int_t ibin=ibinmin;ibin<=ibinmax;ibin++)
-	fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+scale/dE);
+	fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
     }
   else
     {
@@ -824,7 +862,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_
   ResetdNdESignal();
 
   // call to add the function
-  AdddNdESignalFunction(function,emin,emax);
+  AdddNdESignalFunction(function,emin,emax,1.0);
   
   // exit
   return 0;
@@ -839,7 +877,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_
 // Return 0 in case of success
 //        1 if file is not found
 //
-Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_t emax)
+Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_t emax,Float_t br)
 {
   // Check that fHdNdESignal exists
   if(!fHdNdESignal)
@@ -859,7 +897,7 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_
     {
       Float_t etest = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+gCenterBin*fHdNdESignal->GetBinWidth(ibin+1));
       if(etest>emin && etest<emax)
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+function->Eval(etest));
+      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(function->Eval(etest)));
     }
   
   // exit
@@ -886,63 +924,6 @@ Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString filename)
   else
     status = SetdNdESignal(hProvdNdESignal);
   delete dNdESignalFile;
-  return status;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// 
-// Read multiple dN_i/dE for signal from file in
-// the Segue Stereo input format produced by Jelena
-// and their corresponding branching ratios BR_i.
-// Then perform a linear combination
-// dN/dE = sum(BR_i * dN_i/dE).
-// Replacement of existing file is allowed
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::ReaddNdESignal(Int_t nFiles, TString* filenames, Double_t* brs)
-{
-  // initialize the array of pointers and other variables
-  TFile* dNdESignalFile;
-  TH1F*  hProvdNdESignal;
-  TH1F*  hProvdNdESignalTemp;
-  Int_t status = 0;
-  Double_t sumBR = 0.0;
-  // create histogram for the linear combination
-  TH1F*  linCHdNdESignal = new TH1F("linCHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
-  // open file, look for histograms and perform the linear combination
-  for(Int_t iFile=0;iFile<nFiles;iFile++)
-    {
-      dNdESignalFile  = new TFile(filenames[iFile]);
-      hProvdNdESignalTemp = (TH1F*) dNdESignalFile->Get("hdNdE");
-      // check that dN/dE histograms are found
-      if(!hProvdNdESignalTemp)
-        status=1;
-      else
-        {
-          // transform it to the Iact1dUnbinnedLkl format 
-          hProvdNdESignal = new TH1F("hProvdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
-          hProvdNdESignal->SetDirectory(0);
-          readAndInterpolate(hProvdNdESignalTemp,hProvdNdESignal);
-          // perform linear combination
-          sumBR += brs[iFile];
-          linCHdNdESignal->Add(hProvdNdESignal,brs[iFile]);
-        }
-      // free the memory
-      delete hProvdNdESignal;
-      delete hProvdNdESignalTemp;
-      delete dNdESignalFile;
-    }
-  // check that the sum of the branching ratios is 1 (or at least <= 1)
-  if(sumBR <= 1.0)
-    status = SetdNdESignal(linCHdNdESignal);
-  else
-    {
-      status = 1;
-      cout << "Iact1dUnbinnedLkl::ReaddNdESignal, the sum of the branching ratios is  " << sumBR << ". It supposes to be 1. Check the branching ratios!" << endl;
-    }
-  delete linCHdNdESignal;
-
   return status;
 }
 
