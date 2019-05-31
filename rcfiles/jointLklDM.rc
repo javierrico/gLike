@@ -35,8 +35,6 @@ jointLklDM.plotsDir: plots
 # Comment out if you don't want to save or read the histograms but create them on the fly
 # (that is slower but safer because you make sure you use the proper histograms and not
 #  some pre-existing version created for a different set of IRFs or samples)
-# Comment out for the channel 'branon' for now!!!
-# Comment out for the channel 'custom' always!!!
 #jointLklDM.dNdEpSignalDir: DM/dNdEpSignal
 
 ######################
@@ -45,15 +43,14 @@ ANALYSIS CONFIGURATION
 
 # channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0, pi0gamma, ee, branon or an arbitrary linear combination of them)
 # The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
-jointLklDM.Channel: 1.0*bb+0.0*tautau
-#jointLklDM.Channel: bb
+jointLklDM.Channel: bb
 
 # process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
 # (remember to change consistently the list of masses and J-factor value and uncertainty)
 jointLklDM.Process: ann
 
 # list of DM masses to be considered (in GeV)
-jointLklDM.MassList:  100  200 500  1000  2000  5000  10000  20000  50000  100000
+jointLklDM.MassList: 100  200 500  1000  2000  5000  10000  20000  50000  100000
 
 # Mean g (number of signal events) for simulations
 # this should be replaced in future release by <sv>
