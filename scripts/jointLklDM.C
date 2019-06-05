@@ -160,14 +160,16 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   decode_channel(coefficients,nChannels,channelval,brval);
 
   // annihilation/decay channel string
-  TString  strchannel;
+  TString strchannel;
+  TString normchannel;
   Double_t minmass = 0;
   for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
     {
-      if(nChannels == 1) strchannel = "";
+      if(nChannels == 1) strchannel = normchannel = "";
       else
-        if(iChannel == 0) strchannel = (TString) to_string(brval[iChannel]).substr(0, 3);
-        else strchannel.Append("+" + to_string(brval[iChannel]).substr(0, 3));
+          if(iChannel == 0) {strchannel = (TString) to_string(brval[iChannel]).substr(0, 3) + "#upoint";          normchannel = (TString) to_string(brval[iChannel]).substr(0, 3) + "*";}
+          else              {strchannel.Append("#plus" + to_string(brval[iChannel]).substr(0, 3) + "#upoint");    normchannel.Append("+" + to_string(brval[iChannel]).substr(0, 3) + "*");}
+      normchannel.Append(channelval[iChannel]);
 
       if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");          minmass=5;}
       else if(!channelval[iChannel].CompareTo("cc",TString::kIgnoreCase))         {strchannel.Append("c#bar{c}");          minmass=1.3;}
@@ -181,7 +183,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");    minmass=0.135;}
       else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
       else if(!channelval[iChannel].CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
-      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");        minmass=0.511;}
+      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");        minmass=0.511e-3;}
       else if(!channelval[iChannel].CompareTo("branon",TString::kIgnoreCase))     {strchannel.Append("branon");            minmass=0;}
       else strchannel = "";
     }
@@ -199,10 +201,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << "*** PROCESS                  : " << strprocess << endl;
   cout << "*** CHANNEL                  : " << channel << endl;
   // how many and which channels are we considering?
-  cout << " ** Channel check            : ";
-  for(Int_t iChannel=0;iChannel<nChannels;iChannel++)
-      cout << brval[iChannel] << "*" << channelval[iChannel] << ((iChannel<nChannels-1)? "+" : "");
-  cout << endl;
+  cout << " ** Channel check            : " << normchannel << endl;
   cout << "*** DATA/MC                  : " << simulationlabel << endl;
   if(isSimulation)
     cout << " ** Seed                     : " << seed << endl;
@@ -525,7 +524,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	    TString dNdEpSignalFileName;
 	    if(ioHdNdEpSignal)
 	      {
-		TString dNdEpSignalFileNameForm = fdNdEpSignalDir+"dNdEpSignal_"+fullLkl->GetName()+"_"+channel+Form("_m%s",mprecform.Data())+".root";
+		TString dNdEpSignalFileNameForm = fdNdEpSignalDir+"dNdEpSignal_"+fullLkl->GetName()+"_"+normchannel+Form("_m%s",mprecform.Data())+".root";
 		dNdEpSignalFileName = Form(dNdEpSignalFileNameForm,(isDecay? mass/2. : mass));
 		cout << "   * Reading dN/dE' for signal from file " << dNdEpSignalFileName << "... " << flush;
 		
@@ -579,8 +578,10 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		hadcanvas[isample]->SetName(Form("hadcanvas_%d",isample));
 		hadcanvas[isample]->SetTitle(Form("IRFs and data for sample %d",isample));
 		hadcanvas[isample]->cd(5);
-		TLatex* ltchannel = new TLatex(0.8,0.8,strchannel);
-		ltchannel->SetTextSize(0.055);
+        TLatex* ltchannel;
+        if(nChannels == 1) ltchannel = new TLatex(0.8,0.8,strchannel);
+        else ltchannel = new TLatex(0.7,0.8,strchannel);
+        ltchannel->SetTextSize(0.055);
 		ltchannel->SetNDC();
 		ltchannel->Draw();
 	      }
@@ -772,7 +773,9 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   if(showLimitPlots)
     grsvlim->Draw("l");  
 
-  TLatex* txchannel = new TLatex(0.8,0.2,strchannel);
+  TLatex* txchannel;
+  if(nChannels == 1) txchannel = new TLatex(0.8,0.2,strchannel);
+  else txchannel = new TLatex(0.6,0.2,strchannel);
   txchannel->SetTextSize(0.055);
   txchannel->SetNDC();
   txchannel->Draw();
@@ -895,22 +898,32 @@ void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelv
       else
         {
           // check if the channel argument is in the right form
-          if (factors->GetEntries() != 2)
+          if(factors->GetEntries() == 1)
+            {
+              channelval[iChannel] = factorstring;
+              brval[iChannel] = 1.0;
+              sumBR += brval[iChannel];
+            }
+          else if (factors->GetEntries() == 2)
+            {
+              // save the decoded channels and branching ratios in channelval and brval, respectively.
+              for (Int_t i = 0; i < factors->GetEntries(); i++)
+                {
+                  coefficientstring = (TString)((TObjString *)(factors->At(i)))->String();
+                  if (coefficientstring.IsFloat() && i == 0)
+                    {
+                      brval[iChannel] = coefficientstring.Atof();
+                      sumBR += brval[iChannel];
+                    }
+                  else
+                    channelval[iChannel] = coefficientstring;
+                }
+            }
+          // check if the channel argument is in the right form
+          else
             {
               cout << " ## Oops! Something went wrong with the parsing " << factorstring << " of the channel!  <---------------- FATAL ERROR!!!"<< endl;
               return;
-            }
-          // save the decoded channels and branching ratios in channelval and brval, respectively.
-          for (Int_t i = 0; i < factors->GetEntries(); i++)
-            {
-              coefficientstring = (TString)((TObjString *)(factors->At(i)))->String();
-              if (coefficientstring.IsFloat() && i == 0)
-                {
-                  brval[iChannel] = coefficientstring.Atof();
-                  sumBR += brval[iChannel];
-                }
-              else
-                channelval[iChannel] = coefficientstring;
             }
         }
     }
