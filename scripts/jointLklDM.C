@@ -169,15 +169,15 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       else
           if(iChannel == 0) 
             {
-              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 10 + .5) / 10.0);
-              strchannel  = (TString) to_string(rounded_brval).substr(0, 3) + "#upoint";
-              normchannel = (TString) to_string(rounded_brval).substr(0, 3) + "*";
+              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
+              strchannel  = (TString) to_string(rounded_brval).substr(0, 4) + "#upoint";
+              normchannel = (TString) to_string(rounded_brval).substr(0, 4) + "*";
             }
           else
             {
-              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 10 + .5) / 10.0);
-              strchannel.Append("#plus" + to_string(rounded_brval).substr(0, 3) + "#upoint");
-              normchannel.Append("+" + to_string(rounded_brval).substr(0, 3) + "*");
+              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
+              strchannel.Append("#plus" + to_string(rounded_brval).substr(0, 4) + "#upoint");
+              normchannel.Append("+" + to_string(rounded_brval).substr(0, 4) + "*");
             }
       normchannel.Append(channelval[iChannel]);
 
