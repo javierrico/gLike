@@ -167,8 +167,18 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     {
       if(nChannels == 1) strchannel = normchannel = "";
       else
-          if(iChannel == 0) {strchannel = (TString) to_string(brval[iChannel]).substr(0, 3) + "#upoint";          normchannel = (TString) to_string(brval[iChannel]).substr(0, 3) + "*";}
-          else              {strchannel.Append("#plus" + to_string(brval[iChannel]).substr(0, 3) + "#upoint");    normchannel.Append("+" + to_string(brval[iChannel]).substr(0, 3) + "*");}
+          if(iChannel == 0) 
+            {
+              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 10 + .5) / 10.0);
+              strchannel  = (TString) to_string(rounded_brval).substr(0, 3) + "#upoint";
+              normchannel = (TString) to_string(rounded_brval).substr(0, 3) + "*";
+            }
+          else
+            {
+              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 10 + .5) / 10.0);
+              strchannel.Append("#plus" + to_string(rounded_brval).substr(0, 3) + "#upoint");
+              normchannel.Append("+" + to_string(rounded_brval).substr(0, 3) + "*");
+            }
       normchannel.Append(channelval[iChannel]);
 
       if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");          minmass=5;}
@@ -578,10 +588,10 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		hadcanvas[isample]->SetName(Form("hadcanvas_%d",isample));
 		hadcanvas[isample]->SetTitle(Form("IRFs and data for sample %d",isample));
 		hadcanvas[isample]->cd(5);
-        TLatex* ltchannel;
-        if(nChannels == 1) ltchannel = new TLatex(0.8,0.8,strchannel);
-        else ltchannel = new TLatex(0.7,0.8,strchannel);
-        ltchannel->SetTextSize(0.055);
+		TLatex* ltchannel;
+		if(nChannels == 1) ltchannel = new TLatex(0.8,0.8,strchannel);
+		else ltchannel = new TLatex(0.7,0.8,strchannel);
+		ltchannel->SetTextSize(0.055);
 		ltchannel->SetNDC();
 		ltchannel->Draw();
 	      }
