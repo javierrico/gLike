@@ -39,9 +39,9 @@ using namespace std;
 // static constants
 static const TString  gName            = "GloryDuckTables2019Lkl";
 static const TString  gTitle           = "<sv> vs mass";
-static const Int_t    gNPars            = 1;             // Number of free+nuisance parameters
-static const Char_t*  gParName[gNPars]  = {"g"};         // Name of parameters
-static const Double_t gRefsv            = 1.e-26;        // [cm^3 s^-1] (reference sv)
+static const Int_t    gNPars           = 1;             // Number of free+nuisance parameters
+static const Char_t*  gParName[gNPars] = {"g"};         // Name of parameters
+static const Double_t gRefsv           = 1.e-26;        // [cm^3 s^-1] (reference sv)
 
 // -2logL function for minuit
 void gloryDuckTables2019Lkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
@@ -244,6 +244,12 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   Int_t row = 0;
   Int_t col = 0;
 
+  // Initialisation of variables needed to symetrize the readed parabola
+  // The symetrization helps migrad to find the minimum
+  Bool_t init_lklmin = kFALSE;
+  vector<Double_t> lklmin = vector<Double_t>(mass.size()); // vector with minimum -2logL value for each mass
+  vector<Double_t> imin = vector<Double_t>(mass.size()); // vector with position of value for which -2logL is minimal
+
   // get <sv> (first column)
   while(ff >> readingSigmav)
     {
@@ -261,8 +267,23 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
       while (line >> readingLkl)
         {
           vlkl2D[row][col] = readingLkl;
+          // storing the minimum value and position
+          if(!init_lklmin)
+            {
+              lklmin[col] = readingLkl;
+              imin[col] = col;
+            }
+          else
+            {
+              if(readingLkl<lklmin[col])
+                {
+                  lklmin[col] = readingLkl;
+                  imin[col] = col;
+                }
+            }
           col++;
         }
+      if(!init_lklmin) init_lklmin = kTRUE;
       if(col != mass.size())
         {
           cout << "You have a different line size length for line " << row+2 << " ! Number of mass values = " << mass.size() << " while number of likelihood values = " << col << endl;
@@ -270,13 +291,33 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
       row++;
     }
 
+  reverse(sigmav.begin(),sigmav.end());
+  vector<Double_t> sigmav_extended;                   // vector with <sv> values
+  vector<Double_t> vlkl_extended;                     // vector with -2logL values
+
   // add new parabolas
   for (col = 0; col < mass.size(); col++) {
-    for (row = 0; row < fNsvVals; row++) {
+    for (row = fNsvVals-1; row >=0; row--) {
       vlkl.push_back(vlkl2D[row][col]);
     }
-    CreateAndAddNewParabola(mass[col],sigmav.size(),sigmav.data(),vlkl.data());
+    imin[col] = fNsvVals-1-imin[col];
+    Int_t isym = fNsvVals-1;
+    while(vlkl[isym] > vlkl[0] && isym>0) isym--;
+    for (int i=fNsvVals-1;i>isym;i--)
+      {
+        vlkl_extended.push_back(vlkl2D[fNsvVals-1-i][col]);
+        sigmav_extended.push_back(-sigmav[i]+sigmav[isym]);
+      }
+    for (int i=0;i<=fNsvVals-1;i++)
+      {
+        vlkl_extended.push_back(vlkl[i]);
+        sigmav_extended.push_back(sigmav[i]);
+      }
+    CreateAndAddNewParabola(mass[col],sigmav_extended.size(),sigmav_extended.data(),vlkl_extended.data());
     vlkl.clear();
+    sigmav.clear();
+    vlkl_extended.clear();
+    sigmav_extended.clear();
   }
 
   ff.close(); 
@@ -421,6 +462,7 @@ Int_t GloryDuckTables2019Lkl::SetActiveMass(Double_t mass)
       if(TMath::Abs(fMass[counter]-mass) < 1e-3)
         {
           fActiveMass = counter;
+          cout << "GloryDuckTables2019Lkl::SetActiveMass() Message: Mass " << mass << " exists, setting the active mass to:" << fMass[counter] << endl;
           return 0;
         }
     }
@@ -441,10 +483,11 @@ Int_t GloryDuckTables2019Lkl::SetActiveMass(Int_t index)
   if(index >=0 && index < fNMasses)
     {
       fActiveMass = index;
+      cout << "GloryDuckTables2019Lkl::SetActiveMass() Message: Index " << index << " is in the defined range, setting the active mass to:" << fMass[index] << endl;
       return 0;
      }
 
-  cout << "GloryDuckTables2019Lkl::SetActiveMass() Message: Index " << index << " isn't correct." << endl;
+  cout << "GloryDuckTables2019Lkl::SetActiveMass() Message: Index " << index << " is outside the defined range." << endl;
   return 1;
 }
 
