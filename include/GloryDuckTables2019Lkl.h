@@ -23,12 +23,12 @@ class GloryDuckTables2019Lkl : public Lkl
   inline void AddSample(Lkl* sample)        {fSampleArray->Add(sample); SetChecked(kFALSE);}
 
   // getters
-  inline const TObjArray* GetSampleArray()     const {return fSampleArray;}
-  inline       Int_t      GetNSamples()        const {return fSampleArray->GetEntries();}
-  inline       Lkl*       GetSample(Int_t i)   const {return (Lkl*)fSampleArray->At(i);}
-  inline       UInt_t     GetNMasses()         const {return fNMasses;}
-  inline       UInt_t     GetActiveMass()      const {return fActiveMass;}
-  inline       Double_t   GetActiveMass(Int_t i)      const {return fMass[i];}
+  inline const TObjArray* GetSampleArray()         const {return fSampleArray;}
+  inline       Int_t      GetNSamples()            const {return fSampleArray->GetEntries();}
+  inline       Lkl*       GetSample(Int_t i)       const {return (Lkl*)fSampleArray->At(i);}
+  inline       UInt_t     GetNMasses()             const {return fNMasses;}
+  inline       UInt_t     GetActiveMass()          const {return fActiveMass;}
+  inline       Double_t   GetActiveMass(Int_t i)   const {return fMass[i];}
 
   // set mass index to the current active one
   Int_t SetActiveMass(Double_t mass); // using the mass
