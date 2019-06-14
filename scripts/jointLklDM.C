@@ -350,6 +350,25 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	}
       else if(classType.CompareTo("GloryDuckTables2019Lkl")==0)
 	{
+	  GloryDuckTables2019Lkl *tmpLkl =  new GloryDuckTables2019Lkl(inputString);
+          Bool_t massAvailable = kFALSE;
+          for(Int_t jmass=0;jmass<nmass;jmass++)
+            {
+              massAvailable = kFALSE;
+              Double_t massToBeTested = massval[jmass];
+              for(Int_t kmass=0;kmass<tmpLkl->GetNMasses();kmass++)
+                {
+                  Double_t massInTheFile = tmpLkl->GetActiveMass(kmass);
+                  if(TMath::Abs(massToBeTested-massInTheFile) < 1.e-6)
+                    massAvailable = kTRUE;
+                }
+            }
+          if(!massAvailable)
+            {
+              cout << " ## Oops! At least one mass to be tested is not in the file given as an input <---------------- FATAL ERROR!!!"<< endl;
+              return;
+            }
+          delete tmpLkl;
 	  lkl[iLkl] =  new GloryDuckTables2019Lkl(inputString);
 	  lkl[iLkl]->SetName(Form("GloryDuckTables2019Lkl_%02d",iLkl));
 	}
@@ -564,11 +583,16 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
           else if(!strcmp(lkl[isample]->ClassName(),"GloryDuckTables2019Lkl"))
             {
               GloryDuckTables2019Lkl* gdLkl = dynamic_cast<GloryDuckTables2019Lkl*>(lkl[isample]);
-              gdLkl->SetActiveMass(mass);
+              if(gdLkl->SetActiveMass(mass))
+                {
+                  cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
+                  return;
+                } 
             }
         } // end of loop over samples
       cout << " *** End of reading dN_signal/dE and dN_signal/dE' histograms" << endl;  
 
+      // Case where dataset don't contain signal event
       if(lkl[0]->MakeChecks()==2)
         {
           svLimVal[imass] = 0.;
