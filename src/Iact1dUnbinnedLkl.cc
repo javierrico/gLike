@@ -187,8 +187,8 @@ static const Char_t*  gParName[gNPars] = {"g","b","tau"};        // Name of para
 static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
 static const Int_t    gNFineBins       = 5000;                   // default number of fine bins for internal histos
 static const Double_t gFineLEMin       = TMath::Log10(10);       // default minimum log(energy[GeV]) for internal histos
-static const Double_t gFineLEMax       = TMath::Log10(1000000);   // default maximum log(energy[GeV]) for internal histos
-static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
+static const Double_t gFineLEMax       = TMath::Log10(1000000);  // default maximum log(energy[GeV]) for internal histos
+static const Double_t gCenterBin       = 0.;                     // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
 
 // static functions (for internal processing of input data)
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
@@ -1814,7 +1814,7 @@ TH1F* Iact1dUnbinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 // the output histogram is ALWAYS differential
 //
 void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
-{
+{  
   // input histogram binning
   Double_t imine   = ih->GetXaxis()->GetXmin()+scale; // minimum log(E) in input histo
   Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
@@ -1954,7 +1954,7 @@ Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
   // copy values
   for(Int_t ibin=0;ibin<onbinse;ibin++)
     {
-      Double_t etest = omine+ode*(ibin+gCenterBin); 
+      Double_t etest = omine+ode*(ibin+0.5); 
       
       // copy bin by bin, zero outside limits
       if(etest<imine || etest>imaxe)	
