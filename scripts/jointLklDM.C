@@ -187,8 +187,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       else if(!channelval[iChannel].CompareTo("tautau",TString::kIgnoreCase))     {strchannel.Append("#tau^{+}#tau^{-}");  minmass=1.8;}
       else if(!channelval[iChannel].CompareTo("mumu",TString::kIgnoreCase))       {strchannel.Append("#mu^{+}#mu^{-}");    minmass=0.106;}
       else if(!channelval[iChannel].CompareTo("WW",TString::kIgnoreCase))         {strchannel.Append("W^{+}W^{-}");        minmass=80.3;}
-      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("Z^{+}Z^{-}");        minmass=91.2;}
-      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("hh");                minmass=125;}
+      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("ZZ");                minmass=91.2;}
+      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("HH");                minmass=125;}
       else if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel.Append("#gamma#gamma");      minmass=0;}
       else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");    minmass=0.135;}
       else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
@@ -967,8 +967,10 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
               ann_crosssection[iChannel] = (mass*mass)/(64. * TMath::Pi()*TMath::Pi()) * (4. * TMath::Power(mass,4) - 4. * mass*mass * particle_mass[iChannel]*particle_mass[iChannel] + 3. * TMath::Power(particle_mass[iChannel],4)) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
             else if (scalar_bosons.Contains(particle_type[iChannel]))
               ann_crosssection[iChannel] = (mass*mass)/(32. * TMath::Pi()*TMath::Pi()) * TMath::Power((2.* mass*mass + particle_mass[iChannel]*particle_mass[iChannel]),2) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
-            // with a factor 2 (because the W is complex)
+            // WW with a factor 2 (because the W is complex)
             if(!particle_type[iChannel].CompareTo("WW",TString::kIgnoreCase)) ann_crosssection[iChannel] *= 2.;
+            // hh with a factor 1/2 (because the Higgs is real)
+            if(!particle_type[iChannel].CompareTo("hh",TString::kIgnoreCase)) ann_crosssection[iChannel] *= 0.5;
           }
         // add up all ann_crosssection for the normalization
         total_ann_crosssection += ann_crosssection[iChannel];
