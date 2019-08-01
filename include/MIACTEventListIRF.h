@@ -17,8 +17,8 @@
 // structure to read the events from the NTuple
 typedef struct {
   Float_t  E;        // [GeV] measured energy of event
-  Float_t  pointRA;  // [deg] RA of telescope pointing direction
-  Float_t  pointDEC; // [deg] DEC of telescope pointing direction
+  //  Float_t  pointRA;  // [deg] RA of telescope pointing direction
+  //  Float_t  pointDEC; // [deg] DEC of telescope pointing direction
   Float_t  dRA;      // [deg] distance to pointing direction in the RA axis 
   Float_t  dDEC;     // [deg] distance to pointing direction in the DEC axis
   Float_t  t;        // [MJD] arrival time

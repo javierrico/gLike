@@ -23,6 +23,7 @@ using namespace std;
 
 static const Float_t gEpmin = 1e00; // [GeV] default value of minimum E_est
 static const Float_t gEpmax = 1e06; // [GeV] default value of maximum E_est
+static const Int_t   gBuffSize = 128000; // buffer size for Ntuples
 
 const Float_t IactEventListIrf::gDefEVal      = 0.;    // default value when energy is not provided
 const Float_t IactEventListIrf::gDefRADECVal  = 9999.; // default value when dRA and dDEC are not provided
@@ -41,8 +42,8 @@ IactEventListIrf::IactEventListIrf(TString name,TString title) :
   fGEbias(NULL), fMigMatrix(NULL), fHdNdEpBkg(NULL), fHdNdEpFrg(NULL)
 {
   // create the event lists
-  fOnSample  = new TNtuple("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had");
-  fOffSample = new TNtuple("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had");
+  fOnSample  = new TNtuple("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had",gBuffSize);
+  fOffSample = new TNtuple("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had",gBuffSize);
 }
 
 ////////////////////////////////////////////////////////////////
