@@ -493,25 +493,26 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		        else
 		          cout << "Ok!" << endl;
 	              }
-	            else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))
-	              {
-		        const Float_t me = 0.511e-3; // e mass in GeV
+		    // commented out because we read it from histograms like the rest of the usual channels
+	            // else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))
+	            //   {
+		    //     const Float_t me = 0.511e-3; // e mass in GeV
 
-		        TF1* fee = new TF1("fee","1./137./TMath::Pi()/x*(TMath::Log(4*[0]*([0]-x)/([1]*[1]))-1)*(1+TMath::Power(4*[0]*([0]-x)/(4*[0]*[0]),2))",1e-4,mdm);
-		        fee->SetParameter(0,mdm);
-		        fee->SetParameter(1,me);
-		        Float_t emax = mdm*(1-TMath::Exp(1)/4.*me*me/(mdm*mdm));
-		        cout << "   * Setting dN/dE for XX->ee for mass = " << mdm  << " GeV (Emax = " << emax << ") with BR = " << brval[iChannel] << "... " << flush;
+		    //     TF1* fee = new TF1("fee","1./137./TMath::Pi()/x*(TMath::Log(4*[0]*([0]-x)/([1]*[1]))-1)*(1+TMath::Power(4*[0]*([0]-x)/(4*[0]*[0]),2))",1e-4,mdm);
+		    //     fee->SetParameter(0,mdm);
+		    //     fee->SetParameter(1,me);
+		    //     Float_t emax = mdm*(1-TMath::Exp(1)/4.*me*me/(mdm*mdm));
+		    //     cout << "   * Setting dN/dE for XX->ee for mass = " << mdm  << " GeV (Emax = " << emax << ") with BR = " << brval[iChannel] << "... " << flush;
 
-		        if(fullLkl->AdddNdESignalFunction(fee,0,emax,brval[iChannel]))
-		          {
-		             cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		             return;
-		          }
-		        else
-		          cout << "Ok!" << endl;
-		        delete fee;
-	              }
+		    //     if(fullLkl->AdddNdESignalFunction(fee,0,emax,brval[iChannel]))
+		    //       {
+		    //          cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
+		    //          return;
+		    //       }
+		    //     else
+		    //       cout << "Ok!" << endl;
+		    //     delete fee;
+	            //   }
 	            else
 	              {
                         TString dNdESignalFileNameForm   = fdNdEDir+"dNdESignal_"+channelval[iChannel]+Form("_%smass.root",mprecform.Data());
