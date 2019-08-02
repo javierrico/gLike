@@ -188,7 +188,7 @@ static const Int_t    gNBins           = 100;                    // default numb
 static const Int_t    gNFineBins       = 5000;                   // default number of fine bins for internal histos
 static const Double_t gFineLEMin       = TMath::Log10(10);       // default minimum log(energy[GeV]) for internal histos
 static const Double_t gFineLEMax       = TMath::Log10(1000000);  // default maximum log(energy[GeV]) for internal histos
-static const Double_t gCenterBin       = 0.;                     // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
+static const Double_t gCenterBin       = 1.;                     // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
 
 // static functions (for internal processing of input data)
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
@@ -1834,63 +1834,66 @@ void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
       etest = omine+ode*(ibin+gCenterBin); 
 
       // log-log interpolation
-      if(etest<imine+gCenterBin*ide)
+      if(etest<imine+gCenterBin*ide) // extrapolation of values below the minimum input energy
 	{
-	  ycontent0 = ih->GetBinContent(1);
-	  ycontent1 = ih->GetBinContent(2);
+	  // ycontent0 = ih->GetBinContent(1);
+	  // ycontent1 = ih->GetBinContent(2);
 	  
-	  if(ycontent0<=0 || ycontent1<=0)
-	    {
-	      // cout << "Case 1: ibin = " << ibin << ", ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << endl;
-	      oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
-	      continue;
-	    }
+	  // if(ycontent0<=0 || ycontent1<=0)
+	  //   {
+	  //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+	  //     continue;
+	  //   }
 
-	  x0 = imine+gCenterBin*ide;
-	  x1 = imine+(1.+gCenterBin)*ide;
+	  // x0 = imine+gCenterBin*ide;
+	  // x1 = imine+(1.+gCenterBin)*ide;
 
-	  if(!isDiff)
-	    {
-	      dx0i = TMath::Power(10,imine+ide)-TMath::Power(10,imine);
-	      dx1i = TMath::Power(10,imine+2*ide)-TMath::Power(10,imine+ide);
+	  // if(!isDiff)
+	  //   {
+	  //     dx0i = TMath::Power(10,imine+ide)-TMath::Power(10,imine);
+	  //     dx1i = TMath::Power(10,imine+2*ide)-TMath::Power(10,imine+ide);
 
-	      y0  = TMath::Log10(ycontent0/dx0i);
-	      y1  = TMath::Log10(ycontent1/dx1i);	  
-	    }
-	  else
-	    {
-	      y0 = TMath::Log10(ycontent0);
-	      y1 = TMath::Log10(ycontent1);	  
-	    }
+	  //     y0  = TMath::Log10(ycontent0/dx0i);
+	  //     y1  = TMath::Log10(ycontent1/dx1i);	  
+	  //   }
+	  // else
+	  //   {
+	  //     y0 = TMath::Log10(ycontent0);
+	  //     y1 = TMath::Log10(ycontent1);	  
+	  //   }
+	  oh->SetBinContent(ibin+1,0);
+	  continue;
 	}
-      else if(etest>imaxe-(1-gCenterBin)*ide)
+      else if(etest>imaxe-(1-gCenterBin)*ide) // extrapolation of values above the maximum input energy
 	{
-	  ycontent0 = ih->GetBinContent(onbinse-1);
-	  ycontent1 = ih->GetBinContent(onbinse);
+	  // ycontent0 = ih->GetBinContent(onbinse-1);
+	  // ycontent1 = ih->GetBinContent(onbinse);
 	  
-	  if(ycontent0<=0 || ycontent1<=0)
-	    {
-	      // cout << "Case 2: ibin = " << ibin << ", ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << endl;
-	      oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
-	      continue;
-	    }
+	  // if(ycontent0<=0 || ycontent1<=0)
+	  //   {
+	  //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+	  //     continue;
+	  //   }
 
-	  x0 = imaxe-(2.-gCenterBin)*ide;
-	  x1 = imaxe-(1.-gCenterBin)*ide;
-	  if(!isDiff)
-	    {
-	      dx0i = TMath::Power(10,imine+(inbinse-1)*ide)-TMath::Power(10,imine+(inbinse-2)*ide);
-	      dx1i = TMath::Power(10,imine+inbinse*ide)-TMath::Power(10,imine+(inbinse-1)*ide);
-	      y0  = TMath::Log10(ycontent0/dx0i);
-	      y1  = TMath::Log10(ycontent1/dx1i);	    
-	    }
-	  else
-	    {
-	      y0 = TMath::Log10(ycontent0);
-	      y1 = TMath::Log10(ycontent1);	    
-	    }
+	  // x0 = imaxe-(2.-gCenterBin)*ide;
+	  // x1 = imaxe-(1.-gCenterBin)*ide;
+	  // if(!isDiff)
+	  //   {
+	  //     dx0i = TMath::Power(10,imine+(inbinse-1)*ide)-TMath::Power(10,imine+(inbinse-2)*ide);
+	  //     dx1i = TMath::Power(10,imine+inbinse*ide)-TMath::Power(10,imine+(inbinse-1)*ide);
+	  //     y0  = TMath::Log10(ycontent0/dx0i);
+	  //     y1  = TMath::Log10(ycontent1/dx1i);	    
+	  //   }
+	  // else
+	  //   {
+	  //     y0 = TMath::Log10(ycontent0);
+	  //     y1 = TMath::Log10(ycontent1);	    
+	  //   }
+	  oh->SetBinContent(ibin+1,0);
+	  continue;
+
 	}
-      else
+      else // interpolation of values in the range of provided energies
 	{
 	  etestbin  = Int_t((etest-imine-gCenterBin*ide)/ide); // corresponding bin in ih histo
 
@@ -1899,8 +1902,7 @@ void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
 	  
 	  if(ycontent0<=0 || ycontent1<=0)
 	    {
-	      // cout << "Case 3: etestbin = " << etestbin << ", ibin = " << ibin << ", ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << endl;
-	      oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+	      oh->SetBinContent(ibin+1,0);
 	      continue;
 	    }
 	  
