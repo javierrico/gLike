@@ -58,6 +58,7 @@
 //######################################################################
 
 #include <iostream>
+#include <sstream>
 
 #include "TPRegexp.h"
 #include "TMath.h"
@@ -163,6 +164,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   TString strchannel;
   TString normchannel;
   Double_t minmass = 0;
+  std::ostringstream buffer;
   for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
     {
       if(nChannels == 1) strchannel = normchannel = "";
@@ -170,14 +172,18 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
           if(iChannel == 0) 
             {
               Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
-              strchannel  = (TString) to_string(rounded_brval).substr(0, 4) + "#upoint";
-              normchannel = (TString) to_string(rounded_brval).substr(0, 4) + "*";
+              buffer << rounded_brval;
+              strchannel  = (TString) buffer.str().substr(0, 4) + "#upoint";
+              normchannel = (TString) buffer.str().substr(0, 4) + "*";
             }
           else
             {
               Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
-              strchannel.Append("#plus" + to_string(rounded_brval).substr(0, 4) + "#upoint");
-              normchannel.Append("+" + to_string(rounded_brval).substr(0, 4) + "*");
+              buffer.clear();
+              buffer.str("");
+              buffer << rounded_brval;
+              strchannel.Append("#plus" + buffer.str().substr(0, 4) + "#upoint");
+              normchannel.Append("+" + buffer.str().substr(0, 4) + "*");
             }
       normchannel.Append(channelval[iChannel]);
 
