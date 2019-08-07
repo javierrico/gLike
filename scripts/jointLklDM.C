@@ -371,9 +371,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
               cout << " ## Oops! At least one mass to be tested is not in the file given as an input <---------------- FATAL ERROR!!!"<< endl;
               return;
             }
-          delete tmpLkl;
-	  lkl[iLkl] =  new GloryDuckTables2019Lkl(inputString);
-	  lkl[iLkl]->SetName(Form("GloryDuckTables2019Lkl_%02d",iLkl));
+	  lkl[iLkl] = tmpLkl;
 	}
       else
 	{
