@@ -399,24 +399,28 @@ void GloryDuckTables2019Lkl::PrintData(Int_t level)
   Margin(level); cout << "                 <sv>_min = " << sv[0] << " [cm^3 s^-1]" << endl;
   Margin(level); cout << "                 <sv>_max = " << sv[grprbla->GetN()-1] << " [cm^3 s^-1]" << endl;
   Margin(level); cout << "                            " << endl;
-  Margin(level); cout << " Parabola's content:        " << endl;
-  Margin(level); cout << " Masses [GeV]     <sv> [cm^3/s] -->  " ;
-  for(Int_t ibin=0;ibin<grprbla->GetN();ibin++)
-    {
-      cout << sv[ibin] << "  ";
-    }
-  cout << endl;
 
-  for(Int_t ibin=0;ibin<fNMasses;ibin++)
+  if(level>0)
     {
-      Margin(level); cout << "    " << fMass[ibin] << "                              ";
-      for(Int_t jbin=0;jbin<grprbla->GetN();jbin++)
+      Margin(level); cout << " Parabola's content:        " << endl;
+      Margin(level); cout << " Masses [GeV]     <sv> [cm^3/s] -->  " ;
+      for(Int_t ibin=0;ibin<grprbla->GetN();ibin++)
         {
-          cout << GetSample(ibin)->GetLklVsG(kFALSE)->Eval(sv[jbin]) << "  ";
+          cout << sv[ibin] << "  ";
+        }
+      cout << endl;
+
+      for(Int_t ibin=0;ibin<fNMasses;ibin++)
+        {
+          Margin(level); cout << "    " << fMass[ibin] << "                              ";
+          for(Int_t jbin=0;jbin<grprbla->GetN();jbin++)
+            {
+              cout << GetSample(ibin)->GetLklVsG(kFALSE)->Eval(sv[jbin]) << "  ";
+            }
+          cout << endl;
         }
       cout << endl;
     }
-  cout << endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////

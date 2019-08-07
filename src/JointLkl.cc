@@ -147,7 +147,7 @@ JointLkl::~JointLkl()
 //
 Int_t JointLkl::MakeChecks()
 {
-  if(ReorderSamples()) return 2;
+  if(ReorderSamples()) return 1;
   
   // Check all added objects
   TObjArrayIter* iter    = (TObjArrayIter*) GetSampleArray()->MakeIterator();

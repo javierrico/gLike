@@ -21,13 +21,18 @@ jointLklDM.plotmax: 1e-22
 # scale factor for results (e.g. to simulate for a Tobs and get results for another Tobs)
 # jointLklDM.plotScale: 1
 
-# Configuration for data exporter
-jointLklDM.exportData: FALSE
-jointLklDM.svMin: 1e-28
-jointLklDM.svMax: 1e-18
-jointLklDM.svNPoints: 1000
-jointLklDM.svLogStep: TRUE
-jointLklDM.logJ: 19.
+# Configuration for data exporter: will export results in a format of a .txt file containing
+# likelihood values for all DM masses specified below in a range of <sv> values between exportSvMin
+# and exportSvMax with exportSvNPoints steps in total. The exportSvLogStep allows to choose between
+# log-spaced or linear-spaced <sv> values. The .txt file will follow the Glory Duck prescription thus
+# including the value of the J-factor (exportLogJ) used to produce those results. The file
+jointLklDM.exportData: TRUE
+jointLklDM.exportSvMin: 1e-28
+jointLklDM.exportSvMax: 1e-18
+jointLklDM.exportSvNPoints: 1000
+jointLklDM.exportSvLogStep: TRUE
+jointLklDM.exportLogJ: 19.
+jointLklDM.exportDataPath: exported_files/
 
 # Path (will be added to all specified files and directories in this rcfile)
 jointLklDM.path: ./
@@ -56,7 +61,7 @@ jointLklDM.Channel: bb
 jointLklDM.Process: ann
 
 # list of DM masses to be considered (in GeV)
-jointLklDM.MassList:  100  200 500  1000  2000  5000  10000  20000  50000  100000
+jointLklDM.MassList:  10  100  200 500  1000  2000  5000  10000  20000  50000  100000
 
 # Mean g (number of signal events) for simulations
 # this should be replaced in future release by <sv>
@@ -95,6 +100,8 @@ JOINT LIKELIHOOD CONFIGURATION
 #    jointLklDM.lklTerm<XXX>: Iact1dBinnedLkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName> nbins=<nbins> minbincontent=<minbincontent> obsTime=<obsTime> tau=<tau> DtauStat=<DtauStat>  DtauSyst=<DtauSyst> tauEDepFluct=<tauEDepFluct> 
 # -  Binned Flux Likelihood (Fermi-LAT format):
 #    jointLklDM.lklTerm<XXX>: FermiTables2016Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
+# -  Likelihood parabolas (Glory Duck format):
+#    jointLklDM.lklTerm<XXX>: GloryDuckTables2019Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 #
 # <logJ             and <DlogJ> are, respectively, the mean value and uncertainty of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-2 (decay)
 # <inputFileName>   is the name of the input file, which contain the IRFs and data 

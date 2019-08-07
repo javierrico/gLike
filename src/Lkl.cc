@@ -248,7 +248,7 @@ Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Doub
       // first find where the minimum is and estimate the error
       if(isVerbose)
 	cout << "Lkl::ComputeLklVsG (" << GetName() << ") Message: Finding minimum of -2logL... " << endl;
-      Lkl::MinimizeLkl();
+      if (!Lkl::MinimizeLkl()) return 0;
       FindGLowAndGUpp(glow,gupp,centerAtZero);
     }
  

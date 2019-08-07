@@ -135,11 +135,12 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   Float_t  mcG               = env->GetValue("jointLklDM.mcG",0.);  //assumed value of <sv> for simulations
   TString  massList          = env->GetValue("jointLklDM.MassList","");
   Bool_t   exportData        = env->GetValue("jointLklDM.exportData",kFALSE);
-  Double_t svMin             = env->GetValue("jointLklDM.svMin",0.);
-  Double_t svMax             = env->GetValue("jointLklDM.svMax",0.);
-  Bool_t   svLogStep         = env->GetValue("jointLklDM.svLogStep",kFALSE);
-  Int_t    svNPoints         = env->GetValue("jointLklDM.svNPoints",0.);  
-  Double_t logJ              = env->GetValue("jointLklDM.logJ",0.);  
+  Double_t svMin             = env->GetValue("jointLklDM.exportSvMin",0.);
+  Double_t svMax             = env->GetValue("jointLklDM.exportSvMax",0.);
+  Bool_t   svLogStep         = env->GetValue("jointLklDM.exportSvLogStep",kTRUE);
+  Int_t    svNPoints         = env->GetValue("jointLklDM.exportSvNPoints",0.);  
+  Double_t logJ              = env->GetValue("jointLklDM.exportLogJ",0.);  
+  TString  fExportDataPath   = fInputDataPath+"/"+env->GetValue("jointLklDM.exportDataPath","")+"/";
       
   // fill the list of masses to be studied
   UInt_t  nmass0  = re.Split(massList);
@@ -178,7 +179,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   // Create stream to export data
   std::ofstream data;
 
-  // Exporting data to Glory Duck format
+  // Preparing data export to Glory Duck format
   Double_t svStep = 0.;
   Double_t isv = svMax;
   Double_t svScan[svNPoints+1];
@@ -186,8 +187,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   if (exportData)
     {
       // Create directory and open file for data export
-      gSystem->Exec(Form("mkdir -p %s/Data/txt",fPlotsDir.Data()));
-      TString dataFile = fPlotsDir+"Data/txt/"+label+".txt";
+      gSystem->Exec(Form("mkdir -p %s",fExportDataPath.Data()));
+      TString dataFile = fExportDataPath+label+".txt";
       data.open(dataFile);
 
       // Write first line of the file
@@ -234,6 +235,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << "*** PARABOlA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
   cout << "*** Plot y-axis range   : " << plotmin << " to " << plotmax << Form(" %s", (isDecay? "s" : "cm^3/s")) << endl;
   cout << "*** EXPORT DATA         : " << (exportData? "YES" : "NO") << endl;
+  if(exportData)
+    cout << " ** Format of export    : Glory Duck" << endl;
   cout << "***" << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***********************************************************************************" << endl;
@@ -356,7 +359,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
             {
               massAvailable = kFALSE;
               Double_t massToBeTested = massval[jmass];
-              for(Int_t kmass=0;kmass<tmpLkl->GetNMasses();kmass++)
+              for(UInt_t kmass=0;kmass<tmpLkl->GetNMasses();kmass++)
                 {
                   Double_t massInTheFile = tmpLkl->GetActiveMass(kmass);
                   if(TMath::Abs(massToBeTested-massInTheFile) < 1.e-6)
@@ -449,9 +452,9 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	  if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl") || !strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))
 	    {
 	      // casted pointer (for less messy code)
-	      Iact1dUnbinnedLkl* fullLkl;
-	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl"))       fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
-	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl")) fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
+	      Iact1dUnbinnedLkl* fullLkl = NULL;
+	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
+	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
 	    
 	      cout << "  ** Reading histos for sample " << fullLkl->GetName() << ":" << endl;
 
@@ -585,21 +588,12 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
               GloryDuckTables2019Lkl* gdLkl = dynamic_cast<GloryDuckTables2019Lkl*>(lkl[isample]);
               if(gdLkl->SetActiveMass(mass))
                 {
-                  cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
+                  cout << " ## Oops! The DM mass selected (" << mass << " GeV) doesn't exist in the input file <---------------- FATAL ERROR!!!" << endl;
                   return;
                 } 
             }
         } // end of loop over samples
       cout << " *** End of reading dN_signal/dE and dN_signal/dE' histograms" << endl;  
-
-      // Case where dataset don't contain signal event
-      if(lkl[0]->MakeChecks()==2)
-        {
-          svLimVal[imass] = 0.;
-          svSenVal[imass] = 0.;
-          cout << " *** Skipping DM mass = " << mass << " GeV because none of the samples will produce any signal event" << endl;  
-          continue;
-        }
 
       // Plot IRF and data
       /////////////////////
@@ -627,12 +621,14 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		TH1F* hdNdESignal = new TH1F(*fullLkl->GetHdNdESignal());
 		hdNdESignal->SetLineStyle((imass+1)%8);
 		hdNdESignal->DrawCopy("same");
+		delete hdNdESignal;
 
 		hadcanvas[isample]->cd(6);
 		TH1F* hdNdEpSignal = new TH1F(*fullLkl->GetHdNdEpSignal());
 		hdNdEpSignal->SetLineStyle((imass+1)%8);
 		hdNdEpSignal->Scale(hdNdEpSignal->GetBinContent(0));				
 		hdNdEpSignal->DrawCopy("same");
+		delete hdNdEpSignal;
 
 		if(fullLkl->GetHdNdEpSignalOff())
 		  {
@@ -640,6 +636,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		    hdNdEpSignalOff->SetLineStyle((imass+1)%8);
 		    hdNdEpSignalOff->Scale(hdNdEpSignalOff->GetBinContent(0));				
 		    hdNdEpSignalOff->DrawCopy("same");
+		    delete hdNdEpSignalOff;
 		  }
 	      }	    
 	    gPad->Modified();
@@ -648,7 +645,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       
       // compute -2logLkl vs g for precise limit computation
       cout << " *** Computing -2logL (parabola) vs g:" << endl;
-      lkl[0]->ComputeLklVsG();
+      if(!lkl[0]->ComputeLklVsG())
+        {
+          cout << " *** Skipping DM mass = " << mass << " GeV because checks were not successfull (maybe none of the samples will produce any signal event?)" << endl;
+          svLimVal[imass] = 0.;
+          svSenVal[imass] = 0.;
+          continue;
+        }
 
       cout << endl;
       cout << " *** Overview of likelihood maximization results:" << endl;
@@ -722,15 +725,12 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       // Save -2logLkl vs <sv> in file
       //////////////////////////////////////////////////////////////
       if (exportData)
-        {
           for (Int_t isv=0; isv<=svNPoints; isv++)
             vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]) - grLklParabola[imass]->Eval(0);
-        }
 
     } // end of loop over DM masses
 
     if (exportData)
-      {
         for (Int_t isv=0; isv<=svNPoints; isv++)
           {
             data << left << setw(15) << svScan[isv];
@@ -741,7 +741,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
             // go to next line in the file
             data << endl;
           }
-      }
 
   // Close file for exporting data
   if (exportData) data.close();
