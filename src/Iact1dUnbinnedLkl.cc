@@ -188,7 +188,7 @@ static const Int_t    gNBins           = 100;                    // default numb
 static const Int_t    gNFineBins       = 5000;                   // default number of fine bins for internal histos
 static const Double_t gFineLEMin       = TMath::Log10(10);       // default minimum log(energy[GeV]) for internal histos
 static const Double_t gFineLEMax       = TMath::Log10(1000000);  // default maximum log(energy[GeV]) for internal histos
-static const Double_t gCenterBin       = 1.;                     // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
+static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
 
 // static functions (for internal processing of input data)
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
