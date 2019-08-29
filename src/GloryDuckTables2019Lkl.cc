@@ -400,7 +400,7 @@ void GloryDuckTables2019Lkl::PrintData(Int_t level)
   Margin(level); cout << "                 <sv>_max = " << sv[grprbla->GetN()-1] << " [cm^3 s^-1]" << endl;
   Margin(level); cout << "                            " << endl;
 
-  if(level>0)
+  if(level>1)
     {
       Margin(level); cout << " Parabola's content:        " << endl;
       Margin(level); cout << " Masses [GeV]     <sv> [cm^3/s] -->  " ;

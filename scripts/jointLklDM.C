@@ -113,7 +113,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       return;
     }
 
-  
   // Read configuration file
   TEnv*  env = new TEnv(configFileName);
   TString  label             = env->GetValue("jointLklDM.Label","");
@@ -139,7 +138,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   Double_t svMax             = env->GetValue("jointLklDM.exportSvMax",0.);
   Bool_t   svLogStep         = env->GetValue("jointLklDM.exportSvLogStep",kTRUE);
   Int_t    svNPoints         = env->GetValue("jointLklDM.exportSvNPoints",0.);  
-  Double_t logJ              = env->GetValue("jointLklDM.exportLogJ",0.);  
   TString  fExportDataPath   = fInputDataPath+"/"+env->GetValue("jointLklDM.exportDataPath","")+"/";
       
   // fill the list of masses to be studied
@@ -175,43 +173,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   Int_t           nskippedmass = GetNSkippedMasses(nmass0,massval0,minmass);
   Int_t           nmass        = nmass0-nskippedmass; 
   const Double_t* massval      = massval0+nskippedmass;
-
-  // Create stream to export data
-  std::ofstream data;
-
-  // Preparing data export to Glory Duck format
-  Double_t svStep = 0.;
-  Double_t isv = svMax;
-  Double_t svScan[svNPoints+1];
-  vector<vector<Double_t> > vlkl2D(svNPoints+1);
-  if (exportData)
-    {
-      // Create directory and open file for data export
-      gSystem->Exec(Form("mkdir -p %s",fExportDataPath.Data()));
-      TString dataFile = fExportDataPath+label+".txt";
-      data.open(dataFile);
-
-      // Write first line of the file
-      data << left << setw(15) << logJ;
-      for(Int_t imass=0;imass<nmass;imass++)
-        data << left << setw(15) << massval[imass];
-      data << endl;
-
-      // Define svStep
-      Int_t counter = 0;
-      if (svLogStep) svStep = TMath::Exp(TMath::Log(TMath::Abs(svMax/svMin))/svNPoints);
-      else           svStep = TMath::Abs(svMax-svMin)/svNPoints;
-
-      // Initialise svScan with all <sv> values
-      for(Int_t i=0; i<=svNPoints; i++)
-        {
-          svScan[counter] = isv;
-          counter++;
-          if (svLogStep) isv/=svStep;
-          else           isv-=svStep;
-          vlkl2D[i] = vector<Double_t>(nmass,0.);
-        }
-    }
 
   // Print-out configuration info (part 2)
   cout << "*** I/O PATH            : " << fInputDataPath << endl;
@@ -249,6 +210,9 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     grLklParabola[imass] = NULL;
   const Int_t nlines = 5;  // number of lines in parabolas canvas
   Int_t ncols = TMath::Ceil(nmass/Float_t(nlines)); // number of columns in parabolas canvas
+
+  // Define logJ variable to check if the exportData option can be applied
+  Double_t logJ = 0.;
 
   // The classes composing the joint likelihood
   Lkl** lkl    = new Lkl*[nMaxLkls];
@@ -288,7 +252,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       // add path
       inputString+=(" path="+fInputDataPath);
 
-      
       // create the proper object according to classType 
       if(classType.CompareTo("Iact1dUnbinnedLkl")==0)
 	{	  
@@ -379,6 +342,58 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	  return;
 	}
       
+      // Check if the input parameters allow to export data
+      if(exportData)
+        {
+          if(iLkl == 0 && classType.CompareTo("JointLkl")==0)
+            {
+              if(lkl[iLkl]->GetDUnitsOfG() > 1e-5)
+                {
+                  cout << " ## Warning! This format of exported data implies that LogJ is fixed, your main JointLkl object has non-nul DlogJ error, by precaution the exported file will NOT be created." << endl;
+                  exportData=kFALSE;
+                }
+              else
+                continue;
+            }
+          else if(iLkl >=1 && classType.CompareTo("JointLkl")==0)
+            {
+              cout << " ## Warning! This format of exported data implies that one file corresponds to one source, your rc file contains more than one JointLkl object which contradicts this assumption, by precaution the exported file will NOT be created." << endl;
+              exportData=kFALSE;
+            }
+          else if(iLkl==1)
+            {
+	      // casted pointer (for less messy code)
+	      Iact1dUnbinnedLkl* fullLkl = NULL;
+	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl]);
+	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl]);
+              logJ = fullLkl->GetLogJ(); //initializing the logJ value with the first one found
+
+              if (lkl[iLkl]->GetDUnitsOfG() > 1e-5)
+                {
+                  cout << " ## Warning! This format of exported data implies that LogJ is fixed, one of your objects has non-nul DlogJ error, by precaution the exported file will NOT be created." << lkl[iLkl]->GetDUnitsOfG() << endl;
+                  exportData=kFALSE;
+                }
+            }
+          else
+            {
+	      // casted pointer (for less messy code)
+	      Iact1dUnbinnedLkl* fullLkl = NULL;
+	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl]);
+	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl]);
+
+              if(TMath::Abs(fullLkl->GetLogJ()-logJ) > 1e-5)
+                {
+                  cout << " ## Warning! This format of exported data implies that one file corresponds to one source, your rc file contains differents LogJ values which contradicts this assumption, by precaution the exported file will NOT be created." << endl;
+                  exportData=kFALSE;
+                }
+              else if (lkl[iLkl]->GetDUnitsOfG() > 1e-5)
+                {
+                  cout << " ## Warning! This format of exported data implies that LogJ is fixed, one of your objects has non-nul DlogJ error, by precaution the exported file will NOT be created." << endl;
+                  exportData=kFALSE;
+                }
+            }
+        }
+
       // Construct the joint Lkl tree structure: link lkl[iLkl] to the proper JointLkl object with parLkl
       if(iLkl>0 && parLkl>=iLkl) // only lkls with lower indices (already processed) are accepted
 	{
@@ -400,7 +415,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       return;      
     }
 
-
   lkl[0]->SetErrorDef(deltaLogLkl); // set the error correponding to the required CL
   if(isGpositive)
     lkl[0]->SetGIsPositive();
@@ -410,6 +424,43 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << "****************************************************************" << endl;
   
   lkl[0]->PrintData();
+
+  // Create stream to export data
+  std::ofstream data;
+
+  // Preparing data export to Glory Duck format
+  Double_t svStep = 0.;
+  Double_t isv = svMax;
+  Double_t svScan[svNPoints+1];
+  vector<vector<Double_t> > vlkl2D(svNPoints+1);
+  if (exportData)
+    {
+      // Create directory and open file for data export
+      gSystem->Exec(Form("mkdir -p %s",fExportDataPath.Data()));
+      TString dataFile = fExportDataPath+label+".txt";
+      data.open(dataFile);
+
+      // Write first line of the file
+      data << left << setw(15) << logJ;
+      for(Int_t imass=0;imass<nmass;imass++)
+        data << left << setw(15) << massval[imass];
+      data << endl;
+
+      // Define svStep
+      Int_t counter = 0;
+      if (svLogStep) svStep = TMath::Exp(TMath::Log(TMath::Abs(svMax/svMin))/svNPoints);
+      else           svStep = TMath::Abs(svMax-svMin)/svNPoints;
+
+      // Initialise svScan with all <sv> values
+      for(Int_t i=0; i<=svNPoints; i++)
+        {
+          svScan[counter] = isv;
+          counter++;
+          if (svLogStep) isv/=svStep;
+          else           isv-=svStep;
+          vlkl2D[i] = vector<Double_t>(nmass,0.);
+        }
+    }
 
   // Loop over masses and compute the limits
   ///////////////////////////////////////////
@@ -723,22 +774,22 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       // Save -2logLkl vs <sv> in file
       //////////////////////////////////////////////////////////////
       if (exportData)
-          for (Int_t isv=0; isv<=svNPoints; isv++)
-            vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]) - grLklParabola[imass]->Eval(0);
+        for (Int_t isv=0; isv<=svNPoints; isv++)
+          vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]) - grLklParabola[imass]->Eval(0);
 
     } // end of loop over DM masses
 
-    if (exportData)
-        for (Int_t isv=0; isv<=svNPoints; isv++)
-          {
-            data << left << setw(15) << svScan[isv];
+  if (exportData)
+    for (Int_t isv=0; isv<=svNPoints; isv++)
+      {
+        data << left << setw(15) << svScan[isv];
 
-            for(Int_t imass=0;imass<nmass;imass++)
-              data << left << setw(15) << vlkl2D[isv][imass];
+        for(Int_t imass=0;imass<nmass;imass++)
+          data << left << setw(15) << vlkl2D[isv][imass];
 
-            // go to next line in the file
-            data << endl;
-          }
+        // go to next line in the file
+        data << endl;
+      }
 
   // Close file for exporting data
   if (exportData) data.close();
@@ -885,7 +936,6 @@ Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm)
   return im;
 }
 
-  
 void setDefaultStyle()
 {
   // general settings

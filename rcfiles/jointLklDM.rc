@@ -11,27 +11,27 @@ I/O CONFIGURATION
 # Label to indentify this analysis (for naming plots and output files)
 jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisFree_JisFixed
 
-# configuration for plots
+# Configuration for plots
 jointLklDM.showSamplePlots:   TRUE
 jointLklDM.showParabolaPlots: TRUE
 jointLklDM.showLimitPlots:    TRUE
-# comment out the plot range for automatic selection
+# Comment out the plot range for automatic selection
 jointLklDM.plotmin: 1e-25
 jointLklDM.plotmax: 1e-22
-# scale factor for results (e.g. to simulate for a Tobs and get results for another Tobs)
+# Scale factor for results (e.g. to simulate for a Tobs and get results for another Tobs)
 # jointLklDM.plotScale: 1
 
-# Configuration for data exporter: will export results in a format of a .txt file containing
-# likelihood values for all DM masses specified below in a range of <sv> values between exportSvMin
-# and exportSvMax with exportSvNPoints steps in total. The exportSvLogStep allows to choose between
-# log-spaced or linear-spaced <sv> values. The .txt file will follow the Glory Duck prescription thus
-# including the value of the J-factor (exportLogJ) used to produce those results. The file
+# Configuration for data exporter into the Glory Duck file format (i.e. likelihood values for all DM masses specified below)
 jointLklDM.exportData: TRUE
+# Minimum, maximum and number of scanned values
 jointLklDM.exportSvMin: 1e-28
 jointLklDM.exportSvMax: 1e-18
 jointLklDM.exportSvNPoints: 1000
+# Log-spaced values?
 jointLklDM.exportSvLogStep: TRUE
+# Assumed log10(Jfactor) when computing
 jointLklDM.exportLogJ: 19.
+# Directory for output files
 jointLklDM.exportDataPath: exported_files/
 
 # Path (will be added to all specified files and directories in this rcfile)
@@ -53,14 +53,14 @@ jointLklDM.dNdEpSignalDir: DM/dNdEpSignal
 ANALYSIS CONFIGURATION
 ######################
 
-# channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0 or pi0gamma)
+# Channel to be analyzed (bb, tautau, mumu, WW, gammagamma, pi0pi0 or pi0gamma)
 jointLklDM.Channel: bb
 
-# process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
+# Process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
 # (remember to change consistently the list of masses and J-factor value and uncertainty)
 jointLklDM.Process: ann
 
-# list of DM masses to be considered (in GeV)
+# List of DM masses to be considered (in GeV)
 jointLklDM.MassList:  10  100  200 500  1000  2000  5000  10000  20000  50000  100000
 
 # Mean g (number of signal events) for simulations
@@ -69,7 +69,7 @@ jointLklDM.MassList:  10  100  200 500  1000  2000  5000  10000  20000  50000  1
 # g = <sv>*J/(8*Pi*m^2) * integral between fEpmin and fEpmax of fHdNdEpSignal
 jointLklDM.mcG: 0
 
-# if TRUE (FALSE) g is restricted to positive values only (i.e. Fermi prescription for lkl maximizing out of the physical region)
+# If TRUE (FALSE) g is restricted to positive values only (i.e. Fermi prescription for lkl maximizing out of the physical region)
 jointLklDM.isGpositive: TRUE
 
 # Delta(-2logLkl) for limits (2.71 = 95% CL, 4.495 = 5sigma)
