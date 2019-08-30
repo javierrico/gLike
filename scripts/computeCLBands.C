@@ -213,7 +213,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   // if we miss 5% or more of the simulation files
   if((Double_t)nFilesRead/(Double_t)nSimuFiles <0.95)
     {
-      cout << "Too few MC files could be read compare to the expected number of files. Did you really run " << nSimuFiles << "simulations?" << endl;
+      cout << "Too few MC files could be read compare to the expected number of files. Did you really run " << nSimuFiles << " simulations?" << endl;
       return;
     }
 
