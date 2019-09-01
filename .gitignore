@@ -6,5 +6,6 @@
 out
 *_C.d
 plots
+results
 **/my*
 **/dNdEpSignal
