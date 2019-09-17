@@ -11,17 +11,17 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TGraph.h"
-#include "TNtuple.h"
+#include "TNtupleD.h"
 
 // structure to read the events from the NTuple
 typedef struct {
-  Float_t  E;        // [GeV] measured energy of event
-  Float_t  pointRA;  // [deg] RA of telescope pointing direction
-  Float_t  pointDEC; // [deg] DEC of telescope pointing direction
-  Float_t  dRA;      // [deg] distance to pointing direction in the RA axis 
-  Float_t  dDEC;     // [deg] distance to pointing direction in the DEC axis
-  Float_t  t;        // [MJD] arrival time
-  Float_t  had;      // [1]   hadronness
+  Double_t  E;        // [GeV] measured energy of event
+  Double_t  pointRA;  // [deg] RA of telescope pointing direction
+  Double_t  pointDEC; // [deg] DEC of telescope pointing direction
+  Double_t  dRA;      // [deg] distance to pointing direction in the RA axis
+  Double_t  dDEC;     // [deg] distance to pointing direction in the DEC axis
+  Double_t  t;        // [MJD] arrival time
+  Double_t  had;      // [1]   hadronness
 } IactEvent_t;
 
 // class to hold the list of events and their corresponding IRFs
@@ -30,10 +30,10 @@ class IactEventListIrf : public TNamed
  public:  
 
   // static constants
-  static const Float_t gDefEVal      ;    //! default value when energy is not provided
-  static const Float_t gDefRADECVal  ;    //! default value when dRA and dDEC are not provided
-  static const Float_t gDefTVal      ;    //! default value when time is not provided
-  static const Float_t gDefHadVal    ;    //! default value when hadronness is not provided
+  static const Double_t gDefEVal      ;    //! default value when energy is not provided
+  static const Double_t gDefRADECVal  ;    //! default value when dRA and dDEC are not provided
+  static const Double_t gDefTVal      ;    //! default value when time is not provided
+  static const Double_t gDefHadVal    ;    //! default value when hadronness is not provided
 
   // constructor
   IactEventListIrf(TString name="IactEventListIrf",TString title="");
@@ -42,18 +42,18 @@ class IactEventListIrf : public TNamed
   virtual ~IactEventListIrf();
 
   // fill event with input values
-  void FillOnEvent( Float_t E=gDefEVal, Float_t pointRA=gDefRADECVal, Float_t pointDEC=gDefRADECVal, Float_t dRA=gDefRADECVal, Float_t dDEC=gDefRADECVal, Float_t t=gDefTVal, Float_t had=gDefHadVal)
+  void FillOnEvent( Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
   {fOnSample->Fill(E,pointRA,pointDEC,dRA,dDEC,t,had);}
   
-  void FillOffEvent(Float_t E=gDefEVal, Float_t pointRA=gDefRADECVal, Float_t pointDEC=gDefRADECVal, Float_t dRA=gDefRADECVal, Float_t dDEC=gDefRADECVal, Float_t t=gDefTVal, Float_t had=gDefHadVal)
+  void FillOffEvent(Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
   {fOffSample->Fill(E,pointRA,pointDEC,dRA,dDEC,t,had);}
     
   // setters
-  void SetTau(Float_t tau, Float_t dTau=0,Float_t dPValue=-1.)     {fTau=tau; fDTau=dTau; fTauPValue=dPValue;}
-  void SetEnergyRange(Float_t Epmin, Float_t Epmax)                {fEpmin=Epmin; fEpmax=Epmax;}
-  void SetEpmin(Float_t Epmin)                                     {fEpmin=Epmin;}
-  void SetEpmax(Float_t Epmax)                                     {fEpmax=Epmax;}
-  void SetObsTime(Float_t obsTime)                                 {fObsTime  = obsTime;}
+  void SetTau(Double_t tau, Double_t dTau=0,Double_t dPValue=-1.)  {fTau=tau; fDTau=dTau; fTauPValue=dPValue;}
+  void SetEnergyRange(Double_t Epmin, Double_t Epmax)              {fEpmin=Epmin; fEpmax=Epmax;}
+  void SetEpmin(Double_t Epmin)                                    {fEpmin=Epmin;}
+  void SetEpmax(Double_t Epmax)                                    {fEpmax=Epmax;}
+  void SetObsTime(Double_t obsTime)                                {fObsTime  = obsTime;}
   void SetHAeff(const TH1F* hAeff)                                 {if(fHAeff)     delete fHAeff;     fHAeff     = new TH1F(*hAeff);     fHAeff->SetName("hAeff");}
   void SetHAeffOff(const TH1F* hAeffOff)                           {if(fHAeffOff)  delete fHAeffOff;  fHAeffOff  = new TH1F(*hAeffOff);  fHAeffOff->SetName("hAeffOff");}
   void SetGEResoAndBias(const TGraph* gEreso,const TGraph* gEbias) {if(fGEreso)    delete fGEreso;    fGEreso    = new TGraph(*gEreso);  fGEreso->SetName("gEreso");
@@ -62,54 +62,53 @@ class IactEventListIrf : public TNamed
   void SetHdNdEpBkg(const TH1F* hdNdEpBkg)                         {if(fHdNdEpBkg) delete fHdNdEpBkg; fHdNdEpBkg = new TH1F(*hdNdEpBkg); fHdNdEpBkg->SetName("hdNdEpBkg");}
   void SetHdNdEpFrg(const TH1F* hdNdEpFrg)                         {if(fHdNdEpFrg) delete fHdNdEpFrg; fHdNdEpFrg = new TH1F(*hdNdEpFrg); fHdNdEpFrg->SetName("hdNdEpFrg");}
 
-  void SetOnBranchAddress(const char* bname, Float_t* add) {fOnSample->SetBranchAddress(bname,add);}
-  void SetOffBranchAddress(const char* bname, Float_t* add) {fOffSample->SetBranchAddress(bname,add);}
+  void SetOnBranchAddress(const char* bname, Double_t* add) {fOnSample->SetBranchAddress(bname,add);}
+  void SetOffBranchAddress(const char* bname, Double_t* add) {fOffSample->SetBranchAddress(bname,add);}
 
   void Print(Option_t* o="") const;
   
   // getters
-  TNtuple* GetOnSample()          {return fOnSample;}
-  TNtuple* GetOffSample()         {return fOffSample;}
-  Int_t    GetOnEntry(Int_t iev)  {return fOnSample->GetEntry(iev);}
-  Int_t    GetOffEntry(Int_t iev) {return fOffSample->GetEntry(iev);}    
+  TNtupleD* GetOnSample()          {return fOnSample;}
+  TNtupleD* GetOffSample()         {return fOffSample;}
+  Int_t     GetOnEntry(Int_t iev)  {return fOnSample->GetEntry(iev);}
+  Int_t     GetOffEntry(Int_t iev) {return fOffSample->GetEntry(iev);}
 
-  Float_t  GetEpmin()     {return fEpmin;}
-  Float_t  GetEpmax()     {return fEpmax;}
-  Float_t  GetTau()       {return fTau;}        
-  Float_t  GetDTau()      {return fDTau;}
-  Float_t  GetTauPValue() {return fTauPValue;}
-  Float_t  GetObsTime()   {return fObsTime;}
+  Double_t  GetEpmin()     {return fEpmin;}
+  Double_t  GetEpmax()     {return fEpmax;}
+  Double_t  GetTau()       {return fTau;}
+  Double_t  GetDTau()      {return fDTau;}
+  Double_t  GetTauPValue() {return fTauPValue;}
+  Double_t  GetObsTime()   {return fObsTime;}
 
-  TH1F*    GetHAeff()     {return fHAeff;}  
-  TH1F*    GetHAeffOff()  {return fHAeffOff;}
-  TGraph*  GetGEreso()    {return fGEreso;}  
-  TGraph*  GetGEbias()    {return fGEbias;}   
-  TH2F*    GetMigMatrix() {return fMigMatrix;}
+  TH1F*     GetHAeff()     {return fHAeff;}
+  TH1F*     GetHAeffOff()  {return fHAeffOff;}
+  TGraph*   GetGEreso()    {return fGEreso;}
+  TGraph*   GetGEbias()    {return fGEbias;}
+  TH2F*     GetMigMatrix() {return fMigMatrix;}
 
-  TH1F*    GetHdNdEpBkg() {return fHdNdEpBkg;}
-  TH1F*    GetHdNdEpFrg() {return fHdNdEpFrg;}
-
+  TH1F*     GetHdNdEpBkg() {return fHdNdEpBkg;}
+  TH1F*     GetHdNdEpFrg() {return fHdNdEpFrg;}
   
  private:
   
-  TNtuple* fOnSample;        //-> ON  event list ("Energy:Point_RA:Point_DEC:Delta_RA:Delta_DEC:Arr_time:Hadronness")
-  TNtuple* fOffSample;       //-> OFF event list ("Energy:Point_RA:Point_DEC:Delta_RA:Delta_DEC:Arr_time:Hadronness")
+  TNtupleD* fOnSample;        //-> ON  event list ("Energy:Point_RA:Point_DEC:Delta_RA:Delta_DEC:Arr_time:Hadronness")
+  TNtupleD* fOffSample;       //-> OFF event list ("Energy:Point_RA:Point_DEC:Delta_RA:Delta_DEC:Arr_time:Hadronness")
 
-  Float_t  fEpmin;           // [GeV] minimum estimated energy
-  Float_t  fEpmax;           // [GeV] maximum estimated energy
-  Float_t  fTau;             // normalization Noff/Non (e.g # of off regions)
-  Float_t  fDTau;            // statistical error in fTau
-  Float_t  fTauPValue;       // Probability value of agreement between On/Off
-  Float_t  fObsTime;         // [s] observation time
+  Double_t  fEpmin;           // [GeV] minimum estimated energy
+  Double_t  fEpmax;           // [GeV] maximum estimated energy
+  Double_t  fTau;             // normalization Noff/Non (e.g # of off regions)
+  Double_t  fDTau;            // statistical error in fTau
+  Double_t  fTauPValue;       // Probability value of agreement between On/Off
+  Double_t  fObsTime;         // [s] observation time
 
-  TH1F*    fHAeff       ;    //-> Effective area vs E histogram for signal events
-  TH1F*    fHAeffOff    ;    //-> Effective area vs E histogram for signal events IN THE OFF REGION
-  TGraph*  fGEreso      ;    //-> Graph with energy resolution vs energy values
-  TGraph*  fGEbias      ;    //-> Graph with energy bias vs energy values
-  TH2F*    fMigMatrix   ;    //-> Migration matrix (overrides fGEreso and fGEbias)
+  TH1F*     fHAeff       ;    //-> Effective area vs E histogram for signal events
+  TH1F*     fHAeffOff    ;    //-> Effective area vs E histogram for signal events IN THE OFF REGION
+  TGraph*   fGEreso      ;    //-> Graph with energy resolution vs energy values
+  TGraph*   fGEbias      ;    //-> Graph with energy bias vs energy values
+  TH2F*     fMigMatrix   ;    //-> Migration matrix (overrides fGEreso and fGEbias)
 
-  TH1F*    fHdNdEpBkg   ;    //-> dN/dE'dt vs E' for background events (normalized)
-  TH1F*    fHdNdEpFrg   ;    //-> dN/dE'dt vs E' for foreground (gamma-events from a different source) events (normalized)
+  TH1F*     fHdNdEpBkg   ;    //-> dN/dE'dt vs E' for background events (normalized)
+  TH1F*     fHdNdEpFrg   ;    //-> dN/dE'dt vs E' for foreground (gamma-events from a different source) events (normalized)
 
   ClassDef(IactEventListIrf,1) // Class to hold the data and IRFs from IACTs to be used as input by Iact1dUnbinnedLkl class
 };
