@@ -11,7 +11,7 @@
 //##    one used for jointLklDM.C
 //## 2. The total number of simulation files (a Int_t) you computed 
 //##    using jointLklDM.C. If you ran X simulations, it will assume
-//##    that the files have seeds in the range [0,X[
+//##    that the files have seeds in the range [1,X]
 //##
 //## The script will automaticaaly stop if more than 5% of the simualtion
 //## files are not found.
@@ -61,7 +61,7 @@ Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
 const Int_t nbins = 1000;
 
 // show plots?
-const Bool_t  makePlots   = kTRUE;
+const Bool_t makePlots = kTRUE;
 
 void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t nSimuFiles=300)
 {
@@ -155,7 +155,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   const TString dataPath      = fPlotsDir + "Data/root/";
 
   // where the output files will be
-  const TString resultsPath   = fInputDataPath + "/results/";
+  const TString resultsPath   = fPlotsDir + "BrasilianPlot/";
   gSystem->Exec(Form("mkdir -p %s",resultsPath.Data()));
   gSystem->Exec(Form("mkdir -p %s/root",resultsPath.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",resultsPath.Data()));
@@ -175,7 +175,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   // reading input files
   cout << "Reading " << nSimuFiles << " input files" << endl;
   Int_t nFilesRead=0;
-  for(Int_t ifile=0;ifile<nSimuFiles;ifile++)
+  for(Int_t ifile=1;ifile<nSimuFiles+1;ifile++)
     {
       // file name
       TString seedtag  = Form("_%05d",ifile);
