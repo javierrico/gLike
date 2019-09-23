@@ -22,7 +22,7 @@ using namespace std;
 
 static const Double_t gEpmin = 1e00; // [GeV] default value of minimum E_est
 static const Double_t gEpmax = 1e06; // [GeV] default value of maximum E_est
-static const Int_t   gBuffSize = 128000; // buffer size for Ntuples
+static const Int_t   gBuffSize = 512000; // buffer size for Ntuples
 
 const Double_t IactEventListIrf::gDefEVal      = 0.;    // default value when energy is not provided
 const Double_t IactEventListIrf::gDefRADECVal  = 9999.; // default value when dRA and dDEC are not provided
