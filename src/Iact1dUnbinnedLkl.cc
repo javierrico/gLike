@@ -310,7 +310,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
       fNoff        = dataSet->GetOffSample()->GetEntries();
 
       // extract data
-      Float_t eventOnE,eventOffE;
+      Double_t eventOnE,eventOffE;
       dataSet->SetOnBranchAddress("E",&eventOnE);
       dataSet->SetOffBranchAddress("E",&eventOffE);
 
