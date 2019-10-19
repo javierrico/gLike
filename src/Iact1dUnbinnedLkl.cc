@@ -442,7 +442,7 @@ Int_t Iact1dUnbinnedLkl::MakeChecks()
       cout << "Iact1dUnbinnedLkl::MakeChecks Warning: missing information, cannot perform fit, check your code!" << endl;
       return 1;
     }
-  
+
   SetChecked();
   return 0;
 }	      
@@ -741,6 +741,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TString function,Float_t p0,Float
   // exit
   return 0;
 }
+
 //////////////////////////////////////////////////////////////////
 // 
 // Add to a previously existing dN/dE histogram for signal according to 
@@ -867,6 +868,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_
   // exit
   return 0;
 }
+
 //////////////////////////////////////////////////////////////////
 // 
 // Add to a previously existing dN/dE histogram for signal according to 
@@ -1093,7 +1095,7 @@ Int_t Iact1dUnbinnedLkl::SetAeff(TH1F* hProvAeff)
   // configure
   fHAeff->SetMinimum(1e4);
   fHAeff->SetXTitle("log_{10}(E [GeV])");
-  fHAeff->SetYTitle("cm^{2}");
+  fHAeff->SetYTitle("Aeff [cm^{2}]");
   fHAeff->SetStats(0);
 
   // clean and exit
@@ -1720,6 +1722,7 @@ void Iact1dUnbinnedLkl::PrintData(Int_t level)
   if(fHdNdEpSignalOff && fHdNdEpSignal)
     {Margin(level); cout << "            Signal in Off = " << GetdNdEpSignalOffIntegral()/GetdNdEpSignalIntegral()*100  << "% of that in On" << endl;}
 }
+
 //////////////////////////////////////////////////////////////////
 //
 // Produce the E' distribution of On events and return the 
@@ -2222,7 +2225,7 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,b);
   if(hdNdEpFrg)
     hdNdEpOn->Add(hdNdEpOn,hdNdEpFrg,1,frg);
-    
+
   // normalize
   if(fnorm>0)
     hdNdEpOn->Scale(1./fnorm);
