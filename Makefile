@@ -13,7 +13,7 @@ ifeq ($(shell test $(ROOTVERSION) -gt $(MINVERSION); echo $$?), 0)
 	ROOTLIBS += -lFitsio
 endif
 ROOTCFLAGS = `root-config --cflags`
-SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedLkl IactEventListIrf FermiTables2016Lkl TemplateLkl MIACTEventListIRF GloryDuckTables2019Lkl
+SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedLkl IactEventListIrf FermiTables2016Lkl TemplateLkl MIACTEventListIRF GloryDuckTables2019Lkl LineSearchLkl
 SOURCES    = $(SRCFILES:%=$(SRCDIR)/%.cc)
 HEADERS    = $(SRCFILES:%=$(INCLDIR)/%.h)
 OBJECTS    = $(SRCFILES:%=$(OUTDIR)/%.o)

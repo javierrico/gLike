@@ -82,6 +82,7 @@
 #include "Iact1dBinnedLkl.h"
 #include "FermiTables2016Lkl.h"
 #include "GloryDuckTables2019Lkl.h"
+#include "LineSearchLkl.h"
 #include "JointLkl.h"
 
 using namespace std;
@@ -368,6 +369,23 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		return;
 	      }	 
 	}
+      else if(classType.CompareTo("LineSearchLkl")==0)
+	{
+	  if(channel.CompareTo("gammagamma",TString::kIgnoreCase))
+            {
+              cout << " ## Oops! The LineSearchLkl class can only be used for the channel gammagamma and cannot be used for the channel " << channel << " <---------------- FATAL ERROR!!!"<< endl;
+              return;
+            }
+
+	  // read input string
+	  lkl[iLkl] =  new LineSearchLkl(inputString);
+
+	  // save as sample (as opposed to JointLkl)
+	  sample[nsamples++] = lkl[iLkl];
+
+	  // configure
+	  lkl[iLkl]->SetName(Form("LineSearchLkl_%02d",iLkl));
+        }
       else if(classType.CompareTo("JointLkl")==0)
 	{	  
 	  lkl[iLkl] =  new JointLkl(inputString);
@@ -493,7 +511,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << "****************************************************************" << endl;
   cout << "*** SUMMARY OF LKL TERMS: " << endl;
   cout << "****************************************************************" << endl;
-  
+
   lkl[0]->PrintData();
 
   // Create stream to export data
@@ -586,7 +604,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       cout << " *** Read or compute dN/dE and dN/dE' histos for each samples:" << endl;
       for(Int_t isample=0;isample<nLkls;isample++)
         {
-	  if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl") || !strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))
+	  if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl") || !strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl") || !strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
 	    {
 	      builddNdESignal(lkl[isample],fdNdEDir,nChannels,channelval,brval,mdm,isDecay,isSimulation);
 
@@ -594,6 +612,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	      Iact1dUnbinnedLkl* fullLkl = NULL;
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
+	      if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
+	      
 	      TString dNdEpSignalFileName;
 	      if(ioHdNdEpSignal)
 		{
@@ -667,7 +687,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	for(Int_t isample=0;isample<nsamples;isample++)
 	  {
 	    Iact1dUnbinnedLkl* fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(sample[isample]);
-	    
+ 
 	    if(!Init_canvas_samples)
 	      {
 		hadcanvas[isample] = fullLkl->PlotHistosAndData();
@@ -751,7 +771,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	  svLimVal[imass]=1./svLimVal[imass];
 	}
 
-      
       // Plot -2logLkl vs <sv> (parabolas) if computed and requested
       //////////////////////////////////////////////////////////////
       if(showParabolaPlots)

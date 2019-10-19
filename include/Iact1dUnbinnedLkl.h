@@ -77,25 +77,33 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
   inline Float_t  GetLogJ()             const {return fLogJ;}
 
+  // here reminder of conflict
+  inline       Float_t  GetNFineBins()        const {return fNFineBins;}
+  inline       Float_t  GetFineLEMin()        const {return fFineLEMin;}
+  inline       Float_t  GetFineLEMax()        const {return fFineLEMax;}
+  //virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
+  //virtual inline TGraph*  GetGEreso()         const {return fGEreso;}
+  //virtual inline TGraph*  GetGEbias()         const {return fGEbias;}
+
   inline Double_t GetdNdEpBkgIntegral()       {if(!fHdNdEpBkg) return 0; NormalizedNdEHisto(fHdNdEpBkg); return fHdNdEpBkg->GetBinContent(0);}
   inline Double_t GetdNdEpFrgIntegral()       {if(!fHdNdEpFrg) return 0; NormalizedNdEHisto(fHdNdEpFrg); return fHdNdEpFrg->GetBinContent(0);}
-  inline Double_t GetdNdEpSignalIntegral()    {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
+  virtual inline Double_t GetdNdEpSignalIntegral()    {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
   inline Double_t GetdNdEpSignalOffIntegral() {if(!fHdNdEpSignalOff) return 0; return fHdNdEpSignalOff->GetBinContent(0);}
-  inline Double_t GetdNdESignalIntegral()     {if(!fHdNdESignal) return 0;NormalizedNdEHisto(fHdNdESignal);return fHdNdESignal->GetBinContent(0);}
+  inline Double_t GetdNdESignalIntegral()     {if(!fHdNdESignal) return 0; NormalizedNdEHisto(fHdNdESignal); return fHdNdESignal->GetBinContent(0);}
   virtual TH1F*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
   virtual TH1F*   GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
   
   // Read input dN/dE files and related functions
-  Int_t ResetdNdESignal();
+  virtual Int_t ResetdNdESignal();
   Int_t SetdNdESignal(TH1F* hdNdESignal);
   Int_t AdddNdESignal(TString filename,Float_t br=1.0);
-  Int_t SetdNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
+  virtual Int_t SetdNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
   Int_t AdddNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
-  Int_t SetdNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
+  virtual Int_t SetdNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
   Int_t AdddNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9,Float_t br=1.0);
   Int_t SetTrueTau(Float_t truetau) {fTrueTau=truetau; return 0;}
   Int_t ReaddNdESignal(TString filename);
-  Int_t ReaddNdEpSignal(TString filename);
+  virtual Int_t ReaddNdEpSignal(TString filename);
   Int_t ReaddNdEpSignalOff(TString filename);
   Int_t ReadCTAIRF(TString filename);
   Int_t TransformAndSavedNdEpBkg(TH1F* provHNOff,Bool_t interpolate=kTRUE,Double_t scale=0,Bool_t isDiff=kTRUE);
@@ -108,7 +116,9 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   virtual void PrintData(Int_t level=0);
   
   // Plots
-  void PlotHistosAndData(TCanvas* canvas);
+  // old  void PlotHistosAndData(TCanvas* canvas);
+  // new
+  virtual TCanvas* PlotHistosAndData();
 
   Int_t    NormalizedNdEHisto(TH1F* histo);
 

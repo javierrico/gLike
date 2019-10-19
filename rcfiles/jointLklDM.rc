@@ -108,6 +108,8 @@ JOINT LIKELIHOOD CONFIGURATION
 #    jointLklDM.lklTerm<XXX>: FermiTables2016Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 # -  Likelihood parabolas (Glory Duck format):
 #    jointLklDM.lklTerm<XXX>: GloryDuckTables2019Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
+# -  Unbinned Likelihood for line search:
+#    jointLklDM.lklTerm<XXX>: LineSearchLkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 #
 # <logJ             and <DlogJ> are, respectively, the mean value and uncertainty of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-2 (decay)
 # <inputFileName>   is the name of the input file, which contain the IRFs and data 
