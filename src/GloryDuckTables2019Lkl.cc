@@ -213,7 +213,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
 
   // get the number of <sv> values (which is one less than the number of lines in the file)
   string line;
-  while (getline(ff, line))
+  while(getline(ff, line))
     fNsvVals++;
   fNsvVals -= 1;
   ff.clear();
@@ -232,14 +232,17 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   std::istringstream first_line(massLine);
   Bool_t read_logJ = kTRUE;
   Double_t field;
-  while (first_line >> field)
+  Bool_t rescale_logJ = kFALSE;
+  Double_t scaling_logJ = 0.;
+  while(first_line >> field)
     {
       if(read_logJ)
         {
           if(TMath::Abs(field-fLogJ) > 1.e-6)
             {
-              cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Error: the logJ value stored in the file doesn't match the one given as an input in the configuration." << endl;
-              return 1;
+              cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Warning: the logJ value stored in the file (" << field << ") doesn't match the one given as an input in the configuration file (" << fLogJ  << "). Therefore the likelihood values from this file will be scaled by 10^(" << fLogJ << "-" << field << ")=" << TMath::Power(10.,fLogJ-field) << " to match the intended logJ value from the configuration file." << endl;
+              rescale_logJ = kTRUE;
+              scaling_logJ = TMath::Power(10.,fLogJ-field);
             }
           read_logJ = kFALSE;
         }
@@ -272,8 +275,9 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
       vlkl2D[row] = vector<Double_t>(mass.size());
       col = 0;
       std::istringstream line(LklLine);
-      while (line >> readingLkl)
+      while(line >> readingLkl)
         {
+          if(rescale_logJ) readingLkl *= scaling_logJ;
           vlkl2D[row][col] = readingLkl;
           // storing the minimum value and position
           if(!init_lklmin)
@@ -400,7 +404,7 @@ void GloryDuckTables2019Lkl::PrintData(Int_t level)
   Margin(level); cout << "                 <sv>_max = " << sv[grprbla->GetN()-1] << " [cm^3 s^-1]" << endl;
   Margin(level); cout << "                            " << endl;
 
-  if(level>1)
+  if(level>2)
     {
       Margin(level); cout << " Parabola's content:        " << endl;
       Margin(level); cout << " Masses [GeV]     <sv> [cm^3/s] -->  " ;

@@ -27,18 +27,16 @@ jointLklDM.exportData: TRUE
 jointLklDM.exportSvMin: 1e-28
 jointLklDM.exportSvMax: 1e-18
 jointLklDM.exportSvNPoints: 1000
-# Log-spaced values?
+# Log-spaced <sv> values?
 jointLklDM.exportSvLogStep: TRUE
-# Assumed log10(Jfactor) when computing
-jointLklDM.exportLogJ: 19.
 # Directory for output files
-jointLklDM.exportDataPath: exported_files/
+jointLklDM.exportDataPath: exported_files
 
 # Path (will be added to all specified files and directories in this rcfile)
 jointLklDM.path: ./
 
 # Directory with dN/dE files
-jointLklDM.dNdEDir: DM/dNdE/Cirelli/
+jointLklDM.dNdEDir: DM/dNdE/Cirelli
 
 # Directory for output plots
 jointLklDM.plotsDir: plots
