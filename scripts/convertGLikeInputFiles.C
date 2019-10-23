@@ -11,6 +11,7 @@
 
 #include <iostream>
 
+#include "TROOT.h"
 #include "TString.h"
 #include "TFile.h"
 
@@ -21,30 +22,6 @@ using namespace std;
 
 void processSample(TString inFileName,TString outFileName);
 void checkFile(TString outputFileName);
-
-
-typedef struct {
-  Float_t  E;        // [GeV] measured energy of event
-  Float_t  pointRA;  // [deg] RA of telescope pointing direction
-  Float_t  pointDEC; // [deg] DEC of telescope pointing direction
-  Float_t  dRA;      // [deg] distance to pointing direction in the RA axis 
-  Float_t  dDEC;     // [deg] distance to pointing direction in the DEC axis
-  Float_t  t;        // [MJD] arrival time
-  Float_t  had;      // [1]   hadronness
-} IactEvent_t;
-
-
-// structure to read the events from the NTuple
-typedef struct {
-  Float_t  E;        // [GeV] measured energy of event
-  Float_t  pointRA;  // [deg] RA of telescope pointing direction
-  Float_t  pointDEC; // [deg] DEC of telescope pointing direction
-  Float_t  dRA;      // [deg] distance to pointing direction in the RA axis 
-  Float_t  dDEC;     // [deg] distance to pointing direction in the DEC axis
-  Float_t  t;        // [MJD] arrival time
-  Float_t  had;      // [1]   hadronness
-} MEvent_t;
-
 
 void convertGLikeInputFiles(TString inputfile, TString outputfile)
 {
@@ -73,12 +50,16 @@ void checkFile(TString iFileName)
   // link with NTuple branches
   IactEvent_t eventOn,eventOff;
   dataSet->SetOnBranchAddress("E",&eventOn.E);
+  dataSet->SetOnBranchAddress("pointRA",&eventOn.pointRA);
+  dataSet->SetOnBranchAddress("pointDEC",&eventOn.pointDEC);
   dataSet->SetOnBranchAddress("dRA",&eventOn.dRA);
   dataSet->SetOnBranchAddress("dDEC",&eventOn.dDEC);
   dataSet->SetOnBranchAddress("t",&eventOn.t);
   dataSet->SetOnBranchAddress("had",&eventOn.had);
   
   dataSet->SetOffBranchAddress("E",&eventOff.E);
+  dataSet->SetOffBranchAddress("pointRA",&eventOff.pointRA);
+  dataSet->SetOffBranchAddress("pointDEC",&eventOff.pointDEC);
   dataSet->SetOffBranchAddress("dRA",&eventOff.dRA);
   dataSet->SetOffBranchAddress("dDEC",&eventOff.dDEC);
   dataSet->SetOffBranchAddress("t",&eventOff.t);
@@ -91,21 +72,21 @@ void checkFile(TString iFileName)
   cout << "Obs time = " << dataSet->GetObsTime()/60./60. << " h" << endl;
   cout << endl;
   cout << "First 10 ON events (out of " << dataSet->GetOnSample()->GetEntries() << "): " << endl;
-  cout << Form(" E [GeV]\t dRA [deg]\t dDEC [deg]\t t [MJD]\thad") << endl;
-  cout << "***********************************************************************" << endl; 
+  cout << Form(" E [GeV]\t pointRA [deg]\t pointDEC [deg]\t dRA [deg]\t dDEC [deg]\t t [MJD]\thad") << endl;
+  cout << "*****************************************************************************************************" << endl; 
   for(Int_t i=0;i<10;i++)
     {
       dataSet->GetOnEntry(i);
-      cout << Form("%.2f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f",eventOn.E,eventOn.dRA,eventOn.dDEC,eventOn.t,eventOn.had) << endl;
+      cout << Form("%.2f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f",eventOn.E,eventOn.pointRA,eventOn.pointDEC,eventOn.dRA,eventOn.dDEC,eventOn.t,eventOn.had) << endl;
     }
   cout << endl;
   cout << "First 10 OFF events (out of " << dataSet->GetOffSample()->GetEntries() << "): " << endl;
-  cout << Form(" E [GeV]\t dRA [deg]\t dDEC [deg]\t t [MJD]\thad") << endl;
-  cout << "***********************************************************************" << endl; 
+  cout << Form(" E [GeV]\t pointRA [deg]\t pointDEC [deg]\t dRA [deg]\t dDEC [deg]\t t [MJD]\thad") << endl;
+  cout << "*****************************************************************************************************" << endl; 
   for(Int_t i=0;i<10;i++)
     {
       dataSet->GetOffEntry(i);
-      cout << Form("%.2f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f",eventOff.E,eventOff.dRA,eventOff.dDEC,eventOff.t,eventOff.had) << endl;
+      cout << Form("%.2f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f\t\t%.1f",eventOff.E,eventOff.pointRA,eventOff.pointDEC,eventOff.dRA,eventOff.dDEC,eventOff.t,eventOff.had) << endl;
     }
 
   // look for existing IRF histos/graphs
@@ -140,16 +121,12 @@ void processSample(TString inputFileName,TString outputFileName)
   MEvent_t eventOn;
   MEvent_t eventOff;
   oldclass->SetOnBranchAddress("E",&eventOn.E);
-  oldclass->SetOnBranchAddress("poingRA",&eventOn.pointRA);
-  oldclass->SetOnBranchAddress("poingDEC",&eventOn.pointDEC);
   oldclass->SetOnBranchAddress("dRA",&eventOn.dRA);
   oldclass->SetOnBranchAddress("dDEC",&eventOn.dDEC);
   oldclass->SetOnBranchAddress("t",&eventOn.t);
   oldclass->SetOnBranchAddress("had",&eventOn.had);
   
   oldclass->SetOffBranchAddress("E",&eventOff.E);
-  oldclass->SetOnBranchAddress("poingRA",&eventOff.pointRA);
-  oldclass->SetOnBranchAddress("poingDEC",&eventOff.pointDEC);
   oldclass->SetOffBranchAddress("dRA",&eventOff.dRA);
   oldclass->SetOffBranchAddress("dDEC",&eventOff.dDEC);
   oldclass->SetOffBranchAddress("t",&eventOff.t);
@@ -157,19 +134,19 @@ void processSample(TString inputFileName,TString outputFileName)
 
   // read event data from old class and write it in new class
   IactEventListIrf*  newclass = new IactEventListIrf;
-
+  
   UInt_t non = oldclass->GetOnSample()->GetEntries();
   for(UInt_t ion=0;ion<non;ion++)
     {
       oldclass->GetOnEntry(ion);
-      newclass->FillOnEvent(eventOn.E,eventOn.pointRA,eventOn.pointDEC,eventOn.dRA,eventOn.dDEC,eventOn.t,eventOn.had);
+      newclass->FillOnEvent(eventOn.E,IactEventListIrf::gDefRADECVal,IactEventListIrf::gDefRADECVal,eventOn.dRA,eventOn.dDEC,eventOn.t,eventOn.had);
     }
 
   UInt_t noff = oldclass->GetOffSample()->GetEntries();
   for(UInt_t ioff=0;ioff<noff;ioff++)
     {
       oldclass->GetOffEntry(ioff);
-      newclass->FillOffEvent(eventOff.E,eventOff.pointRA,eventOff.pointDEC,eventOff.dRA,eventOff.dDEC,eventOff.t,eventOff.had);
+      newclass->FillOffEvent(eventOff.E,IactEventListIrf::gDefRADECVal,IactEventListIrf::gDefRADECVal,eventOff.dRA,eventOff.dDEC,eventOff.t,eventOff.had);
     }
 
   // save the rest of the class member data values

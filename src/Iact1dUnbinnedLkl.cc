@@ -187,7 +187,7 @@ static const Char_t*  gParName[gNPars] = {"g","b","tau"};        // Name of para
 static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
 static const Int_t    gNFineBins       = 5000;                   // default number of fine bins for internal histos
 static const Double_t gFineLEMin       = TMath::Log10(10);       // default minimum log(energy[GeV]) for internal histos
-static const Double_t gFineLEMax       = TMath::Log10(1000000);   // default maximum log(energy[GeV]) for internal histos
+static const Double_t gFineLEMax       = TMath::Log10(1000000);  // default maximum log(energy[GeV]) for internal histos
 static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
 
 // static functions (for internal processing of input data)
@@ -310,7 +310,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
       fNoff        = dataSet->GetOffSample()->GetEntries();
 
       // extract data
-      Float_t eventOnE,eventOffE;
+      Double_t eventOnE,eventOffE;
       dataSet->SetOnBranchAddress("E",&eventOnE);
       dataSet->SetOffBranchAddress("E",&eventOffE);
 
@@ -649,6 +649,40 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignal(TH1F* hdNdESignal)
 
 //////////////////////////////////////////////////////////////////
 // 
+// Add to a previously existing dN/dE histogram for signal from file
+// in the Segue Stereo input format produced by Jelena
+// No replacement of existing histo is allowed
+// Return 0 in case of success
+//        1 if file is not found
+//
+Int_t Iact1dUnbinnedLkl::AdddNdESignal(TString filename,Float_t br)
+{
+  // open file and look for histo
+  TFile* dNdESignalFile  = new TFile(filename);
+  TH1F*  hdNdESignal = (TH1F*) dNdESignalFile->Get("hdNdE");
+
+  // pathologies
+  if(!hdNdESignal)
+    {
+      cout << "Iact1dUnbinnedLkl::AdddNdESignal Warning: input histo does not exist" << endl;
+      return 1;
+    }
+
+  // transform it to the Iact1dUnbinnedLkl format
+  TH1F* fHdNdESignal_temp = new TH1F("fHdNdESignal_temp","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
+  readAndInterpolate(hdNdESignal,fHdNdESignal_temp);
+
+  for(Int_t ibin=0;ibin<fHdNdESignal->GetNbinsX();ibin++)
+      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(fHdNdESignal_temp->GetBinContent(ibin+1)));
+
+  // clean and exit
+  delete dNdESignalFile;
+  SetChecked(kFALSE);
+  return 0;
+}
+
+//////////////////////////////////////////////////////////////////
+// 
 // Recreate a fresh new version of fHdNdESignal
 //
 // Return 0 in case of success
@@ -715,11 +749,13 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TString function,Float_t p0,Float
 // If <function>=="line"
 // <p0> = E0, the energy of the line
 // <p1> = scale, i.e. the number of photons per annihilation (e.g 2 for XX->gamma gamma)
+// <p2> = br, the branching ratio
 //
 // If <function>=="box"
 // <p0> = Emin, lower border of the box
 // <p1> = Emax, upper border of the box
 // <p2> = scale, i.e. the number of photons per annihilation (e.g 4 for XX->pi0 pi0)
+// <p3> = br, the branching ratio
 //
 // Return 0 in case of success
 //        1 if file is not found
@@ -749,8 +785,9 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
   // Add to the histogram according to specified function and parameters
   if(functionType==gLine)
     {
-      Float_t E0 = p0;
+      Float_t E0    = p0;
       Float_t scale = p1;
+      Float_t br    = p2;
       
       Float_t log10E0 = TMath::Log10(E0);
       
@@ -763,17 +800,18 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
 	}
          
       // fill histo
-      Int_t ibin = fNFineBins*(log10E0-fFineLEMin)/(fFineLEMax-fFineLEMin);
+      Int_t ibin   = fNFineBins*(log10E0-fFineLEMin)/(fFineLEMax-fFineLEMin);
       Float_t Emin = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1));
       Float_t Emax = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+fHdNdESignal->GetBinWidth(ibin+1));
       Float_t dE   = Emax-Emin;
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+scale/dE);
+      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
     }
   else if(functionType==gBox)
     {
       Float_t Emin  = p0;
       Float_t Emax  = p1;
       Float_t scale = p2;
+      Float_t br    = p3;
       
       Float_t log10Emin = TMath::Log10(Emin);
       Float_t log10Emax = TMath::Log10(Emax);
@@ -793,7 +831,7 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
       Float_t realEmax  = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibinmax+1)+fHdNdESignal->GetBinWidth(ibinmax+1));
       Float_t dE        = realEmax-realEmin;
       for(Int_t ibin=ibinmin;ibin<=ibinmax;ibin++)
-	fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+scale/dE);
+	fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
     }
   else
     {
@@ -824,7 +862,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_
   ResetdNdESignal();
 
   // call to add the function
-  AdddNdESignalFunction(function,emin,emax);
+  AdddNdESignalFunction(function,emin,emax,1.0);
   
   // exit
   return 0;
@@ -839,7 +877,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_
 // Return 0 in case of success
 //        1 if file is not found
 //
-Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_t emax)
+Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_t emax,Float_t br)
 {
   // Check that fHdNdESignal exists
   if(!fHdNdESignal)
@@ -859,7 +897,7 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_
     {
       Float_t etest = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+gCenterBin*fHdNdESignal->GetBinWidth(ibin+1));
       if(etest>emin && etest<emax)
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+function->Eval(etest));
+      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(function->Eval(etest)));
     }
   
   // exit
@@ -1776,7 +1814,7 @@ TH1F* Iact1dUnbinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 // the output histogram is ALWAYS differential
 //
 void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
-{
+{  
   // input histogram binning
   Double_t imine   = ih->GetXaxis()->GetXmin()+scale; // minimum log(E) in input histo
   Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
@@ -1796,63 +1834,66 @@ void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
       etest = omine+ode*(ibin+gCenterBin); 
 
       // log-log interpolation
-      if(etest<imine+gCenterBin*ide)
+      if(etest<imine+gCenterBin*ide) // extrapolation of values below the minimum input energy
 	{
-	  ycontent0 = ih->GetBinContent(1);
-	  ycontent1 = ih->GetBinContent(2);
+	  // ycontent0 = ih->GetBinContent(1);
+	  // ycontent1 = ih->GetBinContent(2);
 	  
-	  if(ycontent0<=0 || ycontent1<=0)
-	    {
-	      // cout << "Case 1: ibin = " << ibin << ", ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << endl;
-	      oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
-	      continue;
-	    }
+	  // if(ycontent0<=0 || ycontent1<=0)
+	  //   {
+	  //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+	  //     continue;
+	  //   }
 
-	  x0 = imine+gCenterBin*ide;
-	  x1 = imine+(1.+gCenterBin)*ide;
+	  // x0 = imine+gCenterBin*ide;
+	  // x1 = imine+(1.+gCenterBin)*ide;
 
-	  if(!isDiff)
-	    {
-	      dx0i = TMath::Power(10,imine+ide)-TMath::Power(10,imine);
-	      dx1i = TMath::Power(10,imine+2*ide)-TMath::Power(10,imine+ide);
+	  // if(!isDiff)
+	  //   {
+	  //     dx0i = TMath::Power(10,imine+ide)-TMath::Power(10,imine);
+	  //     dx1i = TMath::Power(10,imine+2*ide)-TMath::Power(10,imine+ide);
 
-	      y0  = TMath::Log10(ycontent0/dx0i);
-	      y1  = TMath::Log10(ycontent1/dx1i);	  
-	    }
-	  else
-	    {
-	      y0 = TMath::Log10(ycontent0);
-	      y1 = TMath::Log10(ycontent1);	  
-	    }
+	  //     y0  = TMath::Log10(ycontent0/dx0i);
+	  //     y1  = TMath::Log10(ycontent1/dx1i);	  
+	  //   }
+	  // else
+	  //   {
+	  //     y0 = TMath::Log10(ycontent0);
+	  //     y1 = TMath::Log10(ycontent1);	  
+	  //   }
+	  oh->SetBinContent(ibin+1,0);
+	  continue;
 	}
-      else if(etest>imaxe-(1-gCenterBin)*ide)
+      else if(etest>imaxe-(1-gCenterBin)*ide) // extrapolation of values above the maximum input energy
 	{
-	  ycontent0 = ih->GetBinContent(onbinse-1);
-	  ycontent1 = ih->GetBinContent(onbinse);
+	  // ycontent0 = ih->GetBinContent(onbinse-1);
+	  // ycontent1 = ih->GetBinContent(onbinse);
 	  
-	  if(ycontent0<=0 || ycontent1<=0)
-	    {
-	      // cout << "Case 2: ibin = " << ibin << ", ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << endl;
-	      oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
-	      continue;
-	    }
+	  // if(ycontent0<=0 || ycontent1<=0)
+	  //   {
+	  //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+	  //     continue;
+	  //   }
 
-	  x0 = imaxe-(2.-gCenterBin)*ide;
-	  x1 = imaxe-(1.-gCenterBin)*ide;
-	  if(!isDiff)
-	    {
-	      dx0i = TMath::Power(10,imine+(inbinse-1)*ide)-TMath::Power(10,imine+(inbinse-2)*ide);
-	      dx1i = TMath::Power(10,imine+inbinse*ide)-TMath::Power(10,imine+(inbinse-1)*ide);
-	      y0  = TMath::Log10(ycontent0/dx0i);
-	      y1  = TMath::Log10(ycontent1/dx1i);	    
-	    }
-	  else
-	    {
-	      y0 = TMath::Log10(ycontent0);
-	      y1 = TMath::Log10(ycontent1);	    
-	    }
+	  // x0 = imaxe-(2.-gCenterBin)*ide;
+	  // x1 = imaxe-(1.-gCenterBin)*ide;
+	  // if(!isDiff)
+	  //   {
+	  //     dx0i = TMath::Power(10,imine+(inbinse-1)*ide)-TMath::Power(10,imine+(inbinse-2)*ide);
+	  //     dx1i = TMath::Power(10,imine+inbinse*ide)-TMath::Power(10,imine+(inbinse-1)*ide);
+	  //     y0  = TMath::Log10(ycontent0/dx0i);
+	  //     y1  = TMath::Log10(ycontent1/dx1i);	    
+	  //   }
+	  // else
+	  //   {
+	  //     y0 = TMath::Log10(ycontent0);
+	  //     y1 = TMath::Log10(ycontent1);	    
+	  //   }
+	  oh->SetBinContent(ibin+1,0);
+	  continue;
+
 	}
-      else
+      else // interpolation of values in the range of provided energies
 	{
 	  etestbin  = Int_t((etest-imine-gCenterBin*ide)/ide); // corresponding bin in ih histo
 
@@ -1861,8 +1902,7 @@ void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
 	  
 	  if(ycontent0<=0 || ycontent1<=0)
 	    {
-	      // cout << "Case 3: etestbin = " << etestbin << ", ibin = " << ibin << ", ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << endl;
-	      oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+	      oh->SetBinContent(ibin+1,0);
 	      continue;
 	    }
 	  
@@ -1916,7 +1956,7 @@ Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
   // copy values
   for(Int_t ibin=0;ibin<onbinse;ibin++)
     {
-      Double_t etest = omine+ode*(ibin+gCenterBin); 
+      Double_t etest = omine+ode*(ibin+0.5); 
       
       // copy bin by bin, zero outside limits
       if(etest<imine || etest>imaxe)	
