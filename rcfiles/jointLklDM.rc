@@ -11,22 +11,32 @@ I/O CONFIGURATION
 # Label to indentify this analysis (for naming plots and output files)
 jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisFree_JisFixed
 
-# configuration for plots
+# Configuration for plots
 jointLklDM.showSamplePlots:   TRUE
 jointLklDM.showParabolaPlots: TRUE
 jointLklDM.showLimitPlots:    TRUE
-# comment out the plot range for automatic selection
+# Comment out the plot range for automatic selection
 jointLklDM.plotmin: 1e-25
 jointLklDM.plotmax: 1e-22
-# scale factor for results (e.g. to simulate for a Tobs and get results for another Tobs)
+# Scale factor for results (e.g. to simulate for a Tobs and get results for another Tobs)
 # jointLklDM.plotScale: 1
 
+# Configuration for data exporter into the Glory Duck file format (i.e. likelihood values for all DM masses specified below)
+jointLklDM.exportData: TRUE
+# Minimum, maximum and number of scanned values
+jointLklDM.exportSvMin: 1e-28
+jointLklDM.exportSvMax: 1e-18
+jointLklDM.exportSvNPoints: 1000
+# Log-spaced <sv> values?
+jointLklDM.exportSvLogStep: TRUE
+# Directory for output files
+jointLklDM.exportDataPath: exported_files
 
 # Path (will be added to all specified files and directories in this rcfile)
 jointLklDM.path: ./
 
 # Directory with dN/dE files
-jointLklDM.dNdEDir: DM/dNdE/Cirelli/
+jointLklDM.dNdEDir: DM/dNdE/Cirelli
 
 # Directory for output plots
 jointLklDM.plotsDir: plots
@@ -45,7 +55,7 @@ ANALYSIS CONFIGURATION
 # The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
 jointLklDM.Channel: bb
 
-# process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
+# Process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
 # (remember to change consistently the list of masses and J-factor value and uncertainty)
 jointLklDM.Process: ann
 
@@ -58,7 +68,7 @@ jointLklDM.MassList: 100  200 500  1000  2000  5000  10000  20000  50000  100000
 # g = <sv>*J/(8*Pi*m^2) * integral between fEpmin and fEpmax of fHdNdEpSignal
 jointLklDM.mcG: 0
 
-# if TRUE (FALSE) g is restricted to positive values only (i.e. Fermi prescription for lkl maximizing out of the physical region)
+# If TRUE (FALSE) g is restricted to positive values only (i.e. Fermi prescription for lkl maximizing out of the physical region)
 jointLklDM.isGpositive: TRUE
 
 # Delta(-2logLkl) for limits (2.71 = 95% CL, 4.495 = 5sigma)
@@ -89,6 +99,8 @@ JOINT LIKELIHOOD CONFIGURATION
 #    jointLklDM.lklTerm<XXX>: Iact1dBinnedLkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName> nbins=<nbins> minbincontent=<minbincontent> obsTime=<obsTime> tau=<tau> DtauStat=<DtauStat>  DtauSyst=<DtauSyst> tauEDepFluct=<tauEDepFluct> 
 # -  Binned Flux Likelihood (Fermi-LAT format):
 #    jointLklDM.lklTerm<XXX>: FermiTables2016Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
+# -  Likelihood parabolas (Glory Duck format):
+#    jointLklDM.lklTerm<XXX>: GloryDuckTables2019Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 #
 # <logJ             and <DlogJ> are, respectively, the mean value and uncertainty of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-2 (decay)
 # <inputFileName>   is the name of the input file, which contain the IRFs and data 
