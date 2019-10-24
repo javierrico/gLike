@@ -580,7 +580,6 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       Bool_t saveHistosInFile=kFALSE;
       cout << " *** Reading dN/dE histos for signal and read or compute dN/dE' histos for each samples:" << endl;
       for(Int_t isample=0;isample<nLkls;isample++)
-<<<<<<< HEAD
         {
 	  if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl") || !strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl") || !strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
 	    {
