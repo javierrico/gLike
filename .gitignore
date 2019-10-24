@@ -9,3 +9,6 @@ plots
 results
 **/my*
 **/dNdEpSignal
+exported_files
+**/*.pcm
+old

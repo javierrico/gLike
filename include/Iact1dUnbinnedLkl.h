@@ -75,6 +75,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline const TGraph*  GetGEreso()           const {return fGEreso;} 
   inline const TGraph*  GetGEbias()           const {return fGEbias;}
   inline const TH2F*    GetMigMatrix()        const {return fMigMatrix;}
+  inline const Float_t  GetLogJ()             const {return fLogJ;}
 
   inline Double_t GetdNdEpBkgIntegral()       {if(!fHdNdEpBkg) return 0; NormalizedNdEHisto(fHdNdEpBkg); return fHdNdEpBkg->GetBinContent(0);}
   inline Double_t GetdNdEpFrgIntegral()       {if(!fHdNdEpFrg) return 0; NormalizedNdEHisto(fHdNdEpFrg); return fHdNdEpFrg->GetBinContent(0);}

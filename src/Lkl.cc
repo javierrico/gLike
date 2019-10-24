@@ -248,7 +248,7 @@ Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Doub
       // first find where the minimum is and estimate the error
       if(isVerbose)
 	cout << "Lkl::ComputeLklVsG (" << GetName() << ") Message: Finding minimum of -2logL... " << endl;
-      Lkl::MinimizeLkl();
+      if (TMath::Abs(Lkl::MinimizeLkl() + 1000.) < 1.e-6) return 0;
       FindGLowAndGUpp(glow,gupp,centerAtZero);
     }
  
@@ -552,7 +552,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
   if(MakeChecks())
     {
       cout << "Lkl::MinimizeLkl (" << GetName() << ") Warning: checks were not successfull!!!!" << endl;
-      return 0;
+      return -1000.;
     }
      
   // initialize minuit
@@ -637,7 +637,7 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
   arglist[0] = 10000;
   iflag = -1;
   Int_t counter = 0;
-  const Int_t maxcounts = 10;
+  const Int_t maxcounts = 50;
 
   // try until convergence is achieved
   while((iflag!=0 || TMath::IsNaN(GetParErr(0))) && counter<maxcounts) // try until the fit converges
