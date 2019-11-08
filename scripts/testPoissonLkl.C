@@ -9,6 +9,12 @@
 // run this macro with:
 // .x testPoissonLkl.C+
 
+#include <iostream>
+#include "PoissonLkl.h"
+#include "TCanvas.h"
+#include "TLegend.h"
+#include "TRolke.h"
+
 void testPoissonLkl()
 {
   // create and configure the simplest possible PoissonLkl object
@@ -26,12 +32,24 @@ void testPoissonLkl()
   // call the minimization
   p->ComputeLklVsG();
 
-  // print fit results
+  // print the fit results
   cout << endl << "PrintOverview:" << endl;
-  p->PrintOverview();     // print the details from the fit
-  p->GetLklVsG()->Draw(); // plot the -2logL vs g curve
-  
-  // access to the gLike results
+  p->PrintOverview(); // print the details from the fit
+
+  // plot fit results
+  TCanvas* c1 = new TCanvas("canvas1", "canvas1", 800, 600);
+  TGraph* lklVsG = p->GetLklVsG(); // the -2logL vs g curve
+  TLegend* legend = new TLegend(0.5, 0.8, 0.9, 0.9);
+  legend->SetTextSize(0.03);
+  lklVsG->SetLineWidth(2);
+  lklVsG->GetXaxis()->SetTitle("g");
+  lklVsG->GetXaxis()->CenterTitle();
+  lklVsG->GetYaxis()->SetTitle("-2 log L");
+  lklVsG->GetYaxis()->CenterTitle();
+  lklVsG->Draw();  
+  legend->AddEntry(lklVsG, "Poisson Likelihood");
+
+  // access the gLike results
   const Double_t gmin = p->GetGLklMin();                // get the value of g that minimizes -2logL
   const Double_t gerr = p->GetGLklMinErr();             // get the value of gerr such that -2logL(gmin+/-gerr)=-2logLmin+fErrorDef
   const Double_t sig  = sqrt(p->GetLklVsG()->Eval(0)) ; // compute significance of detection
@@ -54,12 +72,21 @@ void testPoissonLkl()
   cout << "The gLike significance of the detection of signal is " << sig     << " sigma" << endl;
   cout << "The Li&Ma significande of the detection of signal is " << LiMasig << " sigma" << endl;
 
-
+  // let us consider, in the PoissonLkl, 1% uncertainties on the gamma-ray 
+  // detection efficiency (Deff) and on the exposure ratio between the 
+  // On and Off samples (Dtau) 
   Double_t Deff  = 0.1;
   Double_t Dtau  = 0.1;
   p->SetDEff(Deff);
   p->SetDTau(Dtau);
+  // repeat the Likelihood computation
   p->ComputeLklVsG();
-  p->PrintOverview();     // print the details from the fit
-  p->GetLklVsG()->Draw("same"); // plot the -2logL vs g curve
+  p->PrintOverview();    
+  // compare Likelihood profiles w/ and w/o syst. uncertainties
+  TGraph* lklVsGUnc = p->GetLklVsG(); 
+  lklVsGUnc->SetLineColor(2);
+  lklVsGUnc->SetLineWidth(2);
+  lklVsGUnc->Draw("same"); // plot the -2logL vs g curve
+  legend->AddEntry(lklVsGUnc, "Poisson Likelihood + syst. unc.");
+  legend->Draw("same");
 }

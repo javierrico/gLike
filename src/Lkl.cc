@@ -1078,6 +1078,7 @@ TGraph* Lkl::GetLklVsG(Bool_t applyUnits) const
   for(Int_t i=0;i<ngvals;i++)
     svval[i] = fGLklVsG->GetX()[i]*(applyUnits? fUnitsOfG :1);
   TGraph* thegraph = new TGraph(ngvals,svval,fGLklVsG->GetY());
+  thegraph->SetTitle("");
   thegraph->SetName("fGLklVsG");
 
   delete [] svval;
