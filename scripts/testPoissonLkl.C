@@ -15,6 +15,8 @@
 #include "TLegend.h"
 #include "TRolke.h"
 
+using namespace std;
+
 void testPoissonLkl()
 {
   // create and configure the simplest possible PoissonLkl object
