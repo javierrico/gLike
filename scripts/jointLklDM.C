@@ -919,7 +919,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     {
       cout << "Double_t braneTensionLimit[nmass]  = {";
       for(Int_t imass=0;imass<nmass;imass++)
-        cout << braneTensionVal[imass]/(TMath::Power(svLimVal[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*braneTensionVal[imass]/(TMath::Power(svLimVal[imass], 1./8.)) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
     }
  

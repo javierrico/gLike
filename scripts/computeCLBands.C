@@ -33,6 +33,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 #include <vector>
 
 #include "TPRegexp.h"
@@ -40,6 +41,7 @@
 #include "TH1.h"
 #include "TF1.h"
 #include "TString.h"
+#include "TObjString.h"
 #include "TCanvas.h"
 #include "TLatex.h"
 #include "TFile.h"
@@ -337,6 +339,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       Double_t braneTensionVal[nmass];
       for(Int_t imass=shift;imass<nmass;imass++)
         {
+          Float_t mdm = massval[imass];
           // release the memory of channelval and brval
           delete [] channelval;
           delete [] brval;
@@ -345,32 +348,32 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
           channelval = new TString[nChannels];
           brval = new Double_t[nChannels];
           // call the function that computes the branching ratios and save them in channelval and brval
-          compute_branonBR(massval[imass],nChannels,channelval,brval,braneTensionVal[imass]);
+          compute_branonBR(mdm,nChannels,channelval,brval,braneTensionVal[imass]);
         }
 
       cout << "Double_t bt0sigma_"+channel+"[nmass]  = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << braneTensionVal[imass]/(TMath::Power(sv0sigma[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv0sigma[imass], 1./8.)) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt1sigmaL_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << braneTensionVal[imass]/(TMath::Power(sv1sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv1sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt2sigmaL_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << braneTensionVal[imass]/(TMath::Power(sv2sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv2sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt1sigmaR_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << braneTensionVal[imass]/(TMath::Power(sv1sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv1sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt2sigmaR_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << braneTensionVal[imass]/(TMath::Power(sv2sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv2sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
     }
@@ -640,11 +643,11 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
         if(mass >= particle_mass[iChannel])
           {
             if (dirac_fermions.Contains(particle_type[iChannel]))
-              ann_crosssection[iChannel] = (mass*mass * particle_mass[iChannel]*particle_mass[iChannel])/(16. * TMath::Pi()*TMath::Pi()) * (mass*mass - particle_mass[iChannel]*particle_mass[iChannel]) * $
+              ann_crosssection[iChannel] = (mass*mass * particle_mass[iChannel]*particle_mass[iChannel])/(16. * TMath::Pi()*TMath::Pi()) * (mass*mass - particle_mass[iChannel]*particle_mass[iChannel]) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
             else if (gauge_bosons.Contains(particle_type[iChannel]))
-              ann_crosssection[iChannel] = (mass*mass)/(64. * TMath::Pi()*TMath::Pi()) * (4. * TMath::Power(mass,4) - 4. * mass*mass * particle_mass[iChannel]*particle_mass[iChannel] + 3. * TMath::Power($
+              ann_crosssection[iChannel] = (mass*mass)/(64. * TMath::Pi()*TMath::Pi()) * (4. * TMath::Power(mass,4) - 4. * mass*mass * particle_mass[iChannel]*particle_mass[iChannel] + 3. * TMath::Power(particle_mass[iChannel],4)) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
             else if (scalar_bosons.Contains(particle_type[iChannel]))
-              ann_crosssection[iChannel] = (mass*mass)/(32. * TMath::Pi()*TMath::Pi()) * TMath::Power((2.* mass*mass + particle_mass[iChannel]*particle_mass[iChannel]),2) * TMath::Sqrt(1-((particle_mass[$
+              ann_crosssection[iChannel] = (mass*mass)/(32. * TMath::Pi()*TMath::Pi()) * TMath::Power((2.* mass*mass + particle_mass[iChannel]*particle_mass[iChannel]),2) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
             // WW with a factor 2 (because the W is complex)
             if(!particle_type[iChannel].CompareTo("WW",TString::kIgnoreCase)) ann_crosssection[iChannel] *= 2.;
             // hh with a factor 1/2 (because the Higgs is real)
