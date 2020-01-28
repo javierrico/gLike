@@ -56,6 +56,8 @@ using namespace std;
 
 void setDefaultStyle();
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
+void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval);
+void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor);
 
 // number of bins in histograms
 const Int_t nbins = 1000;
@@ -109,18 +111,57 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   // define some labels according to input data
   TString strprocess         = (isDecay?       "Decay" : "Annihilation");
   
+  // Decode the channel and save the decoded channels and branching ratios in channelval and brval, respectively.
+  TObjArray* coefficients = channel.Tokenize("+");
+  Int_t nChannels = coefficients->GetEntries();
+  TString* channelval = new TString[nChannels];
+  Double_t* brval = new Double_t[nChannels];
+  // call the function that decodes the coefficients of the channel
+  decode_channel(coefficients,nChannels,channelval,brval);
+
   // annihilation/decay channel string
-  TString  strchannel;
+  TString strchannel;
+  TString normchannel;
   Double_t minmass = 0;
-  if     (!channel.CompareTo("bb",TString::kIgnoreCase))         {strchannel = "b #bar{b}";         minmass=5;}
-  else if(!channel.CompareTo("tautau",TString::kIgnoreCase))     {strchannel = "#tau^{+} #tau^{-}"; minmass=1.8;}
-  else if(!channel.CompareTo("mumu",TString::kIgnoreCase))       {strchannel = "#mu^{+} #mu^{-}";   minmass=0.106;}
-  else if(!channel.CompareTo("WW",TString::kIgnoreCase))         {strchannel = "W^{+} W^{-}";       minmass=80.3;}
-  else if(!channel.CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel = "#gamma#gamma";      minmass=0;}
-  else if(!channel.CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel = "#pi^{0}#pi^{0}";    minmass=0.135;}
-  else if(!channel.CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel = "#pi^{0}#gamma";     minmass=0.135/2.;}
-  else if(!channel.CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel = "#pi^{0}#gamma";     minmass=0.135/2.;}
-  else strchannel = "";
+  std::ostringstream buffer;
+  for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
+    {
+      if(nChannels == 1) strchannel = normchannel = "";
+      else
+          if(iChannel == 0) 
+            {
+              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
+              buffer << rounded_brval;
+              strchannel  = (TString) buffer.str().substr(0, 4) + "#upoint";
+              normchannel = (TString) buffer.str().substr(0, 4) + "*";
+            }
+          else
+            {
+              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
+              buffer.clear();
+              buffer.str("");
+              buffer << rounded_brval;
+              strchannel.Append("#plus" + buffer.str().substr(0, 4) + "#upoint");
+              normchannel.Append("+" + buffer.str().substr(0, 4) + "*");
+            }
+      normchannel.Append(channelval[iChannel]);
+
+      if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");          minmass=5;}
+      else if(!channelval[iChannel].CompareTo("cc",TString::kIgnoreCase))         {strchannel.Append("c#bar{c}");          minmass=1.3;}
+      else if(!channelval[iChannel].CompareTo("tt",TString::kIgnoreCase))         {strchannel.Append("t#bar{t}");          minmass=173;}
+      else if(!channelval[iChannel].CompareTo("tautau",TString::kIgnoreCase))     {strchannel.Append("#tau^{+}#tau^{-}");  minmass=1.8;}
+      else if(!channelval[iChannel].CompareTo("mumu",TString::kIgnoreCase))       {strchannel.Append("#mu^{+}#mu^{-}");    minmass=0.106;}
+      else if(!channelval[iChannel].CompareTo("WW",TString::kIgnoreCase))         {strchannel.Append("W^{+}W^{-}");        minmass=80.3;}
+      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("ZZ");                minmass=91.2;}
+      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("HH");                minmass=125;}
+      else if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel.Append("#gamma#gamma");      minmass=0;}
+      else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");    minmass=0.135;}
+      else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
+      else if(!channelval[iChannel].CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
+      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");        minmass=0.511e-3;}
+      else if(!channelval[iChannel].CompareTo("branon",TString::kIgnoreCase))     {strchannel.Append("branon");            minmass=0;}
+      else strchannel = "";
+    }
   if(isDecay) minmass*=2;
   
   // Remove mass values below kinematical threshold
@@ -288,6 +329,51 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
     cout << sv2sigmaR[imass] << (imass<nmass-1? "," : "");
   cout << "};" << endl;
 
+  
+  // compute the branching ratios for the branon model for each DM mass
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      // initialize the array of translation factors for the brane tension limits
+      Double_t braneTensionVal[nmass];
+      for(Int_t imass=shift;imass<nmass;imass++)
+        {
+          // release the memory of channelval and brval
+          delete [] channelval;
+          delete [] brval;
+          // number of considering channels
+          nChannels = 9;
+          channelval = new TString[nChannels];
+          brval = new Double_t[nChannels];
+          // call the function that computes the branching ratios and save them in channelval and brval
+          compute_branonBR(massval[imass],nChannels,channelval,brval,braneTensionVal[imass]);
+        }
+
+      cout << "Double_t bt0sigma_"+channel+"[nmass]  = {";
+      for(Int_t imass=shift;imass<nmass;imass++)
+        cout << braneTensionVal[imass]/(TMath::Power(sv0sigma[imass], 1./8.)) << (imass<nmass-1? "," : "");
+      cout << "};" << endl;
+
+      cout << "Double_t bt1sigmaL_"+channel+"[nmass] = {";
+      for(Int_t imass=shift;imass<nmass;imass++)
+        cout << braneTensionVal[imass]/(TMath::Power(sv1sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
+      cout << "};" << endl;
+
+      cout << "Double_t bt2sigmaL_"+channel+"[nmass] = {";
+      for(Int_t imass=shift;imass<nmass;imass++)
+        cout << braneTensionVal[imass]/(TMath::Power(sv2sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
+      cout << "};" << endl;
+
+      cout << "Double_t bt1sigmaR_"+channel+"[nmass] = {";
+      for(Int_t imass=shift;imass<nmass;imass++)
+        cout << braneTensionVal[imass]/(TMath::Power(sv1sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
+      cout << "};" << endl;
+
+      cout << "Double_t bt2sigmaR_"+channel+"[nmass] = {";
+      for(Int_t imass=shift;imass<nmass;imass++)
+        cout << braneTensionVal[imass]/(TMath::Power(sv2sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
+      cout << "};" << endl;
+
+    }
   // Save results as graphs in a root file
   TString outputFileName = resultsPath+"root/"+label+"_1and2sigmasBands.root";
   TFile*  outputFile     = new TFile(outputFileName,"RECREATE");
@@ -470,3 +556,112 @@ void setDefaultStyle()
   gStyle->SetLegendBorderSize(4);
   gStyle->SetGridColor(13);
 }
+
+
+// Decode the channel and save the decoded channels and branching ratios in channelval and brval, respectively.
+void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval)
+{
+  Float_t sumBR = 0.0;
+  TString factorstring, coefficientstring;
+  for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
+    {
+      factorstring = (TString)((TObjString *)(coefficients->At(iChannel)))->String();
+      TObjArray *factors = factorstring.Tokenize("*");
+      // if there is only one channel selected
+      if(nChannels == 1)
+        {
+          // save the decoded channel in channelval
+          if(factors->GetEntries() == 1)       channelval[iChannel] = factorstring;
+          else if (factors->GetEntries() == 2) channelval[iChannel] = (TString)((TObjString *)(factors->At(1)))->String();
+          // check if the channel argument is in the right form
+          else
+            {
+              cout << " ## Oops! Something went wrong with the parsing " << factorstring << " of the channel!  <---------------- FATAL ERROR!!!"<< endl;
+              return;
+            }
+          // set the branching ratio to 1.0 (100%), since there is only one channel selected
+          brval[iChannel] = sumBR = 1.0;
+        }
+      // if there is a linear combination of channels selected
+      else
+        {
+          // check if the channel argument is in the right form
+          if(factors->GetEntries() == 1)
+            {
+              channelval[iChannel] = factorstring;
+              brval[iChannel] = 1.0;
+              sumBR += brval[iChannel];
+            }
+          else if (factors->GetEntries() == 2)
+            {
+              // save the decoded channels and branching ratios in channelval and brval, respectively.
+              for (Int_t i = 0; i < factors->GetEntries(); i++)
+                {
+                  coefficientstring = (TString)((TObjString *)(factors->At(i)))->String();
+                  if (coefficientstring.IsFloat() && i == 0)
+                    {
+                      brval[iChannel] = coefficientstring.Atof();
+                      sumBR += brval[iChannel];
+                    }
+                  else
+                    channelval[iChannel] = coefficientstring;
+                }
+            }
+          // check if the channel argument is in the right form
+          else
+            {
+              cout << " ## Oops! Something went wrong with the parsing " << factorstring << " of the channel!  <---------------- FATAL ERROR!!!"<< endl;
+              return;
+            }
+        }
+    }
+  // Normalize the branching ratios if they differ from 1.0 (100%)
+  if (sumBR != 1.0)
+      for (Int_t iChannel = 0; iChannel < nChannels; iChannel++) brval[iChannel] /= sumBR;
+}
+
+// Compute the branching ratios for the branon model for each DM mass and save the channels and branching ratios in channelval and brval, respectively.
+void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor)
+  {
+    // The included annihilation channels for the branon model
+    TString particle_type[9]        = {"bb","cc","tt","ee","mumu","tautau","WW","ZZ","hh"};
+    // The corresponding masses in GeV
+    Float_t particle_mass[9]        = {4.18,1.28,173.1,0.511e-3,0.106,1.7768,80.39,91.19,125.0};
+    // Classification of the elementary particles
+    TString dirac_fermions          = "cc_tt_bb_ee_mumu_tautau";
+    TString gauge_bosons            = "WW_ZZ";
+    TString scalar_bosons           = "hh";
+    // Loop over the channels and compute their branching ratios
+    Double_t ann_crosssection[9]    = {0.0};
+    Double_t total_ann_crosssection = 0.0;
+    for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
+      {
+        // distinguish between the different elementary particles
+        if(mass >= particle_mass[iChannel])
+          {
+            if (dirac_fermions.Contains(particle_type[iChannel]))
+              ann_crosssection[iChannel] = (mass*mass * particle_mass[iChannel]*particle_mass[iChannel])/(16. * TMath::Pi()*TMath::Pi()) * (mass*mass - particle_mass[iChannel]*particle_mass[iChannel]) * $
+            else if (gauge_bosons.Contains(particle_type[iChannel]))
+              ann_crosssection[iChannel] = (mass*mass)/(64. * TMath::Pi()*TMath::Pi()) * (4. * TMath::Power(mass,4) - 4. * mass*mass * particle_mass[iChannel]*particle_mass[iChannel] + 3. * TMath::Power($
+            else if (scalar_bosons.Contains(particle_type[iChannel]))
+              ann_crosssection[iChannel] = (mass*mass)/(32. * TMath::Pi()*TMath::Pi()) * TMath::Power((2.* mass*mass + particle_mass[iChannel]*particle_mass[iChannel]),2) * TMath::Sqrt(1-((particle_mass[$
+            // WW with a factor 2 (because the W is complex)
+            if(!particle_type[iChannel].CompareTo("WW",TString::kIgnoreCase)) ann_crosssection[iChannel] *= 2.;
+            // hh with a factor 1/2 (because the Higgs is real)
+            if(!particle_type[iChannel].CompareTo("hh",TString::kIgnoreCase)) ann_crosssection[iChannel] *= 0.5;
+          }
+        // add up all ann_crosssection for the normalization
+        total_ann_crosssection += ann_crosssection[iChannel];
+      }
+    // Normalization of the branching ratios
+    for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
+      {
+        ann_crosssection[iChannel] /= total_ann_crosssection;
+        // save the computed branching ratios in brval
+        brval[iChannel] = ann_crosssection[iChannel];
+        // save the corresponding channels in channelval
+        channelval[iChannel] = particle_type[iChannel];
+      }
+    // Computation of the translation factor for the tension of the brane
+    translation_factor = TMath::Power(total_ann_crosssection, 1./8.);
+  }
