@@ -88,7 +88,7 @@ using namespace std;
 
 void setDefaultStyle();
 void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval);
-void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval);
+void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor);
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
 
 const Int_t nMaxLkls = 1000;
@@ -513,6 +513,9 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   ///////////////////////////////////////////
   Double_t svLimVal[nmass];
   Double_t svSenVal[nmass];
+  // initialize the array of translation factors for the brane tension limits
+  Double_t braneTensionVal[nmass];
+
   TCanvas** hadcanvas = new TCanvas*[nsamples];
   for(Int_t isample=0;isample<nsamples;isample++)
     hadcanvas[isample] = NULL;
@@ -542,12 +545,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
           channelval = new TString[nChannels];
           brval = new Double_t[nChannels];
           // call the function that computes the branching ratios and save them in channelval and brval
-          compute_branonBR(mdm,nChannels,channelval,brval);
+          compute_branonBR(mdm,nChannels,channelval,brval,braneTensionVal[imass]);
           // Print-Out the freshly computed branching ratios for validation
           cout << "**** Branon branching ratios: ";
           for(Int_t iChannel=0;iChannel<nChannels;iChannel++)
             cout << brval[iChannel] << "*" << channelval[iChannel] << ((iChannel<nChannels-1)? "+" : "");
           cout << endl;
+          cout << "**** Translation factor for the tension of the brane: " << braneTensionVal[imass] << endl;
         }
 
       // compute the minimum precision the mass needs to be reported with
@@ -777,6 +781,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
           cout << " *** Skipping DM mass = " << mass << " GeV because checks were not successfull (maybe none of the samples will produce any signal event?)" << endl;
           svLimVal[imass] = 0.;
           svSenVal[imass] = 0.;
+          braneTensionVal[imass] = 0.;
           continue;
         }
 
@@ -910,6 +915,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   for(Int_t imass=0;imass<nmass;imass++)
     cout << svSenVal[imass] << (imass<nmass-1? "," : "");
   cout << "};" << endl;
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      cout << "Double_t braneTensionLimit[nmass]  = {";
+      for(Int_t imass=0;imass<nmass;imass++)
+        cout << braneTensionVal[imass]/(TMath::Power(svLimVal[imass], 1./8.)) << (imass<nmass-1? "," : "");
+      cout << "};" << endl;
+    }
  
   cout << endl;
   cout << "**********************************" << endl;
@@ -1119,7 +1131,7 @@ void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelv
 }
 
 // Compute the branching ratios for the branon model for each DM mass and save the channels and branching ratios in channelval and brval, respectively.
-void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval)
+void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor)
   {
     // The included annihilation channels for the branon model
     TString particle_type[9]        = {"bb","cc","tt","ee","mumu","tautau","WW","ZZ","hh"};
@@ -1160,5 +1172,6 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
         // save the corresponding channels in channelval
         channelval[iChannel] = particle_type[iChannel];
       }
+    // Computation of the translation factor for the tension of the brane
+    translation_factor = TMath::Power(total_ann_crosssection, 1./8.);
   }
-
