@@ -8,10 +8,13 @@
 #include <iostream>
 
 #include "TNamed.h"
+#include "TMath.h"
 #include "TH1.h"
 #include "TH2.h"
 #include "TGraph.h"
 #include "TNtupleD.h"
+#include "TVectorT.h"
+#include "TFITS.h"
 
 // structure to read the events from the NTuple
 typedef struct {
@@ -36,13 +39,16 @@ class IactEventListIrf : public TNamed
   static const Double_t gDefHadVal    ;    //! default value when hadronness is not provided
 
   // constructor
-  IactEventListIrf(TString name="IactEventListIrf",TString title="");
+  IactEventListIrf(TString name="IactEventListIrf", TString title="");
   
   // destructor
   virtual ~IactEventListIrf();
 
+  // load ON, OFF event lists and IRFs from a FITS input file
+  void LoadFITS(TString inputFileName);
+
   // fill event with input values
-  void FillOnEvent( Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
+  void FillOnEvent(Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
   {fOnSample->Fill(E,pointRA,pointDEC,dRA,dDEC,t,had);}
   
   void FillOffEvent(Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
