@@ -25,7 +25,7 @@ static const Double_t gEpmax = 1e06; // [GeV] default value of maximum E_est
 static const Int_t   gBuffSize = 512000; // buffer size for Ntuples
 
 // static functions, helpers to load data from the FITS Header Data Units (HDUs)
-static void FillEventListFromHDU(TFITSHDU* hdu, TNtupleD* onSample);
+static void FillEventListFromHDU(TFITSHDU* hdu, TNtupleD* eventList);
 static TH1F* GetHAeffFromHDU(TFITSHDU* hdu);
 static TGraph* GetGEbiasFromHDU(TFITSHDU* hdu);
 static TGraph* GetGEresoFromHDU(TFITSHDU* hdu);
