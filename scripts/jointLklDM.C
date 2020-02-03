@@ -919,7 +919,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     {
       cout << "Double_t braneTensionLimit[nmass]  = {";
       for(Int_t imass=0;imass<nmass;imass++)
-        cout << 0.001*braneTensionVal[imass]/(TMath::Power(svLimVal[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/svLimVal[imass], 1./8.) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
     }
  
@@ -1173,5 +1173,5 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
         channelval[iChannel] = particle_type[iChannel];
       }
     // Computation of the translation factor for the tension of the brane
-    translation_factor = TMath::Power(total_ann_crosssection, 1./8.);
+    translation_factor = total_ann_crosssection;
   }

@@ -353,27 +353,27 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
 
       cout << "Double_t bt0sigma_"+channel+"[nmass]  = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv0sigma[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv0sigma[imass], 1./8.) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt1sigmaL_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv1sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv1sigmaL[imass], 1./8.) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt2sigmaL_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv2sigmaL[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv2sigmaL[imass], 1./8.) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt1sigmaR_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv1sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv1sigmaR[imass], 1./8.) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
       cout << "Double_t bt2sigmaR_"+channel+"[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*braneTensionVal[imass]/(TMath::Power(sv2sigmaR[imass], 1./8.)) << (imass<nmass-1? "," : "");
+        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv2sigmaR[imass], 1./8.) << (imass<nmass-1? "," : "");
       cout << "};" << endl;
 
     }
@@ -666,5 +666,5 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
         channelval[iChannel] = particle_type[iChannel];
       }
     // Computation of the translation factor for the tension of the brane
-    translation_factor = TMath::Power(total_ann_crosssection, 1./8.);
+    translation_factor = total_ann_crosssection;
   }
