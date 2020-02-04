@@ -453,6 +453,8 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
       Double_t save  = glow;
       glow+=TMath::Abs(glow-gmin)/2.;
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(glow) = " << lklval << ", glow rised from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
+      if (lklval > 1e99)
+ 	break; 
     }
   
   // expand the upper end
