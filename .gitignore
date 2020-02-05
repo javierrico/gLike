@@ -2,6 +2,8 @@
 *.a
 *.so
 *.o
+*.d
+*.pcm
 .#README.md
 out
 *_C.d
