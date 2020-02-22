@@ -331,8 +331,12 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
     cout << sv2sigmaR[imass] << (imass<nmass-1? "," : "");
   cout << "};" << endl;
 
-  
-  // compute the branching ratios for the branon model for each DM mass
+  // compute the branon translation factor for each DM mass for branon
+  Double_t bt0sigma[nmass];
+  Double_t bt1sigmaL[nmass];
+  Double_t bt2sigmaL[nmass];
+  Double_t bt1sigmaR[nmass];
+  Double_t bt2sigmaR[nmass];
   if(!channel.CompareTo("branon",TString::kIgnoreCase))
     {
       // initialize the array of translation factors for the brane tension limits
@@ -351,32 +355,50 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
           compute_branonBR(mdm,nChannels,channelval,brval,braneTensionVal[imass]);
         }
 
-      cout << "Double_t bt0sigma_"+channel+"[nmass]  = {";
+      // To translate the sigmav values from [cm^3 s^-1] to [GeV^-2], the sigmav limits have to be divided by
+      // h_bar^2 c^3 = (6.58*10^-25 [GeV s])^2 * (3.0*10^10 [cm s^-1])^2 = 1.17*10^-17 [GeV^2 cm^3 s^-1].
+      // The 0.001 factor is translating the brane tension limit from GeV to TeV.
+      cout << "Double_t bt0sigma[nmass]  = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv0sigma[imass], 1./8.) << (imass<nmass-1? "," : "");
+        {
+          bt0sigma[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv0sigma[imass], 1./8.);
+          cout << bt0sigma[imass] << (imass<nmass-1? "," : "");
+        }
       cout << "};" << endl;
 
-      cout << "Double_t bt1sigmaL_"+channel+"[nmass] = {";
+      cout << "Double_t bt1sigmaL[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv1sigmaL[imass], 1./8.) << (imass<nmass-1? "," : "");
+        {
+          bt1sigmaL[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv1sigmaL[imass], 1./8.);
+          cout << bt1sigmaL[imass] << (imass<nmass-1? "," : "");
+        }
       cout << "};" << endl;
 
-      cout << "Double_t bt2sigmaL_"+channel+"[nmass] = {";
+      cout << "Double_t bt2sigmaL[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv2sigmaL[imass], 1./8.) << (imass<nmass-1? "," : "");
+        {
+          bt2sigmaL[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv2sigmaL[imass], 1./8.);
+          cout << bt2sigmaL[imass] << (imass<nmass-1? "," : "");
+        }
       cout << "};" << endl;
 
-      cout << "Double_t bt1sigmaR_"+channel+"[nmass] = {";
+      cout << "Double_t bt1sigmaR[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv1sigmaR[imass], 1./8.) << (imass<nmass-1? "," : "");
+        {
+          bt1sigmaR[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv1sigmaR[imass], 1./8.);
+          cout << bt1sigmaR[imass] << (imass<nmass-1? "," : "");
+        }
       cout << "};" << endl;
 
-      cout << "Double_t bt2sigmaR_"+channel+"[nmass] = {";
+      cout << "Double_t bt2sigmaR[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
-        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/sv2sigmaR[imass], 1./8.) << (imass<nmass-1? "," : "");
+        {
+          bt2sigmaR[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv2sigmaR[imass], 1./8.);
+          cout << bt2sigmaR[imass] << (imass<nmass-1? "," : "");
+        }
       cout << "};" << endl;
-
     }
+
   // Save results as graphs in a root file
   TString outputFileName = resultsPath+"root/"+label+"_1and2sigmasBands.root";
   TFile*  outputFile     = new TFile(outputFileName,"RECREATE");
@@ -399,6 +421,38 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
 
   cout << endl << "Bands saved in file: " << outputFileName << endl;
   delete outputFile;
+
+  // Save results as graphs in a root file for branon
+  TGraph* gbt0sigma  = NULL;
+  TGraph* gbt1sigmaL = NULL;
+  TGraph* gbt1sigmaR = NULL;
+  TGraph* gbt2sigmaL = NULL;
+  TGraph* gbt2sigmaR = NULL;
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      TString btoutputFileName = resultsPath+"root/"+label+"_branetension_1and2sigmasBands.root";
+      TFile*  btoutputFile     = new TFile(btoutputFileName,"RECREATE");
+
+      gbt0sigma  = new TGraph(nmass-shift,massval+shift,bt0sigma+shift);
+      gbt1sigmaL = new TGraph(nmass-shift,massval+shift,bt1sigmaL+shift);
+      gbt1sigmaR = new TGraph(nmass-shift,massval+shift,bt1sigmaR+shift);
+      gbt2sigmaL = new TGraph(nmass-shift,massval+shift,bt2sigmaL+shift);
+      gbt2sigmaR = new TGraph(nmass-shift,massval+shift,bt2sigmaR+shift);
+      gbt0sigma->SetName("gbt0sigma");
+      gbt1sigmaL->SetName("gbt1sigmaL");
+      gbt1sigmaR->SetName("gbt1sigmaR");
+      gbt2sigmaL->SetName("gbt2sigmaL");
+      gbt2sigmaR->SetName("gbt2sigmaR");
+      gbt0sigma->Write();
+      gbt1sigmaL->Write();
+      gbt1sigmaR->Write();
+      gbt2sigmaL->Write();
+      gbt2sigmaR->Write();
+
+      cout << "Bands saved in file: " << btoutputFileName << endl;
+      delete btoutputFile;
+    }
+
 
   // PLOTS
   if(makePlots)
@@ -509,6 +563,92 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
 
       limcanvas->Print(resultsPath+"root/"+label+"_bands.root");
       limcanvas->Print(resultsPath+"pdf/"+label+"_bands.pdf");
+
+      if(!channel.CompareTo("branon",TString::kIgnoreCase))
+        {
+          // bands
+          Int_t npnts = gbt0sigma->GetN();
+          TGraph* btband1sigma = new TGraph(2*npnts+1);
+          TGraph* btband2sigma = new TGraph(2*npnts+1);
+
+          for(Int_t imass=0;imass<npnts;imass++)
+            {
+              btband1sigma->SetPoint(imass,      gbt1sigmaL->GetX()[imass],gbt1sigmaL->GetY()[imass]);
+              btband1sigma->SetPoint(npnts+imass,gbt1sigmaR->GetX()[npnts-imass-1],gbt1sigmaR->GetY()[npnts-imass-1]);
+              btband2sigma->SetPoint(imass,      gbt2sigmaL->GetX()[imass],gbt2sigmaL->GetY()[imass]);
+              btband2sigma->SetPoint(npnts+imass,gbt2sigmaR->GetX()[npnts-imass-1],gbt2sigmaR->GetY()[npnts-imass-1]);
+            }
+          btband1sigma->SetPoint(2*npnts,gbt1sigmaL->GetX()[0],gbt1sigmaL->GetY()[0]);
+          btband2sigma->SetPoint(2*npnts,gbt2sigmaL->GetX()[0],gbt2sigmaL->GetY()[0]);
+
+          // result
+          TFile* btf = TFile::Open(dataPath+label+"_Data_branetension_limits.root", "READ");
+          TCanvas* btlim = (TCanvas*)btf->Get("branoncanvas");
+          TGraph* grbtlim = (TGraph*)btlim->GetPrimitive("grbtlim");
+
+          grbtlim->SetName("grbtlim");
+          grbtlim->SetLineColor(kBlack);
+          grbtlim->SetLineWidth(2);
+
+          btband1sigma->SetFillColorAlpha(3,0.35);
+          btband2sigma->SetFillColorAlpha(5,0.35);
+
+          gbt0sigma->SetLineColor(4);
+          gbt0sigma->SetLineStyle(2);
+          gbt0sigma->SetLineWidth(1);
+
+          // canvas
+          TCanvas* branoncanvas = new TCanvas("branoncanvas","1 and 2 sigma bands",1000,800);
+          branoncanvas->cd();
+
+          TH1I *btdummylim = new TH1I("btdummylim","",1,massval[0],massval[nmass-1]);
+          btdummylim->SetStats(0);
+          btdummylim->SetMinimum(1e-1);
+          btdummylim->SetMaximum(1e2);
+          btdummylim->SetXTitle("m_{DM} [GeV]");
+          btdummylim->SetYTitle(Form("f [TeV]"));
+          btdummylim->DrawCopy();
+          gPad->SetLogx();
+          gPad->SetLogy();
+          gPad->SetGrid();
+
+          btband2sigma->Draw("f");
+          btband1sigma->Draw("f");
+          gbt0sigma->Draw("c");
+          grbtlim->Draw("c");
+
+          // thermal relic density taken from Steigman G., Dasgupta B, and Beacom J. F., 
+          // Precise relic WIMP abundance and its impact onsearches for dark matter annihilation, 
+          // Phys.Rev. D86(2012) 023506, [arXiv:1204.3622]. The thermal relic cross section was 
+          // translated to the brane tension space using the formulas above.
+          const Int_t nThermalRelicBt = 22;
+          Double_t thermalRelicMass[nThermalRelicBt] = {1.00e-01, 1.78e-01, 3.16e-01, 5.62e-01, 1.00e+00, 1.78e+00, 3.16e+00, 5.62e+00, 1.00e+01, 1.78e+01, 3.16e+01, 5.62e+01, 1.00e+02, 1.78e+02, 3.16e+02, 5.62e+02, 1.00e+03, 1.78e+03,3.16e+03, 5.62e+03, 1.00e+04, 1.00e+05};
+          Double_t thermalRelicBt[nThermalRelicBt] = {0.00028197, 0.00131177, 0.00184612, 0.00250686, 0.00338571, 0.00742158, 0.0124374, 0.0199107, 0.0291449, 0.0400859, 0.054027, 0.0721836, 0.208693, 0.367468, 0.578445, 0.892658, 1.37518, 2.11902, 3.25889, 5.01881, 7.69107, 43.25};
+          TGraph *btrelicDensity = new TGraph(nThermalRelicBt, thermalRelicMass, thermalRelicBt);
+          btrelicDensity->SetTitle("Thermal relic cross section");
+          btrelicDensity->SetLineColor(kRed);
+          btrelicDensity->SetLineWidth(3);
+          btrelicDensity->SetLineStyle(5);
+          btrelicDensity->SetMarkerColor(kRed);
+          btrelicDensity->Draw("same");
+
+          // legend
+          TLegend* btlimleg;
+          btlimleg = new TLegend(0.2, 0.7, 0.45, 0.85);
+          btlimleg->SetTextSize(0.032);
+          btlimleg->SetMargin(0.40);
+          btlimleg->SetBorderSize(0);
+
+          if(grbtlim)    btlimleg->AddEntry(grbtlim,"Limit","l");
+          if(gbt0sigma)  btlimleg->AddEntry(gbt0sigma,"H_{0} median","l");
+          if(btband1sigma) btlimleg->AddEntry(btband1sigma,"H_{0} 68% containment","f");
+          if(btband2sigma) btlimleg->AddEntry(btband2sigma,"H_{0} 95% containment","f");
+          btlimleg->AddEntry(btrelicDensity,"Thermal relic cross section","l");
+          btlimleg->Draw();
+
+          branoncanvas->Print(resultsPath+"root/"+label+"_branetension_bands.root");
+          branoncanvas->Print(resultsPath+"pdf/"+label+"_branetension_bands.pdf");
+        }
     }
 }
 

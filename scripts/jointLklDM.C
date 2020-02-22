@@ -915,11 +915,27 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   for(Int_t imass=0;imass<nmass;imass++)
     cout << svSenVal[imass] << (imass<nmass-1? "," : "");
   cout << "};" << endl;
+
+  // To translate the sigmav values from [cm^3 s^-1] to [GeV^-2], the sigmav limits have to be divided by
+  // h_bar^2 c^3 = (6.58*10^-25 [GeV s])^2 * (3.0*10^10 [cm s^-1])^2 = 1.17*10^-17 [GeV^2 cm^3 s^-1].
+  // The 0.001 factor is translating the brane tension limit from GeV to TeV.
+  Double_t fLimVal[nmass];
+  Double_t fSenVal[nmass];
   if(!channel.CompareTo("branon",TString::kIgnoreCase))
     {
-      cout << "Double_t braneTensionLimit[nmass]  = {";
+      cout << "Double_t branetension_limit[nmass]  = {";
       for(Int_t imass=0;imass<nmass;imass++)
-        cout << 0.001*TMath::Power((braneTensionVal[imass]*1.167*TMath::Power(10., -17.))/svLimVal[imass], 1./8.) << (imass<nmass-1? "," : "");
+        {
+          fLimVal[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/svLimVal[imass], 1./8.);
+          cout << fLimVal[imass] << (imass<nmass-1? "," : "");
+        }
+      cout << "};" << endl;
+      cout << "Double_t branetension_snstvt[nmass]  = {";
+      for(Int_t imass=0;imass<nmass;imass++)
+        {
+          fSenVal[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/svSenVal[imass], 1./8.);
+          cout << fSenVal[imass] << (imass<nmass-1? "," : "");
+        }
       cout << "};" << endl;
     }
  
@@ -956,7 +972,28 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     grsvsen->SetLineStyle(2);
   else
     grsvsen->SetLineStyle(1);
-  
+
+  // graph for brane tension (f) upper limits for branon
+  TGraph* grbtlim = NULL;
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      grbtlim = new TGraph(nmass,massval,fLimVal);
+      grbtlim->SetName("grbtlim");
+      grbtlim->SetLineColor(1);
+    }
+
+  // graph for brane tension (f) sensitivity for branon
+  TGraph* grbtsen = NULL;
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      grbtsen = new TGraph(nmass,massval,fSenVal);
+      grbtsen->SetName("grbtsen");
+      grbtsen->SetLineColor(1);
+      if(showLimitPlots)
+        grbtsen->SetLineStyle(2);
+      else
+        grbtsen->SetLineStyle(1);
+    }
 
   // canvas for plots
   TCanvas* limcanvas  = new TCanvas("limcanvas",Form("Dark matter %s limits",(isDecay? "tauDM" : "<sv>")),800,800);
@@ -992,6 +1029,37 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   gPad->SetLogy();
   gPad->SetGrid();
 
+  // canvas for brane tension plots
+  TCanvas* branoncanvas = NULL;
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      branoncanvas  = new TCanvas("branoncanvas","Brane tension limits",800,800);
+
+      TH1I *dummybtlim = new TH1I("dummybtlim",Form("f ULs vs mass"),1,massval[0],massval[nmass-1]);
+      dummybtlim->SetStats(0);
+      dummybtlim->SetMinimum(0.001*TMath::Power((braneTensionVal[0]*1.17*TMath::Power(10., -17.))/plotmax, 1./8.));
+      dummybtlim->SetMaximum(0.001*TMath::Power((braneTensionVal[nmass-1]*1.17*TMath::Power(10., -17.))/plotmin, 1./8.));
+      dummybtlim->SetXTitle("m_{DM} [GeV]");
+      dummybtlim->SetYTitle("f [TeV]");
+      dummybtlim->DrawCopy();
+      grbtsen->Draw("l");
+      if(showLimitPlots)
+        grbtlim->Draw("l");  
+
+      TLegend* btlimleg = new TLegend(0.2, 0.7, 0.45, 0.85);
+      btlimleg->SetFillColor(0);
+      btlimleg->SetMargin(0.40);
+      btlimleg->SetBorderSize(0);
+      if(showLimitPlots)
+        btlimleg->AddEntry(grbtlim,"Limit","L");
+      btlimleg->AddEntry(grbtsen,"Sensitivity","L");
+      btlimleg->Draw();
+
+      gPad->SetLogx();
+      gPad->SetLogy();
+      gPad->SetGrid();
+    }
+  
 
   // save plots
   TString realPlotDir = fPlotsDir+simulationlabel+"/";
@@ -1004,8 +1072,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
   if(showParabolaPlots)
     {
-      lklcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_2logLVsG"+seedTag+".root");
-      lklcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".pdf");
+      limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_2logLVsG"+seedTag+".root");
+      limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".pdf");
     }
   if(showSamplePlots) 
     for(Int_t isample=0;isample<nsamples;isample++)
@@ -1013,7 +1081,18 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	hadcanvas[isample]->Print(realPlotDir+"root/"+label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".root");
 	hadcanvas[isample]->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".pdf");
       }
-    
+  
+  // save branon plots
+  if(!channel.CompareTo("branon",TString::kIgnoreCase))
+    {
+      // only for 'Data'
+      if(!isSimulation)
+        {
+          branoncanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_branetension_limits.root");
+          branoncanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_branetension_limits.pdf");
+        }
+    }
+
   // Clean up and close 
   /////////////////////
   delete [] lkl;
