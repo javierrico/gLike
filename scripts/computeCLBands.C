@@ -356,12 +356,18 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
         }
 
       // To translate the sigmav values from [cm^3 s^-1] to [GeV^-2], the sigmav limits have to be divided by
-      // h_bar^2 c^3 = (6.58*10^-25 [GeV s])^2 * (3.0*10^10 [cm s^-1])^2 = 1.17*10^-17 [GeV^2 cm^3 s^-1].
-      // The 0.001 factor is translating the brane tension limit from GeV to TeV.
+      // h_bar^2 c^3 = (6.582119569^-25 [GeV s])^2 * (299792458x10^2 [cm s^-1])^3 = 1.167329990*10^-17 [GeV^2 cm^3 s^-1]
+      // with following the values provided by the Particle Data Group in http://pdg.lbl.gov/2019/reviews/rpp2018-rev-phys-constants.pdf
+      // h_bar = 6.582119569*10^-22 [MeV s] = 6.58211956910*^-25 [GeV s] and c = 299792458.0 [m s^−1] = 299792458.0*10^2 [cm s^−1].
+      // The final conversion formula also contains:
+      // - a factor (0.001) to translate the brane tension limit from [GeV] to [TeV]
+      // - a power 1/8 to relate sigma to f (see equation 7 of https://arxiv.org/abs/hep-ph/0302041)
+      Double_t unit_translation = 1.167329990*TMath::Power(10., -17.);
+
       cout << "Double_t bt0sigma[nmass]  = {";
       for(Int_t imass=shift;imass<nmass;imass++)
         {
-          bt0sigma[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv0sigma[imass], 1./8.);
+          bt0sigma[imass] = 0.001*TMath::Power((braneTensionVal[imass]*unit_translation)/sv0sigma[imass], 1./8.);
           cout << bt0sigma[imass] << (imass<nmass-1? "," : "");
         }
       cout << "};" << endl;
@@ -369,7 +375,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       cout << "Double_t bt1sigmaL[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
         {
-          bt1sigmaL[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv1sigmaL[imass], 1./8.);
+          bt1sigmaL[imass] = 0.001*TMath::Power((braneTensionVal[imass]*unit_translation)/sv1sigmaL[imass], 1./8.);
           cout << bt1sigmaL[imass] << (imass<nmass-1? "," : "");
         }
       cout << "};" << endl;
@@ -377,7 +383,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       cout << "Double_t bt2sigmaL[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
         {
-          bt2sigmaL[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv2sigmaL[imass], 1./8.);
+          bt2sigmaL[imass] = 0.001*TMath::Power((braneTensionVal[imass]*unit_translation)/sv2sigmaL[imass], 1./8.);
           cout << bt2sigmaL[imass] << (imass<nmass-1? "," : "");
         }
       cout << "};" << endl;
@@ -385,7 +391,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       cout << "Double_t bt1sigmaR[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
         {
-          bt1sigmaR[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv1sigmaR[imass], 1./8.);
+          bt1sigmaR[imass] = 0.001*TMath::Power((braneTensionVal[imass]*unit_translation)/sv1sigmaR[imass], 1./8.);
           cout << bt1sigmaR[imass] << (imass<nmass-1? "," : "");
         }
       cout << "};" << endl;
@@ -393,7 +399,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       cout << "Double_t bt2sigmaR[nmass] = {";
       for(Int_t imass=shift;imass<nmass;imass++)
         {
-          bt2sigmaR[imass] = 0.001*TMath::Power((braneTensionVal[imass]*1.17*TMath::Power(10., -17.))/sv2sigmaR[imass], 1./8.);
+          bt2sigmaR[imass] = 0.001*TMath::Power((braneTensionVal[imass]*unit_translation)/sv2sigmaR[imass], 1./8.);
           cout << bt2sigmaR[imass] << (imass<nmass-1? "," : "");
         }
       cout << "};" << endl;
