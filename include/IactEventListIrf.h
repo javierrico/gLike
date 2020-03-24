@@ -40,12 +40,13 @@ class IactEventListIrf : public TNamed
 
   // constructor
   IactEventListIrf(TString name="IactEventListIrf", TString title="");
+  IactEventListIrf(TString fileName, TString name, TString title);
   
   // destructor
   virtual ~IactEventListIrf();
 
-  // load ON, OFF event lists and IRFs from a FITS input file
-  void LoadFITS(TString inputFileName);
+  // load ON, OFF event lists and IRFs from a ROOT or FITS input file
+  void LoadFITSFile(TString inputFileName);
 
   // fill event with input values
   void FillOnEvent(Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
@@ -53,6 +54,9 @@ class IactEventListIrf : public TNamed
   
   void FillOffEvent(Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
   {fOffSample->Fill(E,pointRA,pointDEC,dRA,dDEC,t,had);}
+
+  // plot a resume of the input
+  void PlotOverview(Bool_t logY = kFALSE);
     
   // setters
   void SetTau(Double_t tau, Double_t dTau=0,Double_t dPValue=-1.)  {fTau=tau; fDTau=dTau; fTauPValue=dPValue;}
@@ -115,6 +119,8 @@ class IactEventListIrf : public TNamed
 
   TH1F*     fHdNdEpBkg   ;    //-> dN/dE'dt vs E' for background events (normalized)
   TH1F*     fHdNdEpFrg   ;    //-> dN/dE'dt vs E' for foreground (gamma-events from a different source) events (normalized)
+
+  void _initialize_me();      // initialize empty resources, used by both constructors
 
   ClassDef(IactEventListIrf,1) // Class to hold the data and IRFs from IACTs to be used as input by Iact1dUnbinnedLkl class
 };

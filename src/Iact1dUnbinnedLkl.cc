@@ -305,7 +305,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
     }
   else if(inputfileName.EndsWith(".fits"))
     {
-      dataSet->LoadFITS(path+(path==""?"":"/")+inputfileName);   
+      dataSet->LoadFITSFile(path+(path==""?"":"/")+inputfileName);   
     } 
   else
     {
