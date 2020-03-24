@@ -61,13 +61,7 @@ IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName
   _initialize_me();
 
   if (fileName.EndsWith(".fits")) { // read from FITS file
-
-    // check if the user has a ROOT version higher than 6.21 (to read the migration matrix)
-    Double_t rootVersion = TString(gROOT->GetVersion()).Atof();
-    if (rootVersion < 6.21) {
-      Error("IactEventListIrf", "This ROOT version does not support reading variable-rength array.");
-      exit(-1);
-    }  
+    
     fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     LoadFITSFile(fileName);
