@@ -289,28 +289,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
     }
   
   // open and read input files with data and IRFs
-  IactEventListIrf* dataSet = new IactEventListIrf();
-  if(inputfileName.EndsWith(".root"))
-    {
-      TFile* ifile = new TFile(path+(path==""?"":"/")+inputfileName,"READ");
-      dataSet = (IactEventListIrf*) ifile->Get("IactEventListIrf");
-      if(!dataSet) // check if the ROOT file was correctly interpreted
-        {
-          cout << "Iact1dUnbinnedLkl::InterpretInputString Warning: no IactEventListIrf object in file " << inputfileName << ", trying the CTAIRF format" << endl;
-          if(ReadCTAIRF(path+"/"+inputfileName)) 
-            return 1;
-        }
-      ifile->Close();
-      delete ifile;
-    }
-  else if(inputfileName.EndsWith(".fits"))
-    {
-      dataSet->LoadFITSFile(path+(path==""?"":"/")+inputfileName);   
-    } 
-  else
-    {
-      cout << "Iact1dUnbinnedLkl::InterpretInputString Error: you have specified an unsupported IactEventListIrf format!" << endl;
-    }
+  IactEventListIrf* dataSet = new IactEventListIrf("dataSet", "", inputfileName);
 
   // extract info from file 
   fEpmin       = dataSet->GetEpmin();

@@ -41,7 +41,7 @@ class IactEventListIrf : public TNamed
   // constructor
   IactEventListIrf(TString name="IactEventListIrf", TString title="");
   IactEventListIrf(TString fileName, TString name, TString title);
-  
+
   // destructor
   virtual ~IactEventListIrf();
 
@@ -56,7 +56,7 @@ class IactEventListIrf : public TNamed
   {fOffSample->Fill(E,pointRA,pointDEC,dRA,dDEC,t,had);}
 
   // plot a resume of the input
-  void PlotOverview(Bool_t logY = kFALSE);
+  void PlotOverview(Bool_t logY = kTRUE);
     
   // setters
   void SetTau(Double_t tau, Double_t dTau=0,Double_t dPValue=-1.)  {fTau=tau; fDTau=dTau; fTauPValue=dPValue;}

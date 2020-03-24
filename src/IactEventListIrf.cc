@@ -18,7 +18,8 @@
 #include "TObject.h"
 #include "TCanvas.h"
 #include "TLegend.h"
-#include "TStyle.h"
+#include "TFile.h"
+#include "TROOT.h"
 #include "IactEventListIrf.h"
 
 ClassImp(IactEventListIrf);
@@ -58,16 +59,57 @@ IactEventListIrf::IactEventListIrf(TString name, TString title) : TNamed(name, t
 IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName) : TNamed(name, title)
 {
   _initialize_me();
-  // create the event lists
-  fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
-  fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
-  // fill with the FITS file
-  if (fileName.EndsWith(".fits")) LoadFITSFile(fileName);
+
+  if (fileName.EndsWith(".fits")) { // read from FITS file
+
+    // check if the user has a ROOT version higher than 6.21 (to read the migration matrix)
+    Double_t rootVersion = TString(gROOT->GetVersion()).Atof();
+    if (rootVersion < 6.21) {
+      Error("IactEventListIrf", "This ROOT version does not support reading variable-rength array.");
+      exit(-1);
+    }  
+    fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
+    fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
+    LoadFITSFile(fileName);
+
+  } else if (fileName.EndsWith(".root")) { // read from ROOT file
+
+    TFile* file = new TFile(fileName, "READ");
+    IactEventListIrf* data = (IactEventListIrf*) file->Get("IactEventListIrf");
+
+    if (!data) { // check if the IactEventListIrf exists
+      Error("IactEventListIrf", "no IactEventListIrf object in file %s.", fileName.Data());
+      exit(-1);
+    } else { // copy constructor from the IactEventListIrf within the ROOT file
+      fOnSample = data->GetOnSample();
+      fOffSample = data->GetOffSample();
+      fEpmin = data->GetEpmin();
+      fEpmax = data->GetEpmax();
+      fTau = data->GetTau();
+      fDTau = data->GetDTau();            
+      fTauPValue = data->GetTauPValue();  
+      fObsTime = data->GetObsTime();
+      fHAeff = data->GetHAeff();   
+      fHAeffOff = data->GetHAeffOff();
+      fGEreso = data->GetGEreso();   
+      fGEbias = data->GetGEbias();
+      fMigMatrix = data->GetMigMatrix(); 
+      fHdNdEpBkg = data->GetHdNdEpBkg();
+      fHdNdEpFrg = data->GetHdNdEpFrg();
+    }
+
+    file->Close();
+    delete file;
+  
+  } else {
+    Error("IactEventListIrf", "The data format specified is not supported!");
+    exit(-1);
+  }
 }
 
 ////////////////////////////////////////////////////////////////
 //
-// initialise empty elements, function to be called by both constructors
+// initialise empty elements, function to be called by constructors
 //  
 void IactEventListIrf::_initialize_me()
 {
@@ -148,6 +190,11 @@ IactEventListIrf::~IactEventListIrf()
   if(fHdNdEpFrg)    delete fHdNdEpFrg;
 }
 
+////////////////////////////////////////////////////////////////
+// 
+// Print some informations on the data
+// TODO: expand it
+//
 void IactEventListIrf::Print(Option_t* o) const
 {
   cout << "Energy Range: " <<  fEpmin << " - " << fEpmax << " GeV " << endl;
@@ -169,12 +216,21 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
   Int_t nOnEntries = GetOnSample()->GetEntries();
   Int_t nOffEntries = GetOffSample()->GetEntries();
   
-  // fill ON histogram 
-  // take the estimated energy binning from the migration matrix
-  Int_t nBinsEest = GetMigMatrix()->GetYaxis()->GetNbins();
-  Double_t minLog10Eest = GetMigMatrix()->GetYaxis()->GetXmin();
-  Double_t maxLog10Eest = GetMigMatrix()->GetYaxis()->GetXmax();
-  
+  // fill ON and OFF energy histograms
+  Int_t nBinsEest;
+  Double_t minLog10Eest;
+  Double_t maxLog10Eest;
+  // take the estimated energy binning from the migration matrix, if it's not empty
+  if (GetMigMatrix()->GetEntries() > 0) {
+    nBinsEest = GetMigMatrix()->GetYaxis()->GetNbins();
+    minLog10Eest = GetMigMatrix()->GetYaxis()->GetXmin();
+    maxLog10Eest = GetMigMatrix()->GetYaxis()->GetXmax();
+  } else {
+    nBinsEest = 100;
+    minLog10Eest = TMath::Log10(GetEpmin());
+    maxLog10Eest = TMath::Log10(GetEpmax());
+  }
+
   // fill estimated energy historgams with ON and OFF counts
   TH1D *histoEestOn = new TH1D("hEestOn", "", nBinsEest, minLog10Eest, maxLog10Eest);
   TH1D *histoEestOff = new TH1D("hEestOff", "", nBinsEest, minLog10Eest, maxLog10Eest);
@@ -218,11 +274,28 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
   hAeff->Draw("E");
     
   TPad *p3 = (TPad *) c1->cd(3);
-  TH2F *migMatrix = GetMigMatrix();
-  migMatrix->SetStats(0);
-  migMatrix->GetXaxis()->SetTitle("log_{10}(E' / GeV)");
-  migMatrix->GetYaxis()->SetTitle("log_{10}(E / GeV)");
-  migMatrix->Draw("COLZ");
+  // if the migration matrix is empty plot resolution and bias
+  if (GetMigMatrix()->GetEntries() > 0) {
+    TH2F *migMatrix = GetMigMatrix();
+    migMatrix->SetStats(0);
+    migMatrix->GetXaxis()->SetTitle("log_{10}(E' / GeV)");
+    migMatrix->GetYaxis()->SetTitle("log_{10}(E / GeV)");
+    migMatrix->Draw("COLZ");
+  } else {
+    TGraph *bias = GetGEbias();
+    TGraph *reso = GetGEreso();
+    bias->SetLineColor(4);
+    bias->SetLineWidth(2);
+    reso->SetLineColor(2);
+    reso->SetLineWidth(2);
+    bias->GetXaxis()->SetTitle("log_{10}(E / GeV)");
+    TLegend *legend2 = new TLegend(0.65, 0.65, 0.9, 0.9);
+    legend2->AddEntry(bias, "bias", "l");
+    legend2->AddEntry(reso, "reso", "l");
+    bias->Draw();
+    reso->Draw("SAME");
+    legend2->Draw("SAME");
+  }
 }
 
 ////////////////////////////////////////////////////////////////
