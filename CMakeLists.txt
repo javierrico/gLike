@@ -5,8 +5,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib)
 
-# load ROOT libraries
-set(ROOT_REQUIRED_COMPONENTS Minuit Fitsio)
+# load ROOT libraries, check that minuit is installed
+set(ROOT_REQUIRED_COMPONENTS Minuit)
 find_package(ROOT REQUIRED ${ROOT_REQUIRED_COMPONENTS})
 
 # access root macros
