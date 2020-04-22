@@ -1,15 +1,11 @@
-// Macro testPoissonLkl.C
-// Author: J. Rico
-// Date: Jan 2019
-// For beginners, to understand the basic works of a simple Lkl-based object
-// and, in particular, a standalone PoissonLkl object, configured with
-// different level of complexities (i.e. number of nuisance parameters)
-// IMPORTANT NOTE: for some still-to-be-understood "feature", macros
-// containing Lkl-based objects MUST be run in compiled mode, i.e.
-// run this macro with:
-// .x testPoissonLkl.C+
+#include <iostream>
+#include "TRolke.h"
+#include "TCanvas.h"
+#include "PoissonLkl.h"
 
-void testPoissonLkl()
+using namespace std;
+
+int main()
 {
   // create and configure the simplest possible PoissonLkl object
   const Int_t Non = 130;
@@ -29,6 +25,8 @@ void testPoissonLkl()
   // print fit results
   cout << endl << "PrintOverview:" << endl;
   p->PrintOverview();     // print the details from the fit
+
+  TCanvas *c1 = new TCanvas("c1", "", 800, 600);
   p->GetLklVsG()->Draw(); // plot the -2logL vs g curve
   
   // access to the gLike results
@@ -61,5 +59,7 @@ void testPoissonLkl()
   p->SetDTau(Dtau);
   p->ComputeLklVsG();
   p->PrintOverview();     // print the details from the fit
+  p->GetLklVsG()->SetLineColor(4);
   p->GetLklVsG()->Draw("same"); // plot the -2logL vs g curve
+  c1->SaveAs("testPoissonLkl.png");
 }

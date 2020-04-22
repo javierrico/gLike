@@ -45,4 +45,23 @@ add_library(
 )
 target_link_libraries(glike ${ROOT_LIBRARIES})
 
-# generate executables 
+# generate executables from the scripts
+set(
+    EXELIST 
+    testPoissonLkl
+    testJointLkl
+    testDMSearches
+)
+
+foreach(exe ${EXELIST})
+  add_executable(${exe} ${PROJECT_SOURCE_DIR}/scripts/${exe}.C)
+  target_link_libraries (${exe} glike ${ROOT_LIBRARIES})
+endforeach()
+
+# install destination
+install(
+    TARGETS glike ${EXELIST}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/static
+)

@@ -1,27 +1,20 @@
-// Macro testDMSearches.C
-// Author: J. Rico
-// Date: Jan 2019
-// For beginners, to understand the basic usage of the Iact1dUnbinned and Iact1dBinned classes
-// IMPORTANT NOTE: for some still-to-be-understood "feature", macros
-// containing Lkl-based objects MUST be run in compiled mode, i.e.
-// run this macro with:
-// .x testDMSearches.C+
-
 #include <iostream>
 #include "Iact1dUnbinnedLkl.h"
 #include "Iact1dBinnedLkl.h"
 #include "JointLkl.h"
 #include "TCanvas.h"
 
-void testDMSearches()
+using namespace std;
+
+int main()
 {
   // input data
   const Double_t logJ         = 19.;   // [GeV^2 cm^-5] log_10 of J-factor of the assumed DM source
   const Double_t DlogJ        = 0;     // [GeV^2 cm^-5] statistical error in log_10 of J-factor of the assumed DM source
   const Double_t mass         = 1000.; // [GeV] mass of the DM particle
-  const TString  dNdEFileName = TString(Form("./DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root",mass)); // dN/dE input file  
-  const TString  inputFile1   = "./data/genericIact_dataIRF_01.root";  // input file with event list and their associated IRF
-  const TString  inputFile2   = "./data/genericIact_dataIRF_02.root";  // input file with event list and their associated IRF
+  const TString  dNdEFileName = TString(Form("$GLIKESYS/DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root",mass)); // dN/dE input file  
+  const TString  inputFile1   = "$GLIKESYS/data/genericIact_dataIRF_01.root";  // input file with event list and their associated IRF
+  const TString  inputFile2   = "$GLIKESYS/data/genericIact_dataIRF_02.root";  // input file with event list and their associated IRF
   const Double_t errorDef     = 4;
 
   // create and configure an Iact1dUnbinnedLkl object for 1D unbinned likelihood analysis
@@ -46,6 +39,8 @@ void testDMSearches()
   // call minimization and print/plot results
   jointLkl->ComputeLklVsG();
   jointLkl->PrintOverview();     // print the details from the fit
-  TCanvas* c1 = new TCanvas("c1","",700,500);
+  TCanvas* c1 = new TCanvas("c1","",800,600);
   jointLkl->GetLklVsG()->Draw(); // plot the -2logL vs g curve
+  c1->SaveAs("testDMSearches.png");
+  
 }

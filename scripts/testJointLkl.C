@@ -1,18 +1,11 @@
-// Macro testJointLkl.C
-// Author: J. Rico
-// Date: Jan 2019
-// For beginners, to understand the basic usage of the JointLkl class
-// IMPORTANT NOTE: for some still-to-be-understood "feature", macros
-// containing Lkl-based objects MUST be run in compiled mode, i.e.
-// run this macro with:
-// .x testJointLkl.C+
-
 #include <iostream>
 #include "PoissonLkl.h"
 #include "JointLkl.h"
 #include "TCanvas.h"
 
-void testJointLkl()
+using namespace std;
+
+int main()
 {
   // define number of PoissonLkl objects that we will use in the JointLkl and their configuration parameters
   const Int_t nsamples = 2;
@@ -39,7 +32,7 @@ void testJointLkl()
   // call minimization and print/plot results
   j->ComputeLklVsG();
   j->PrintOverview();     // print the details from the fit
-  TCanvas* c1 = new TCanvas("c1","",700,500);
+  TCanvas* c1 = new TCanvas("c1","",800,600);
   j->GetLklVsG()->Draw(); // plot the -2logL vs g curve
 
   // compare it to each PoissonLkl object separately
@@ -97,5 +90,5 @@ void testJointLkl()
       lklvsg->Draw("same");            // plot the -2logL vs g curve
     }
 
-  
+  c1->SaveAs("testJointLkl.png");
 }
