@@ -1,0 +1,44 @@
+# Metadata version - do not change
+metadata-version: 0.2
+
+# Mandatory entries
+title: gLike
+authors:
+  - Javier Rico
+  - Jelena Aleksic
+contact:
+  - name: Javier Rico
+  - email: jrico@ifae.es
+license: GPL
+url: https://github.com/javierrico/gLike
+description: gLike is a general-purpose ROOT-based code framework for the numerical maximization of joint likelihood functions. The joint likelihood function has one free parameter (named g) and as many nuisance parameters as wanted, which will be profiled.
+
+# Optional entries
+doi: null
+keywords:
+  - CTA
+type: source
+grant: 824064
+language: C++
+hardware:
+  - machine: local
+  - CPU: null
+  - RAM: null
+  - drive:
+    - type: HDD
+    - volume: 13M
+  - GPU: null
+
+dependencies:
+  - C++
+  - ROOT
+
+os:
+  - 'linux'
+  - 'osx-64'
+
+compiler:
+  - gcc
+
+multi-thread: false
+container: null
