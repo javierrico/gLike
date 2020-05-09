@@ -483,8 +483,10 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   if (exportData)
     {
       // Create directory and open file for data export
-      gSystem->Exec(Form("mkdir -p %s",fExportDataPath.Data()));
-      TString dataFile = fExportDataPath+label+".txt";
+      TString exportDataDir = fExportDataPath+simulationlabel+"/";
+      gSystem->Exec(Form("mkdir -p %s",exportDataDir.Data()));
+      TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+      TString dataFile = exportDataDir+label+seedTag+".txt";
       data.open(dataFile);
 
       // Write first line of the file
