@@ -963,7 +963,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     grsvlim->Draw("l");  
 
   TLatex* txchannel;
-  if(nChannels == 1) txchannel = new TLatex(0.8,0.2,strchannel);
+  if(nChannels == 1) txchannel = new TLatex(0.75,0.2,strchannel);
   else txchannel = new TLatex(0.6,0.2,strchannel);
   txchannel->SetTextSize(0.055);
   txchannel->SetNDC();

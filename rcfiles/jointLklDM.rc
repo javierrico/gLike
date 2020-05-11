@@ -9,7 +9,7 @@ I/O CONFIGURATION
 #################
 
 # Label to indentify this analysis (for naming plots and output files)
-jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisFree_JisFixed
+jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisPositive_JisFixed
 
 # Configuration for plots
 jointLklDM.showSamplePlots:   TRUE
@@ -60,7 +60,7 @@ jointLklDM.Channel: bb
 jointLklDM.Process: ann
 
 # list of DM masses to be considered (in GeV)
-jointLklDM.MassList: 100  200 500  1000  2000  5000  10000  20000  50000  100000
+jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
 # Mean g (number of signal events) for simulations
 # this should be replaced in future release by <sv>
