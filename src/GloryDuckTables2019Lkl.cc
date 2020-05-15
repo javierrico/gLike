@@ -2,6 +2,7 @@
 !
 !   Author(s): Daniel Kerszberg         01/2019 <mailto:dkerszberg@ifae.es>
 !   Author(s): Chiara Giuri             01/2019 <mailto:chiara.giuri@desy.de>
+!   Author(s): Tjark Miener             01/2019 <mailto:tmiener@ucm.es>
 !
 \* ======================================================================== */
 
