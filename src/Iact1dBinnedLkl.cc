@@ -102,7 +102,7 @@ static const Int_t    gNPars            = 2;            // Number of free+nuisan
 static const Char_t*  gParName[gNPars]  = {"g","tau"};  // Name of parameters
 
 // -2logL function for minuit
-void binnedIact1dUnbinnedLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
+void iact1dBinnedLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
 
 // static minuit object for passing class info into the -2logL function
 static TMinuit* minuit = NULL;
@@ -202,7 +202,7 @@ void Iact1dBinnedLkl::SetMinuitLink()
 //
 void  Iact1dBinnedLkl::SetFunctionAndPars(Double_t ginit)
 {
-  fMinuit->SetFCN(binnedIact1dUnbinnedLkl);
+  fMinuit->SetFCN(iact1dBinnedLkl);
   fMinuit->SetName(Form("%s_Minuit",GetName()));
 
   // Initialize minuit for added objects
@@ -818,7 +818,7 @@ void GetRebinning(TH1F* hOn,TH1F* hOff,UInt_t minnevts,UInt_t& inewbin,Double_t*
 // par[0] = g (total estimated number of signal events in all bins)
 // par[1] = global tau for all bins (Off/On normalization)
 //
-void binnedIact1dUnbinnedLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
+void iact1dBinnedLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {
   // to avoid warnings only
   gin[0]*=1;

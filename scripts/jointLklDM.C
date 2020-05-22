@@ -483,8 +483,10 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   if (exportData)
     {
       // Create directory and open file for data export
-      gSystem->Exec(Form("mkdir -p %s",fExportDataPath.Data()));
-      TString dataFile = fExportDataPath+label+".txt";
+      TString exportDataDir = fExportDataPath+simulationlabel+"/";
+      gSystem->Exec(Form("mkdir -p %s",exportDataDir.Data()));
+      TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+      TString dataFile = exportDataDir+label+seedTag+".txt";
       data.open(dataFile);
 
       // Write first line of the file
@@ -961,7 +963,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
     grsvlim->Draw("l");  
 
   TLatex* txchannel;
-  if(nChannels == 1) txchannel = new TLatex(0.8,0.2,strchannel);
+  if(nChannels == 1) txchannel = new TLatex(0.75,0.2,strchannel);
   else txchannel = new TLatex(0.6,0.2,strchannel);
   txchannel->SetTextSize(0.055);
   txchannel->SetNDC();

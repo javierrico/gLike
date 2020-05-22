@@ -371,8 +371,16 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
 
       TH1I *dummylim = new TH1I("dummylim","",1,massval[0],massval[nmass-1]);
       dummylim->SetStats(0);
-      dummylim->SetMinimum((isDecay? 1e23 : 1e-28));
-      dummylim->SetMaximum((isDecay? 1e27 : 1e-20));
+      if(!channel.CompareTo("gammagamma",TString::kIgnoreCase))
+        {
+          dummylim->SetMinimum((isDecay? 1e23 : 1e-33));
+          dummylim->SetMaximum((isDecay? 1e27 : 1e-22));
+        }
+      else
+        {
+          dummylim->SetMinimum((isDecay? 1e23 : 1e-28));
+          dummylim->SetMaximum((isDecay? 1e27 : 1e-20));
+        }
       dummylim->SetXTitle("m_{DM} [GeV]");
       dummylim->SetYTitle(Form("95%% %s [%s]",(isDecay? "#tau_{DM}^{LL}" : "<#sigma v>^{UL}"),(isDecay? "s" : "cm^{3}/s")));
       dummylim->DrawCopy();
@@ -391,6 +399,13 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       const Int_t nThermalRelicSv = 22;
       Double_t thermalRelicMass[nThermalRelicSv] = {1.00e-01, 1.78e-01, 3.16e-01, 5.62e-01, 1.00e+00, 1.78e+00, 3.16e+00, 5.62e+00, 1.00e+01, 1.78e+01, 3.16e+01, 5.62e+01, 1.00e+02, 1.78e+02, 3.16e+02, 5.62e+02, 1.00e+03, 1.78e+03,3.16e+03, 5.62e+03, 1.00e+04, 1.00e+05};
       Double_t thermalRelicSigmav[nThermalRelicSv] = {4.8e-26, 4.9e-26, 5.1e-26, 5.0e-26, 4.7e-26, 4.5e-26, 3.9e-26, 2.8e-26, 2.5e-26, 2.3e-26, 2.2e-26, 2.2e-26, 2.2e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26,2.4e-26, 2.4e-26};
+      if(!channel.CompareTo("gammagamma",TString::kIgnoreCase))
+        {
+          Double_t alpha = 0.0072973525664; //fine-structure constant
+          for(int irelic=0;irelic<nThermalRelicSv;irelic++)
+            thermalRelicSigmav[irelic]=thermalRelicSigmav[irelic]*alpha*alpha;
+        }
+
       TGraph *relicDensity = new TGraph(nThermalRelicSv, thermalRelicMass, thermalRelicSigmav);
       relicDensity->SetTitle("Thermal relic cross section");
       relicDensity->SetLineColor(kRed);
