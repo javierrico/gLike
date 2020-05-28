@@ -20,6 +20,9 @@
 #include "TLegend.h"
 #include "TFile.h"
 #include "TROOT.h"
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
+#include "TFITS.h"
+#endif
 #include "IactEventListIrf.h"
 
 ClassImp(IactEventListIrf);
@@ -30,10 +33,11 @@ static const Double_t gEpmin = 1e00; // [GeV] default value of minimum E_est
 static const Double_t gEpmax = 1e06; // [GeV] default value of maximum E_est
 static const Int_t   gBuffSize = 512000; // buffer size for Ntuples
 
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
 // static functions, helpers to load data from the FITS Header Data Units (HDUs)
-static void FillEventListFromHDU(TFITSHDU* hdu, TNtupleD* eventList);
 static TH1F* GetHAeffFromHDU(TFITSHDU* hdu);
 static TH2F* GetMigMatrixFromHDU(TFITSHDU* hduMatrix, TFITSHDU* hduEbounds);
+#endif 
 
 const Double_t IactEventListIrf::gDefEVal      = 0.;    // default value when energy is not provided
 const Double_t IactEventListIrf::gDefRADECVal  = 9999.; // default value when dRA and dDEC are not provided
@@ -62,9 +66,14 @@ IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName
 
   if (fileName.EndsWith(".fits")) { // read from FITS file
     
+    #if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
     fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     LoadFITSFile(fileName);
+    #else 
+    Error("IactEventListIrf", "Your current ROOT version does not allow I/O of fits data.");
+    exit(-1);
+    #endif
 
   } else if (fileName.EndsWith(".root")) { // read from ROOT file
 
@@ -121,48 +130,6 @@ void IactEventListIrf::_initialize_me()
   fMigMatrix = NULL; 
   fHdNdEpBkg = NULL; 
   fHdNdEpFrg = NULL;
-}
-
-////////////////////////////////////////////////////////////////
-// 
-// Load the IactEventListIrf from a FITS input file 
-// TODO : generalize this function to a Load() member able to 
-// select between ROOT and FITS inputs
-// 
-void IactEventListIrf::LoadFITSFile(TString inputFileName)
-{
-  Info("LoadFITS", "loading the dataset in: %s", inputFileName.Data());
-  
-  // open all the Header Data Units (HDUs)
-  TFITSHDU* hduOn = new TFITSHDU(inputFileName, 1);
-  TFITSHDU* hduOff = new TFITSHDU(inputFileName, 2);
-  TFITSHDU* hduAeff = new TFITSHDU(inputFileName, 3);
-  TFITSHDU* hduMatrix = new TFITSHDU(inputFileName, 4);
-  TFITSHDU* hduEbounds = new TFITSHDU(inputFileName, 5);
-  
-  // fetch the effective time and tau from the HEADER 
-  Double_t obsTime = hduOn->GetKeywordValue("LIVETIME").Atof();
-  Double_t acceptanceOn = hduOn->GetKeywordValue("ACC").Atof();
-  Double_t acceptanceOff = hduOff->GetKeywordValue("ACC").Atof();
-  Double_t tau = acceptanceOff / acceptanceOn;
-  
-  // set attributes
-  SetObsTime(obsTime);
-  SetTau(tau);
-  // fill ON event list
-  TVectorD* onEnergies = hduOn->GetTabRealVectorColumn(3);
-  TVectorD* onTimes = hduOn->GetTabRealVectorColumn(0);
-  for(Int_t i = 0; i < onEnergies->GetNrows(); ++i)
-    FillOnEvent(onEnergies[0][i] * 1e3, 0., 0., 0., 0., onTimes[0][i], 0.);
-  // fill OFF event list
-  TVectorD* offEnergies = hduOff->GetTabRealVectorColumn(3);
-  TVectorD* offTimes = hduOff->GetTabRealVectorColumn(0);
-  for(Int_t i = 0; i < offEnergies->GetNrows(); ++i)
-    FillOffEvent(offEnergies[0][i] * 1e3, 0., 0., 0., 0., offTimes[0][i], 0.);
-  // set IRFs
-  SetHAeff(GetHAeffFromHDU(hduAeff));
-  SetMigMatrix(GetMigMatrixFromHDU(hduMatrix, hduEbounds));
-
 }
 
 ////////////////////////////////////////////////////////////////
@@ -292,6 +259,50 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
   }
 }
 
+
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
+////////////////////////////////////////////////////////////////
+// 
+// Load the IactEventListIrf from a FITS input file 
+// TODO : generalize this function to a Load() member able to 
+// select between ROOT and FITS inputs
+// 
+void IactEventListIrf::LoadFITSFile(TString inputFileName)
+{
+  Info("LoadFITS", "loading the dataset in: %s", inputFileName.Data());
+  
+  // open all the Header Data Units (HDUs)
+  TFITSHDU* hduOn = new TFITSHDU(inputFileName, 1);
+  TFITSHDU* hduOff = new TFITSHDU(inputFileName, 2);
+  TFITSHDU* hduAeff = new TFITSHDU(inputFileName, 3);
+  TFITSHDU* hduMatrix = new TFITSHDU(inputFileName, 4);
+  TFITSHDU* hduEbounds = new TFITSHDU(inputFileName, 5);
+  
+  // fetch the effective time and tau from the HEADER 
+  Double_t obsTime = hduOn->GetKeywordValue("LIVETIME").Atof();
+  Double_t acceptanceOn = hduOn->GetKeywordValue("ACC").Atof();
+  Double_t acceptanceOff = hduOff->GetKeywordValue("ACC").Atof();
+  Double_t tau = acceptanceOff / acceptanceOn;
+  
+  // set attributes
+  SetObsTime(obsTime);
+  SetTau(tau);
+  // fill ON event list
+  TVectorD* onEnergies = hduOn->GetTabRealVectorColumn(3);
+  TVectorD* onTimes = hduOn->GetTabRealVectorColumn(0);
+  for(Int_t i = 0; i < onEnergies->GetNrows(); ++i)
+    FillOnEvent(onEnergies[0][i] * 1e3, 0., 0., 0., 0., onTimes[0][i], 0.);
+  // fill OFF event list
+  TVectorD* offEnergies = hduOff->GetTabRealVectorColumn(3);
+  TVectorD* offTimes = hduOff->GetTabRealVectorColumn(0);
+  for(Int_t i = 0; i < offEnergies->GetNrows(); ++i)
+    FillOffEvent(offEnergies[0][i] * 1e3, 0., 0., 0., 0., offTimes[0][i], 0.);
+  // set IRFs
+  SetHAeff(GetHAeffFromHDU(hduAeff));
+  SetMigMatrix(GetMigMatrixFromHDU(hduMatrix, hduEbounds));
+
+}
+
 ////////////////////////////////////////////////////////////////
 // 
 // get the effective area from the Header Data Unit of the FITS
@@ -371,3 +382,4 @@ TH2F* GetMigMatrixFromHDU(TFITSHDU* hduMatrix, TFITSHDU* hduEbounds)
   }
   return migMatrix;
 }
+#endif

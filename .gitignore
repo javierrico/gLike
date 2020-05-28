@@ -12,3 +12,4 @@ results
 exported_files
 **/*.pcm
 old
+.vscode
