@@ -301,7 +301,11 @@ void IactEventListIrf::LoadFITSFile(TString inputFileName)
   // set IRFs
   SetHAeff(GetHAeffFromHDU(hduAeff));
   SetMigMatrix(GetMigMatrixFromHDU(hduMatrix, hduEbounds));
-
+  // fill other IRFs with empty histograms
+  SetHAeffOff(new TH1F());                       
+  SetGEResoAndBias(new TGraph(), new TGraph());
+  SetHdNdEpBkg(new TH1F());                      
+  SetHdNdEpFrg(new TH1F());
 }
 
 ////////////////////////////////////////////////////////////////
