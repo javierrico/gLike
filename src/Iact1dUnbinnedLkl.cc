@@ -166,6 +166,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstdio>
 
 #include "TMath.h"
 #include "TFile.h"
@@ -319,23 +320,23 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
       fOffSample[i] = TMath::Log10(eventOffE);
     }
   
-  // extract and copy IRFs
-  if(dataSet->GetHAeff())
+  // create IRFs object only if their correspondent in IactEventListIrf is non empty
+  if(dataSet->GetHAeff()->GetEntries())
     if(SetAeff(dataSet->GetHAeff()))
       cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting AEff histogram" << endl;
-  if(dataSet->GetHAeffOff())
+  if(dataSet->GetHAeffOff()->GetEntries())
     if(SetAeffOff(dataSet->GetHAeffOff()))
       cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting AEffOff histogram" << endl;      
-  if(dataSet->GetGEreso() && dataSet->GetGEbias())
+  if(dataSet->GetGEreso()->GetN() && dataSet->GetGEbias()->GetN())
     if(SetEResoAndBias(dataSet->GetGEreso(),dataSet->GetGEbias()))
       cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting Ereso and Ebias graphs" << endl;
-  if(dataSet->GetMigMatrix())
+  if(dataSet->GetMigMatrix()->GetEntries())
     if(SetMigMatrix(dataSet->GetMigMatrix()))
       cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting MigMatrix histogram" << endl;   
-  if(dataSet->GetHdNdEpBkg())
+  if(dataSet->GetHdNdEpBkg()->GetEntries())
     if(SetdNdEpBkg(dataSet->GetHdNdEpBkg()))
       cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting dNdEpBkg histogram" << endl;   
-  if(dataSet->GetHdNdEpFrg())
+  if(dataSet->GetHdNdEpFrg()->GetEntries())
     if(SetdNdEpFrg(dataSet->GetHdNdEpFrg()))
       cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting dNdEpFrg histogram" << endl;   
 
