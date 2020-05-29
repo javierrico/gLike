@@ -46,7 +46,7 @@ class IactEventListIrf : public TNamed
   // destructor
   virtual ~IactEventListIrf();
 
-  #if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02) 
+  #if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04) 
   // load ON, OFF event lists and IRFs from a ROOT or FITS input file
   void LoadFITSFile(TString inputFileName);
   #endif

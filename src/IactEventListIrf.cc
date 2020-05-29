@@ -20,7 +20,7 @@
 #include "TLegend.h"
 #include "TFile.h"
 #include "TROOT.h"
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
+#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
 #include "TFITS.h"
 #endif
 #include "IactEventListIrf.h"
@@ -33,7 +33,7 @@ static const Double_t gEpmin = 1e00; // [GeV] default value of minimum E_est
 static const Double_t gEpmax = 1e06; // [GeV] default value of maximum E_est
 static const Int_t   gBuffSize = 512000; // buffer size for Ntuples
 
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
+#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
 // static functions, helpers to load data from the FITS Header Data Units (HDUs)
 static TH1F* GetHAeffFromHDU(TFITSHDU* hdu);
 static TH2F* GetMigMatrixFromHDU(TFITSHDU* hduMatrix, TFITSHDU* hduEbounds);
@@ -43,6 +43,29 @@ const Double_t IactEventListIrf::gDefEVal      = 0.;    // default value when en
 const Double_t IactEventListIrf::gDefRADECVal  = 9999.; // default value when dRA and dDEC are not provided
 const Double_t IactEventListIrf::gDefTVal      = -1.;    // default value when time is not provided
 const Double_t IactEventListIrf::gDefHadVal    = -1.;    // default value when hadronness is not provided
+
+
+////////////////////////////////////////////////////////////////
+//
+// initialise empty elements, function to be called by constructors
+//  
+void IactEventListIrf::_initialize_me()
+{
+  fOnSample = NULL;
+  fOffSample = NULL;
+  fEpmin = gEpmin; 
+  fEpmax = gEpmax; 
+  fTau = 1; 
+  fDTau = 0; 
+  fObsTime = 0; 
+  fHAeff = NULL; 
+  fHAeffOff = NULL; 
+  fGEreso = NULL;
+  fGEbias = NULL; 
+  fMigMatrix = NULL; 
+  fHdNdEpBkg = NULL; 
+  fHdNdEpFrg = NULL;
+}
 
 ////////////////////////////////////////////////////////////////
 //
@@ -66,7 +89,7 @@ IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName
 
   if (fileName.EndsWith(".fits")) { // read from FITS file
     
-    #if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
+    #if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
     fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     LoadFITSFile(fileName);
@@ -108,28 +131,6 @@ IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName
     Error("IactEventListIrf", "The data format specified is not supported!");
     exit(-1);
   }
-}
-
-////////////////////////////////////////////////////////////////
-//
-// initialise empty elements, function to be called by constructors
-//  
-void IactEventListIrf::_initialize_me()
-{
-  fOnSample = NULL;
-  fOffSample = NULL;
-  fEpmin = gEpmin; 
-  fEpmax = gEpmax; 
-  fTau = 1; 
-  fDTau = 0; 
-  fObsTime = 0; 
-  fHAeff = NULL; 
-  fHAeffOff = NULL; 
-  fGEreso = NULL;
-  fGEbias = NULL; 
-  fMigMatrix = NULL; 
-  fHdNdEpBkg = NULL; 
-  fHdNdEpFrg = NULL;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -235,12 +236,12 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
   hAeff->Draw("E");
     
   TPad *p3 = (TPad *) c1->cd(3);
-  // if the migration matrix is empty plot resolution and bias
+  // if the migration matrix is empty, plot resolution and bias
   if (GetMigMatrix()->GetEntries() > 0) {
     TH2F *migMatrix = GetMigMatrix();
     migMatrix->SetStats(0);
-    migMatrix->GetXaxis()->SetTitle("log_{10}(E' / GeV)");
-    migMatrix->GetYaxis()->SetTitle("log_{10}(E / GeV)");
+    migMatrix->GetXaxis()->SetTitle("log_{10}(E / GeV)");
+    migMatrix->GetYaxis()->SetTitle("log_{10}(E' / GeV)");
     migMatrix->Draw("COLZ");
   } else {
     TGraph *bias = GetGEbias();
@@ -260,7 +261,7 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
 }
 
 
-#if ROOT_VERSION_CODE >= ROOT_VERSION(6,21,02)
+#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
 ////////////////////////////////////////////////////////////////
 // 
 // Load the IactEventListIrf from a FITS input file 
