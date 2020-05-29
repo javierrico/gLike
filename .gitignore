@@ -2,6 +2,8 @@
 *.a
 *.so
 *.o
+*.d
+*.pcm
 .#README.md
 out
 *_C.d
@@ -12,3 +14,4 @@ results
 exported_files
 **/*.pcm
 old
+.ipynb_checkpoints
