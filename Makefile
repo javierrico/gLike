@@ -27,7 +27,7 @@ $(DICTSRC:%.cc=%.o): $(DICTSRC) $(HEADERS)
 
 $(DICTSRC): $(HEADERS) $(LINKDEF)
 	@echo "Generating dictionary $(@:out/%.cc=%)..."
-	$(ROOTSYS)/bin/rootcint -f $@ -c $(HEADERS:%=$(PWD)/%) $(PWD)/$(LINKDEF)
+	$(ROOTSYS)/bin/rootcint -f $@ -c -p $(HEADERS:%=$(PWD)/%) $(PWD)/$(LINKDEF)
 	@echo "Generated $@ and $(@:.cc=.h) \n"
 
 $(OUTDIR)/%.o: $(SRCDIR)/%.cc $(HEADERS)
