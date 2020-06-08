@@ -39,7 +39,7 @@ class IactEventListIrf : public TNamed
   static const Double_t gDefHadVal    ;    //! default value when hadronness is not provided
 
   // constructor
-  void _initialize_me();      // initialize empty resources, used by both constructors
+  void Initialize(); // initialize empty resources, used by both constructors
   IactEventListIrf(TString name="IactEventListIrf", TString title="");
   IactEventListIrf(TString fileName, TString name, TString title);
 

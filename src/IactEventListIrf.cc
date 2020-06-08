@@ -49,7 +49,7 @@ const Double_t IactEventListIrf::gDefHadVal    = -1.;    // default value when h
 //
 // initialise empty elements, function to be called by constructors
 //  
-void IactEventListIrf::_initialize_me()
+void IactEventListIrf::Initialize()
 {
   fOnSample = NULL;
   fOffSample = NULL;
@@ -73,7 +73,7 @@ void IactEventListIrf::_initialize_me()
 //
 IactEventListIrf::IactEventListIrf(TString name, TString title) : TNamed(name, title)
 {
-  _initialize_me();
+  Initialize();
   // create the event lists
   fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
   fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
@@ -85,7 +85,7 @@ IactEventListIrf::IactEventListIrf(TString name, TString title) : TNamed(name, t
 //
 IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName) : TNamed(name, title)
 {
-  _initialize_me();
+  Initialize();
 
   if (fileName.EndsWith(".fits")) { // read from FITS file
     
