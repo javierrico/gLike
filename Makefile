@@ -5,7 +5,13 @@ INCLDIR    = ./include
 OUTDIR     = ./out
 LIBDIR     = ./lib
 CXX        = g++ -fPIC
-ROOTLIBS   = `root-config --libs` -lMinuit 
+ROOTVERSION=`root-config --version | tr -c -d [:digit:]`
+MINVERSION = 62004
+ROOTLIBS   = `root-config --libs` -lMinuit
+# add the FITSIO flag for compilation if a version greater than 6.20/04 is found 
+ifeq ($(shell test $(ROOTVERSION) -gt $(MINVERSION); echo $$?), 0)
+	ROOTLIBS += -lFitsio
+endif
 ROOTCFLAGS = `root-config --cflags`
 SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedLkl IactEventListIrf FermiTables2016Lkl TemplateLkl MIACTEventListIRF GloryDuckTables2019Lkl
 SOURCES    = $(SRCFILES:%=$(SRCDIR)/%.cc)
@@ -19,6 +25,7 @@ $(LIBDIR)/lib$(TARGET).so: $(OBJECTS) $(DICTSRC:%.cc=%.o)
 	@mkdir -p lib
 	$(CXX) -shared $^ $(ROOTLIBS) -o $@
 	@echo "Done!"
+	@echo $(ROOTLIBS)
 
 $(DICTSRC:%.cc=%.o): $(DICTSRC) $(HEADERS)
 	@echo "Compiling $<..."

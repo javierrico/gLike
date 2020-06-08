@@ -19,7 +19,7 @@ Follows a non-exhaustive list of examples where gLike is useful (in order of inc
 `gLike`'s sole dependency is [ROOT](https://root.cern.ch). 
 
 #### Note on IACT analyses with gLike 
-To input [IACT data in FITS format](https://github.com/javierrico/gLike/wiki/Data-format-for-analysis-of-IACT-data#fits-format) `gLike` uses sepcial `TFITSHDU` methods available only in very recent ROOT versions (> 6.20.04).     
+To input [IACT data in FITS format](https://github.com/javierrico/gLike/wiki/Data-format-for-analysis-of-IACT-data#fits-format) `gLike` uses special `TFITSHDU` methods available only in very recent ROOT versions (> 6.20.04).     
 If you build `gLike` using an older ROOT version, the interface to FITS data for IACT analysis will not be available.
 
 ### Installation
