@@ -19,10 +19,10 @@ class FermiTables2016Lkl :  public JointLkl
   virtual ~FermiTables2016Lkl();
   
   // getters
-  inline       UInt_t    GetNBins()         const {return fNBins;}
-  inline const Double_t* GetEFluxInt()      const {return fEFluxInt;}
-  inline const TH1F*     GetHdNdESignal()   const {return fHdNdESignal;}
-  inline const Double_t  GetLogJ()          const {return fLogJ;}
+  inline UInt_t    GetNBins()         const {return fNBins;}
+  inline Double_t* GetEFluxInt()      const {return fEFluxInt;}
+  inline TH1F*     GetHdNdESignal()   const {return fHdNdESignal;}
+  inline Double_t  GetLogJ()          const {return fLogJ;}
 
   // unable SetUnitsOfG, dPhi/dE_signal must have proper units
   virtual void SetUnitsOfG(Double_t unit);

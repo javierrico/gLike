@@ -25,19 +25,19 @@ class JointLkl : public virtual Lkl
   inline void AddSample(Lkl* sample)        {fSampleArray->Add(sample); SetChecked(kFALSE);}
 
   // getters
-  inline const TObjArray* GetSampleArray()     const {return fSampleArray;}
-  inline       Int_t      GetNSamples()        const {return fSampleArray->GetEntries();}
-  inline       Lkl*       GetReferenceSample() const {return (Lkl*)fSampleArray->At(0);}
-  inline       Lkl*       GetSample(Int_t i)   const {return (Lkl*)fSampleArray->At(i);}
+  inline TObjArray* GetSampleArray()     const {return fSampleArray;}
+  inline Int_t      GetNSamples()        const {return fSampleArray->GetEntries();}
+  inline Lkl*       GetReferenceSample() const {return (Lkl*)fSampleArray->At(0);}
+  inline Lkl*       GetSample(Int_t i)   const {return (Lkl*)fSampleArray->At(i);}
 
   // print results
-  virtual      void       PrintOverview(Int_t level=0);
-  virtual      void       PrintData(Int_t level=0);
+  virtual void      PrintOverview(Int_t level=0);
+  virtual void      PrintData(Int_t level=0);
 
-  virtual      void       ResetGLklVsG();
-  virtual      void       SetMinuitLink();
+  virtual void      ResetGLklVsG();
+  virtual void      SetMinuitLink();
   
-  virtual      Double_t   ComputeLklVsG(Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
+  virtual Double_t  ComputeLklVsG(Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
   
  protected:
   virtual void     SetFunctionAndPars(Double_t ginit=0);
