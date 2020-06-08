@@ -241,9 +241,9 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
         {
           if(TMath::Abs(field-fLogJ) > 1.e-6)
             {
-              cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Warning: the logJ value stored in the file (" << field << ") doesn't match the one given as an input in the configuration file (" << fLogJ  << "). Therefore the likelihood values from this file will be scaled by 10^(" << fLogJ << "-" << field << ")=" << TMath::Power(10.,fLogJ-field) << " to match the intended logJ value from the configuration file." << endl;
+              cout << "GloryDuckTables2019Lkl::ReadGloryDuckInputData (" << GetName() << ") Warning: the logJ value stored in the file (" << field << ") doesn't match the one given as an input in the configuration file (" << fLogJ  << "). Therefore the likelihood values from this file will be scaled by 10^(" << field << "-" << fLogJ << ")=" << TMath::Power(10.,field-fLogJ) << " to match the intended logJ value from the configuration file." << endl;
               rescale_logJ = kTRUE;
-              scaling_logJ = TMath::Power(10.,fLogJ-field);
+              scaling_logJ = TMath::Power(10.,field-fLogJ);
             }
           read_logJ = kFALSE;
         }
@@ -266,6 +266,7 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
   while(ff >> readingSigmav)
     {
       // store the <sv> values
+      if(rescale_logJ) readingSigmav *= scaling_logJ;
       sigmav.push_back(readingSigmav);
 
       // get rest of the line
@@ -278,7 +279,6 @@ Int_t GloryDuckTables2019Lkl::ReadGloryDuckInputData(TString filename)
       std::istringstream line(LklLine);
       while(line >> readingLkl)
         {
-          if(rescale_logJ) readingLkl *= scaling_logJ;
           vlkl2D[row][col] = readingLkl;
           // storing the minimum value and position
           if(!init_lklmin)
