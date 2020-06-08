@@ -46,11 +46,9 @@ class IactEventListIrf : public TNamed
   // destructor
   virtual ~IactEventListIrf();
 
-  #if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04) 
   // load ON, OFF event lists and IRFs from a ROOT or FITS input file
   void LoadFITSFile(TString inputFileName);
-  #endif
-
+  
   // fill event with input values
   void FillOnEvent(Double_t E=gDefEVal, Double_t pointRA=gDefRADECVal, Double_t pointDEC=gDefRADECVal, Double_t dRA=gDefRADECVal, Double_t dDEC=gDefRADECVal, Double_t t=gDefTVal, Double_t had=gDefHadVal)
   {fOnSample->Fill(E,pointRA,pointDEC,dRA,dDEC,t,had);}

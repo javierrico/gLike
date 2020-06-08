@@ -89,15 +89,10 @@ IactEventListIrf::IactEventListIrf(TString name, TString title, TString fileName
 
   if (fileName.EndsWith(".fits")) { // read from FITS file
     
-    #if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
     fOnSample  = new TNtupleD("fOnSample", "On data set", "E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     fOffSample = new TNtupleD("fOffSample","Off data set","E:pointRA:pointDEC:dRA:dDEC:t:had", gBuffSize);
     LoadFITSFile(fileName);
-    #else 
-    Error("IactEventListIrf", "Your current ROOT version does not allow I/O of fits data.");
-    exit(-1);
-    #endif
-
+    
   } else if (fileName.EndsWith(".root")) { // read from ROOT file
 
     TFile* file = new TFile(fileName, "READ");
@@ -261,7 +256,7 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
 }
 
 
-#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
+
 ////////////////////////////////////////////////////////////////
 // 
 // Load the IactEventListIrf from a FITS input file 
@@ -270,6 +265,7 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
 // 
 void IactEventListIrf::LoadFITSFile(TString inputFileName)
 {
+  #if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
   Info("LoadFITS", "loading the dataset in: %s", inputFileName.Data());
   
   // open all the Header Data Units (HDUs)
@@ -306,8 +302,13 @@ void IactEventListIrf::LoadFITSFile(TString inputFileName)
   SetGEResoAndBias(new TGraph(), new TGraph());
   SetHdNdEpBkg(new TH1F());                      
   SetHdNdEpFrg(new TH1F());
+  #else 
+  Error("LoadFITSFile", "Your current ROOT version does not allow I/O of fits data.");
+  exit(-1);
+  #endif
 }
 
+#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
 ////////////////////////////////////////////////////////////////
 // 
 // get the effective area from the Header Data Unit of the FITS
