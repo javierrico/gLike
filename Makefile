@@ -25,7 +25,6 @@ $(LIBDIR)/lib$(TARGET).so: $(OBJECTS) $(DICTSRC:%.cc=%.o)
 	@mkdir -p lib
 	$(CXX) -shared $^ $(ROOTLIBS) -o $@
 	@echo "Done!"
-	@echo $(ROOTLIBS)
 
 $(DICTSRC:%.cc=%.o): $(DICTSRC) $(HEADERS)
 	@echo "Compiling $<..."
