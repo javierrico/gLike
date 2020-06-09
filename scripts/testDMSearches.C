@@ -20,8 +20,8 @@ void testDMSearches()
   const Double_t DlogJ        = 0;     // [GeV^2 cm^-5] statistical error in log_10 of J-factor of the assumed DM source
   const Double_t mass         = 1000.; // [GeV] mass of the DM particle
   const TString  dNdEFileName = TString(Form("./DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root",mass)); // dN/dE input file  
-  const TString  inputFile1   = "./data/genericIact_dataIRF_01.root";  // input file with event list and their associated IRF
-  const TString  inputFile2   = "./data/genericIact_dataIRF_02.root";  // input file with event list and their associated IRF
+  const TString  inputFile1   = "./data/root/genericIact_dataIRF_01.root";  // input file with event list and their associated IRF
+  const TString  inputFile2   = "./data/root/genericIact_dataIRF_02.root";  // input file with event list and their associated IRF
   const Double_t errorDef     = 4;
 
   // create and configure an Iact1dUnbinnedLkl object for 1D unbinned likelihood analysis

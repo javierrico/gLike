@@ -15,6 +15,13 @@ Follows a non-exhaustive list of examples where gLike is useful (in order of inc
  - Estimating the energy scale of quantum gravity by combining observations of fast gamma-ray flares observed by different ground-based gamma-ray telescopes.
  - ...
  
+### Prerequisites
+`gLike`'s sole dependency is [ROOT](https://root.cern.ch). 
+
+#### Note on IACT analyses with gLike 
+To input [IACT data in FITS format](https://github.com/javierrico/gLike/wiki/Data-format-for-analysis-of-IACT-data#fits-format) `gLike` uses special `TFITSHDU` methods available only in very recent ROOT versions (> 6.20.04).     
+If you build `gLike` using an older ROOT version, the interface to FITS data for IACT analysis will not be available.
+
 ### Installation
 1. Get the code from the GitHub [gLike repository](https://github.com/javierrico/gLike)
 2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
