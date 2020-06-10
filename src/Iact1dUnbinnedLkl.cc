@@ -2242,7 +2242,7 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
       if(val>0)
 	f += -2*TMath::Log(val);
       else
-	f += 1e99;
+	f += gLklValVeryHigh;
     }
   
   // Off events
@@ -2252,7 +2252,7 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
       if(val>0)
 	f += -2*TMath::Log(val);
       else
-	f += 1e99;
+	f += gLklValVeryHigh;
     }
   
   // nuisance tau
@@ -2263,12 +2263,12 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   if(g+b+frg>0)
     f += -2*TMath::Log(TMath::Poisson(Non,g+b+frg));
   else
-    f += 1e99;
+    f += gLklValVeryHigh;
 
   if(goff+boff>0)
     f += -2*TMath::Log(TMath::Poisson(Noff,goff+boff));
   else
-    f += 1e99;  
+    f += gLklValVeryHigh;  
 
   delete hdNdEpOn;
   delete hdNdEpOff;
