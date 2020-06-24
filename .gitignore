@@ -16,3 +16,4 @@ exported_files
 old
 .vscode
 .ipynb_checkpoints
+build/
