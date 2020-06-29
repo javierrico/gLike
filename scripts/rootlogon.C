@@ -31,6 +31,7 @@ void rootlogon()
         return;
     }
     
+    gInterpreter->AddIncludePath("../include/");
     gStyle->SetCanvasColor(0);
     gStyle->SetCanvasBorderMode(0);
     gStyle->SetFrameBorderMode(0);
