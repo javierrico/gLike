@@ -56,3 +56,9 @@ target_link_libraries(gLike ${ROOT_LIBRARIES})
 target_include_directories(gLike PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # install the gLike libraries in /usr/local/lib
 install(TARGETS gLike DESTINATION lib)
+
+# add jointLklDM executable
+add_executable(jointLklDM ${PROJECT_SOURCE_DIR}/scripts/jointLklDM.C)
+target_link_libraries(jointLklDM gLike)
+
+
