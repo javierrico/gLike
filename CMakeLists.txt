@@ -1,20 +1,25 @@
 cmake_minimum_required(VERSION 3.0)
 project(GLIKE VERSION 0.8.0)
 
+# where to save the .so (.dylib) and .pcm files
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib) 
+# where to save the executables
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib)
 
-# load ROOT libraries, check that minuit is installed
+# load ROOT libraries, define a cache variable to enable FITSIO support 
+# if USE_FITSIO is selected, Fitsio is added to the ROOT requirements   
 set(ROOT_REQUIRED_COMPONENTS Minuit)
+option(USE_FITSIO "Enable support for FITS files I/O" OFF)                      
+if(USE_FITSIO)                     
+    list(APPEND ROOT_REQUIRED_COMPONENTS Fitsio)
+endif()   
 find_package(ROOT REQUIRED ${ROOT_REQUIRED_COMPONENTS})
+message("-- Required ROOT components are: ${ROOT_REQUIRED_COMPONENTS}")
 
-# access root macros
-include_directories(${ROOT_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include)
-
-# generate glike libraries
+# generate glike ROOT.pcm dictionaries
 root_generate_dictionary(
-    glikeDict
+    gLikeDict
     ${PROJECT_SOURCE_DIR}/include/Lkl.h
     ${PROJECT_SOURCE_DIR}/include/ParabolaLkl.h
     ${PROJECT_SOURCE_DIR}/include/PoissonLkl.h
@@ -28,8 +33,10 @@ root_generate_dictionary(
     ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h
     LINKDEF ${PROJECT_SOURCE_DIR}/include/gLikeLinkDef.h
 )
+
+# create a shared library with the generated dictionary
 add_library(
-    glike SHARED 
+    gLike SHARED 
     ${PROJECT_SOURCE_DIR}/src/Lkl.cc
     ${PROJECT_SOURCE_DIR}/src/ParabolaLkl.cc
     ${PROJECT_SOURCE_DIR}/src/PoissonLkl.cc
@@ -41,27 +48,12 @@ add_library(
     ${PROJECT_SOURCE_DIR}/src/FermiTables2016Lkl.cc
     ${PROJECT_SOURCE_DIR}/src/GloryDuckTables2019Lkl.cc
     ${PROJECT_SOURCE_DIR}/src/TemplateLkl.cc
-    glikeDict
+    gLikeDict
 )
-target_link_libraries(glike ${ROOT_LIBRARIES})
+# link gLike libraries against ROOT's ones
+target_link_libraries(gLike ${ROOT_LIBRARIES})
+# where to find the header files for the gLike libraries
+target_include_directories(gLike PUBLIC ${PROJECT_SOURCE_DIR}/include)
+# install the gLike libraries in /usr/local/lib
+install(TARGETS gLike DESTINATION lib)
 
-# generate executables from the scripts
-set(
-    EXELIST 
-    testPoissonLkl
-    testJointLkl
-    testDMSearches
-)
-
-foreach(exe ${EXELIST})
-  add_executable(${exe} ${PROJECT_SOURCE_DIR}/scripts/${exe}.C)
-  target_link_libraries (${exe} glike ${ROOT_LIBRARIES})
-endforeach()
-
-# install destination
-install(
-    TARGETS glike ${EXELIST}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/static
-)
