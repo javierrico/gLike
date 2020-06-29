@@ -87,16 +87,33 @@
 using namespace std;
 
 void setDefaultStyle();
+void usage();
 void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval);
 void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval);
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
 
 const Int_t nMaxLkls = 1000;
 
-void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t seed=-1)
+int main(int argc,char* argv[])
 {
+  TString configFileName = "$GLIKE_DIR/rcfiles/jointLklDM.rc";
+  Int_t seed=-1;
+  // check input parameters
+  for (int i = 1; i < argc; ++i) {
+    TString arg = argv[i];
+    if (arg == "-h" || arg == "--help") {
+      usage();
+      exit(-1);
+    }
+    if (arg == "--config") {
+      configFileName = argv[i+1];
+    } 
+    if (arg == "--seed") {
+      seed = atof(argv[i+1]);
+    }
+  }
   setDefaultStyle();
-
+  
   // Look for configuration file
   gSystem->ExpandPathName(configFileName);
   TPMERegexp re("\\s+");
@@ -115,7 +132,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   if (gSystem->AccessPathName(configFileName, kFileExists))
     {
       cout << endl << "    Oops! problems reading config file file " << configFileName << " <---------------- FATAL ERROR!!!"<< endl;
-      return;
+      exit(1);
     }
 
   // Read configuration file
@@ -282,7 +299,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       if(nfields<2)
 	{
 	  cout << Form("jointLklDM Error: rc file entry for lklTerm%03d has %d entries (minimum of 2 is needed) <---------------- FATAL ERROR!!!",iLkl,nfields);
-	  return;
+    exit(1);
 	}
       
       TString  classType   = re[0];
@@ -314,14 +331,14 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	      if(dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcG))
 		{
 		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
+		  exit(1);
 		}
 	    }
 	  else
 	    if(dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl])->GetNon()<1)
 	      {
 		  cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
+		  exit(1);
 	      }	 	      
 	}
       else if(classType.CompareTo("Iact1dBinnedLkl")==0)
@@ -341,14 +358,14 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	      if(dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcG))
 		{
 		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
+		  exit(1);
 		}
 	    }
 	  else
 	    if(dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl])->GetNon()<1)
 	      {
 		cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		return;
+		exit(1);
 	      }	 
 	}
       else if(classType.CompareTo("JointLkl")==0)
@@ -379,14 +396,14 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
           if(!massAvailable)
             {
               cout << " ## Oops! At least one mass to be tested is not in the file given as an input <---------------- FATAL ERROR!!!"<< endl;
-              return;
+              exit(1);
             }
 	  lkl[iLkl] = tmpLkl;
 	}
       else
 	{
 	  cout << " ## Oops! Lkl class type " << classType << " unkonwn <---------------- FATAL ERROR!!!"<< endl;
-	  return;
+	  exit(1);
 	}
       
       // Check if the input parameters allow to export data
@@ -445,12 +462,12 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       if(iLkl>0 && parLkl>=iLkl) // only lkls with lower indices (already processed) are accepted
 	{
 	  cout << Form(" ## Oops! Parent JointLkl for lklTerm%03d cannot be lklTerm%03d, should be smaller index",iLkl,parLkl) << " <---------------- FATAL ERROR!!!"<< endl;
-	  return;	      
+	  exit(1);	      
 	}
       else if(parLkl>=0 && strcmp(lkl[parLkl]->ClassName(),"JointLkl")!=0) // only lkls of type JointLkl are accepted
 	{
 	  cout << Form(" ## Oops! Parent JointLkl for lklTerm%03d cannot be lklTerm%03d",iLkl,parLkl) << ", because it is of type" << lkl[parLkl]->ClassName() << " instead of JointLkl <---------------- FATAL ERROR!!!"<< endl;
-	  return;
+	  exit(1);
 	}
       else if(parLkl>=0)
 	dynamic_cast<JointLkl*>(lkl[parLkl])->AddSample(lkl[iLkl]);
@@ -459,7 +476,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   if(nLkls<2)
     {
       cout << " ## Oops! there must be at least 2 lkl terms... but there are " << nLkls << " <---------------- FATAL ERROR!!!"<< endl;
-      return;      
+      exit(1);      
     }
 
   lkl[0]->SetErrorDef(deltaLogLkl); // set the error correponding to the required CL
@@ -586,7 +603,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 			  if(fullLkl->AdddNdESignalFunction("line",mdm,2,brval[iChannel]))
 			    {
 			      cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-			      return;
+			      exit(1);
 			    }
 			  else
 			    cout << "Ok!" << endl;
@@ -601,7 +618,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 			  if(fullLkl->AdddNdESignalFunction("box",emin,emax,4,brval[iChannel]))
 			    {
 			      cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-			      return;
+			      exit(1);
 			    }
 			  else
 			    cout << "Ok!" << endl;
@@ -617,12 +634,12 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 			  if(fullLkl->AdddNdESignalFunction("line",e0,1,brval[iChannel]))
 			    {
 			      cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-			      return;
+			      exit(1);
 			    }
 			  if(fullLkl->AdddNdESignalFunction("box",emin,emax,2,brval[iChannel]))
 			    {
 			      cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-			      return;
+			      exit(1);
 			    }
 			  else
 			    cout << "Ok!" << endl;
@@ -657,7 +674,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 			  if(fullLkl->AdddNdESignal(dNdESignalFileName,brval[iChannel]))
 			    {
 			      cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-			      return;
+			      exit(1);
 			    }
 			  else
 			    cout << "Ok!" << endl;
@@ -714,7 +731,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
               if(gdLkl->SetActiveMass(mass))
                 {
                   cout << " ## Oops! The DM mass selected (" << mass << " GeV) doesn't exist in the input file <---------------- FATAL ERROR!!!" << endl;
-                  return;
+                  exit(1);
                 } 
             }
         } // end of loop over samples
@@ -1016,6 +1033,13 @@ Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm)
   return im;
 }
 
+void usage(){
+  cout << "jointLklDM usage:" << endl;
+  cout << "\t -h or --help: display this message and quit" << endl;
+  cout << "\t --config: configuration file, default jointLklDM.rc" << endl;
+  cout << "\t --seed, > 0 for simulations, dafault -1" << endl;
+}
+
 void setDefaultStyle()
 {
   // general settings
@@ -1075,7 +1099,7 @@ void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelv
           else
             {
               cout << " ## Oops! Something went wrong with the parsing " << factorstring << " of the channel!  <---------------- FATAL ERROR!!!"<< endl;
-              return;
+              exit(1);
             }
           // set the branching ratio to 1.0 (100%), since there is only one channel selected
           brval[iChannel] = sumBR = 1.0;
@@ -1109,7 +1133,7 @@ void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelv
           else
             {
               cout << " ## Oops! Something went wrong with the parsing " << factorstring << " of the channel!  <---------------- FATAL ERROR!!!"<< endl;
-              return;
+              exit(1);
             }
         }
     }
