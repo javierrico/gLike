@@ -96,6 +96,7 @@ const Int_t nMaxLkls = 1000;
 
 int main(int argc,char* argv[])
 {
+  // default arguments
   TString configFileName = "$GLIKE_DIR/rcfiles/jointLklDM.rc";
   Int_t seed=-1;
   // check input parameters
@@ -1136,7 +1137,7 @@ void usage(){
   cout << "jointLklDM usage:" << endl;
   cout << "\t -h or --help: display this message and quit" << endl;
   cout << "\t --config: configuration file, default jointLklDM.rc" << endl;
-  cout << "\t --seed, > 0 for simulations, dafault -1" << endl;
+  cout << "\t --seed: > 0 for simulations, default -1" << endl;
 }
 
 void setDefaultStyle()

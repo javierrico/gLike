@@ -56,6 +56,7 @@
 
 using namespace std;
 
+void usage();
 void setDefaultStyle();
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
 void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval);
@@ -67,8 +68,24 @@ const Int_t nbins = 1000;
 // show plots?
 const Bool_t makePlots = kTRUE;
 
-void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t nSimuFiles=300)
+int main(int argc, char* argv[])
 {
+  TString configFileName="$GLIKE_DIR/rcfiles/jointLklDM.rc";
+  Int_t nSimuFiles=300;
+  // check input parameters
+  for (int i = 1; i < argc; ++i) {
+    TString arg = argv[i];
+    if (arg == "-h" || arg == "--help") {
+      usage();
+      exit(-1);
+    }
+    if (arg == "--config") {
+      configFileName = argv[i+1];
+    } 
+    if (arg == "--nsimufiles") {
+      nSimuFiles = atof(argv[i+1]);
+    }
+  }
   setDefaultStyle();
 
   // Look for configuration file
@@ -89,7 +106,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   if (gSystem->AccessPathName(configFileName, kFileExists))
     {
       cout << endl << "    Oops! problems reading config file file " << configFileName << " <---------------- FATAL ERROR!!!"<< endl;
-      return;
+      exit(1);
     }
 
   // Read configuration file
@@ -257,7 +274,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   if((Double_t)nFilesRead/(Double_t)nSimuFiles <0.95)
     {
       cout << "Too few MC files could be read compare to the expected number of files. Did you really run " << nSimuFiles << " simulations?" << endl;
-      return;
+      exit(1);
     }
 
   cout << "Computing the intervals for all masses..." << endl;
@@ -671,6 +688,13 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
           branoncanvas->Print(resultsPath+"pdf/"+label+"_branetension_bands.pdf");
         }
     }
+}
+
+void usage(){
+  cout << "computeCLBands usage:" << endl;
+  cout << "\t -h or --help: display this message and quit" << endl;
+  cout << "\t --config: configuration file, default jointLklDM.rc" << endl;
+  cout << "\t --nsimufiles: number of simulations, default 300" << endl;
 }
 
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm)
