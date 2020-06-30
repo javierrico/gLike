@@ -25,15 +25,41 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
 ### Installation
 1. Get the code from the GitHub [gLike repository](https://github.com/javierrico/gLike)
 2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
-3. Define the environment variable GLIKESYS pointing to your main gLike directory, e.g., for bash:
+3. Define the following environment variables
+- `GLIKE_DIR` (path to the downloaded repository, used to locate scripts and input cards);
+- `GLIKE_BUILD` (path to the build directory, used to locate compiled libraries).    
+You can create the build directory within the `gLike` repository itself, or outside in another repository.
+Just export it as an environment variable in your `.bashrc`.
+4. **NEW:** build gLike with cmake
+go in the build directory
+```shell
+cd $GLIKE_BUILD
+```
+run cmake, the first argument is the repository in which the `CMakeLists.txt` we use for building the project is defined
+```shell
+cmake $GLIKE_DIR
+```
+if you want to unlock FITSIO support, use the cache variable `USE_FITSIO` (can be set to `ON` or `True`, default is `OFF`)
+```shell
+cmake $GLIKE_DIR -DUSE_FITSIO=ON
+```
+at this point `cmake` will have automatically generated the `Makefile` for us, so we just
+```shell
+make
+```
+and install
+```shell
+make install
+```
+this last step will make gLike libraries available system-wise, i.e. libraries will be saved in `/usr/local/lib` and executables in `/usr/local/bin`.
 
-    `export GLIKESYS="/Users/rico/gLike/"`
+### load gLike libraries in ROOT
+If you want to load the gLike libraries each time you open ROOT, modify (or create) in your home a `.rootrc` file, inserting (editing) the line
+```
+Rint.Logon: $GLIKE_DIR/scripts/rootlogon.C
+```
+this should execute the `rootlogon.C` of gLike each time you launch root.
 
-    and include it in the library path, eg. for Mac:
-
-      `export DYLD_LIBRARY_PATH="${GLIKESYS}:${DYLD_LIBRARY_PATH}"`
-4. Create the gLike library by typing _make_ in the main gLike directory
-5. [Optional] Create the gLike online documentation with _make doc_
 
 ### gLike distribution structure
 In gLike you find the following directories:
@@ -57,13 +83,13 @@ gLike consists of two main basic classes, [`Lkl`](https://github.com/javierrico/
 
 ### Basic Usage for dark matter searches
 Within the gLike library, there is no assumption about the physical meaning of the free parameter _g_. That needs to be assigned externally in the macros or executables using the gLike library.
-The gLike distribution provides, at the directory [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts), a few example macros/executables for the most common use cases. In particular [`jointLklDM.C`](https://github.com/javierrico/gLike/blob/master/scripts/jointLklDM.C) can be used to search for dark matter, set limits in case of no detection and combine results from different targets and or instruments. 
+The gLike distribution provides, at the directory [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts), a few tutorial macros/executables for the most common use cases (e.g. minimisation of a Poisson likelihood, definition of a joint likelihood). 
+After building the porject the executable [`jointLklDM`](https://github.com/javierrico/gLike/blob/master/scripts/jointLklDM.C) can be used to search for dark matter, set limits in case of no detection and combine results from different targets and or instruments. 
 
-The macro itself does not need to be edited. You can find some documentation in its [wiki entry](https://github.com/javierrico/gLike/wiki/jointLklDM.C). It is important to run it in compiled mode, i.e. with the ROOT command:
- `.x jointLklDM.C+(<rcfilename>)`
-
-Example configuration files can be found in the [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles) directory. There is a detailed documentation on how to configure it correctly both in the [wiki](https://github.com/javierrico/gLike/wiki/rc-files-for-jointLklDM.C), and the jointLklDM.rc rcfile provided with the distribution. 
-
+The macro defining the executable does not need to be edited. 
+You can find some documentation in its [wiki entry](https://github.com/javierrico/gLike/wiki/jointLklDM.C).
+Example configuration files can be found in the [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles) directory. 
+There is a detailed documentation on how to configure it correctly both in the [wiki](https://github.com/javierrico/gLike/wiki/rc-files-for-jointLklDM.C), and the jointLklDM.rc rcfile provided with the distribution. 
 
 ### Transition from old cvs mdm distribution to the git gLike standalone distribution
 
