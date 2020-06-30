@@ -60,5 +60,9 @@ install(TARGETS gLike DESTINATION lib)
 # add jointLklDM executable
 add_executable(jointLklDM ${PROJECT_SOURCE_DIR}/scripts/jointLklDM.C)
 target_link_libraries(jointLklDM gLike)
+install(TARGETS jointLklDM DESTINATION bin)
 
-
+# add computeCLBands executable
+add_executable(computeCLBands ${PROJECT_SOURCE_DIR}/scripts/computeCLBands.C)
+target_link_libraries(computeCLBands gLike)
+install(TARGETS computeCLBands DESTINATION bin)
