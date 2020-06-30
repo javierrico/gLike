@@ -13,11 +13,11 @@ void tutorialDMSearches() {
     const Double_t mass = 1000.; // [GeV]
     // dN/dE input file
     const TString dNdEFileName =
-        TString(Form("./DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root", mass));
+        TString(Form("$GLIKE_DIR/DM/dNdE/Cirelli/dNdESignal_bb_%.1fmass.root", mass));
     // input file with event list and their associated IRFs
-    const TString inputFile1 = "./data/genericIact_dataIRF_01.root";
+    const TString inputFile1 = "$GLIKE_DIR/data/root/genericIact_dataIRF_01.root";
     // input file with event list and their associated IRFs
-    const TString inputFile2 = "./data/genericIact_dataIRF_02.root";
+    const TString inputFile2 = "$GLIKE_DIR/data/root/genericIact_dataIRF_02.root";
     const Double_t errorDef = 4;
 
     // create and configure an Iact1dUnbinnedLkl object for 1D unbinned
