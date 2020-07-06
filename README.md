@@ -25,23 +25,40 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
 ### Installation
 1. Get the code from the GitHub [gLike repository](https://github.com/javierrico/gLike)
 2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
-3. Define the following environment variables
-- `GLIKE_DIR` (path to the downloaded repository, used to locate scripts and input cards);
-- `GLIKE_BUILD` (path to the build directory, used to locate compiled libraries).    
-You can create the build directory within the `gLike` repository itself, or outside in another repository.
-Just export it as an environment variable in your `.bashrc`.
+3. Define the following environment variable:
+- `GLIKESYS` (path to the build directory).    
+You can create the build directory within the `gLike` repository itself 
+```
+cd gLike
+mkdir build
+``` 
+or outside in another repository.
+```
+mkdir ~/gLike_build
+``` 
+Just export this build directory as an environment variable in your `.bashrc`:
+```
+export $GLIKESYS="/home/user/gLike/build
+``` 
+or 
+```
+export $GLIKESYS="/home/user/gLike_build
+``` 
+if the build directory is outside the one containing the source code.
+
 4. **NEW:** build gLike with cmake
 go in the build directory
 ```shell
-cd $GLIKE_BUILD
+cd $GLIKESYS
 ```
-run cmake, the first argument is the repository in which the `CMakeLists.txt` we use for building the project is defined
+run cmake, the first argument is the directory in which the `CMakeLists.txt` we use for building the project is defined.     
+This is the `gLike` directory we downloaded from git
 ```shell
-cmake $GLIKE_DIR
+cmake /path/to/the/source/gLike/dir/
 ```
 if you want to unlock FITSIO support, use the cache variable `USE_FITSIO` (can be set to `ON` or `True`, default is `OFF`)
 ```shell
-cmake $GLIKE_DIR -DUSE_FITSIO=ON
+cmake /path/to/the/source/gLike/dir/ -DUSE_FITSIO=ON
 ```
 at this point `cmake` will have automatically generated the `Makefile` for us, so we just
 ```shell
@@ -56,7 +73,7 @@ this last step will make gLike libraries available system-wise, i.e. libraries w
 ### load gLike libraries in ROOT
 If you want to load the gLike libraries each time you open ROOT, modify (or create) in your home a `.rootrc` file, inserting (editing) the line
 ```
-Rint.Logon: $GLIKE_DIR/scripts/rootlogon.C
+Rint.Logon: $GLIKESYS/scripts/rootlogon.C
 ```
 this should execute the `rootlogon.C` of gLike each time you launch root.
 

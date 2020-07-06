@@ -9,7 +9,7 @@
 
 void rootlogon()
 {
-    TString gLikeBuildDir = gSystem->ExpandPathName("$GLIKE_BUILD");
+    TString gLikeBuildDir = gSystem->ExpandPathName("$GLIKESYS");
     cout << "\033[34m\033[1m" << "Searching gLike in " << gLikeBuildDir << "/lib" << "\033[0m" << endl ;
     TString libFileNameUnix = "libgLike.so";
     TString libFileNameMacOs = "libgLike.dylib";
@@ -31,7 +31,7 @@ void rootlogon()
         return;
     }
     
-    gInterpreter->AddIncludePath("$GLIKE_DIR/include/");
+    gInterpreter->AddIncludePath("$GLIKESYS/include/");
     gStyle->SetCanvasColor(0);
     gStyle->SetCanvasBorderMode(0);
     gStyle->SetFrameBorderMode(0);

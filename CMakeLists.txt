@@ -57,12 +57,20 @@ target_include_directories(gLike PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # install the gLike libraries in /usr/local/lib
 install(TARGETS gLike DESTINATION lib)
 
-# add jointLklDM executable
+# copy scripts, rcfiles, DM and data directories
+add_custom_target(copy_dirs ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/scripts ${CMAKE_BINARY_DIR}/scripts
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/rcfiles ${CMAKE_BINARY_DIR}/rcfiles
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/DM ${CMAKE_BINARY_DIR}/DM
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/data ${CMAKE_BINARY_DIR}/data
+)
+
+# create jointLklDM executable
 add_executable(jointLklDM ${PROJECT_SOURCE_DIR}/scripts/jointLklDM.C)
 target_link_libraries(jointLklDM gLike)
 install(TARGETS jointLklDM DESTINATION bin)
 
-# add computeCLBands executable
+# create computeCLBands executable
 add_executable(computeCLBands ${PROJECT_SOURCE_DIR}/scripts/computeCLBands.C)
 target_link_libraries(computeCLBands gLike)
 install(TARGETS computeCLBands DESTINATION bin)

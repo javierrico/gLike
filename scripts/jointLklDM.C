@@ -97,7 +97,7 @@ const Int_t nMaxLkls = 1000;
 int main(int argc,char* argv[])
 {
   // default arguments
-  TString configFileName = "$GLIKE_DIR/rcfiles/jointLklDM.rc";
+  TString configFileName = "$GLIKESYS/rcfiles/jointLklDM.rc";
   Int_t seed=-1;
   // check input parameters
   for (int i = 1; i < argc; ++i) {
