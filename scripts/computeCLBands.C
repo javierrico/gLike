@@ -66,7 +66,7 @@ const Bool_t makePlots = kTRUE;
 
 int main(int argc, char* argv[])
 {
-  TString configFileName="$GLIKE_DIR/rcfiles/jointLklDM.rc";
+  TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc";
   Int_t nSimuFiles=300;
   // check input parameters
   for (int i = 1; i < argc; ++i) {
