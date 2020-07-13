@@ -601,7 +601,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		      if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase))
 			{
 			  cout << "   * Setting dN/dE for a monochromatic line at energy " << mdm  << " GeV with BR = " << brval[iChannel] << " ... " << flush;
-			  if(fullLkl->AdddNdESignalFunction("line",mdm,2,brval[iChannel]))
+			  if(fullLkl->SetdNdESignalFunction("line",mdm,2,brval[iChannel]))
 			    {
 			      cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 			      return;
