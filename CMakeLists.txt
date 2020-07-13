@@ -17,6 +17,9 @@ endif()
 find_package(ROOT REQUIRED ${ROOT_REQUIRED_COMPONENTS})
 message("-- Required ROOT components are: ${ROOT_REQUIRED_COMPONENTS}")
 
+# for ROOT versions < 6
+include(${ROOT_USE_FILE})
+
 # generate glike ROOT.pcm dictionaries
 root_generate_dictionary(
     gLikeDict
