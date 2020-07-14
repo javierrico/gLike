@@ -69,11 +69,11 @@ add_custom_target(copy_dirs ALL
 )
 
 # create jointLklDM executable
-add_executable(jointLklDM ${PROJECT_SOURCE_DIR}/scripts/jointLklDM.C)
+add_executable(jointLklDM ${PROJECT_SOURCE_DIR}/exec/jointLklDM.cc)
 target_link_libraries(jointLklDM gLike)
 install(TARGETS jointLklDM DESTINATION bin)
 
 # create computeCLBands executable
-add_executable(computeCLBands ${PROJECT_SOURCE_DIR}/scripts/computeCLBands.C)
+add_executable(computeCLBands ${PROJECT_SOURCE_DIR}/exec/computeCLBands.cc)
 target_link_libraries(computeCLBands gLike)
 install(TARGETS computeCLBands DESTINATION bin)

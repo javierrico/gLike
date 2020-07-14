@@ -24,51 +24,45 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
 
 ### Installation
 1. Get the code from the GitHub [gLike repository](https://github.com/javierrico/gLike)
-2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
-3. Define the following environment variable:
-- `GLIKESYS` (path to the build directory).    
-You can create the build directory within the `gLike` repository itself 
-```
-cd gLike
-mkdir build
-``` 
-or outside in another repository.
-```
-mkdir ~/gLike_build
-``` 
-Just export this build directory as an environment variable in your `.bashrc`:
-```
-export $GLIKESYS="/home/user/gLike/build
-``` 
-or 
-```
-export $GLIKESYS="/home/user/gLike_build
-``` 
-if the build directory is outside the one containing the source code.
 
-4. **NEW:** build gLike with cmake
-go in the build directory
-```shell
-cd $GLIKESYS
-```
-run cmake, the first argument is the directory in which the `CMakeLists.txt` we use for building the project is defined.     
-This is the `gLike` directory we downloaded from git
-```shell
-cmake /path/to/the/source/gLike/dir/
-```
-if you want to unlock FITSIO support, use the cache variable `USE_FITSIO` (can be set to `ON` or `True`, default is `OFF`)
-```shell
-cmake /path/to/the/source/gLike/dir/ -DUSE_FITSIO=ON
-```
-at this point `cmake` will have automatically generated the `Makefile` for us, so we just
-```shell
-make
-```
-and install
-```shell
-make install
-```
-this last step will make gLike libraries available system-wise, i.e. libraries will be saved in `/usr/local/lib` and executables in `/usr/local/bin`.
+2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
+
+3. There are two available installation modes, the first with an already provided `Makefile`, the second with `cmake`.    
+**Note**: the isntallation with the `Makefile` will be deprecated in the next `gLike` release
+
+4. `Makefile` installation
+    - Define the environment variable GLIKESYS pointing to your main gLike directory, e.g., for bash:    
+    `export GLIKESYS="/Users/rico/gLike/"`    
+    and include it in the library path, eg. for Mac:    
+    `export DYLD_LIBRARY_PATH="${GLIKESYS}:${DYLD_LIBRARY_PATH}"`;
+    - Create the gLike library by typing `make` in the main gLike directory;
+    -  [Optional] Create the gLike online documentation with `make doc`. 
+
+5. `cmake` installation
+    - Define the environment variable `GLIKESYS` pointing to the directory _where you want to build_ gLike,    
+      you can create the build directory within the original `gLike` repository itself    
+      `cd gLike`   
+      `mkdir build`     
+      or outside in another repository    
+      `mkdir ~/gLike_build`.    
+      Just export this build directory as an environment variable in your `.bashrc`:     
+      `export $GLIKESYS="/home/user/gLike/build`    
+      or    
+      `export $GLIKESYS="/home/user/gLike_build`   
+      if the build directory is outside the one containing the source code.   
+
+    - go in the build directory      
+      `cd $GLIKESYS`   
+    - run `cmake`, the first argument being the directory in which the `CMakeLists.txt` for building the project is defined 
+      (the `gLike` directory we downloaded from git)     
+      `cmake /path/to/the/source/gLike/dir/`    
+      if you want to unlock FITSIO support, use the cache variable `USE_FITSIO` (can be set to `ON` or `True`, default is `OFF`)    
+      `cmake /path/to/the/source/gLike/dir/ -DUSE_FITSIO=ON`    
+    - at this point `cmake` will have automatically generated the `Makefile` for us, so we just    
+      `make`         
+      and install    
+      `make install`    
+      this last step will make gLike libraries available system-wise, i.e. libraries will be saved in `/usr/local/lib` and executables in `/usr/local/bin`.
 
 ### load gLike libraries in ROOT
 If you want to load the gLike libraries each time you open ROOT, modify (or create) in your home a `.rootrc` file, inserting (editing) the line
@@ -82,11 +76,12 @@ this should execute the `rootlogon.C` of gLike each time you launch root.
 In gLike you find the following directories:
 1. [`src`](https://github.com/javierrico/gLike/tree/master/src): source files (*.cc) with definition of every class,
 2. [`include`](https://github.com/javierrico/gLike/tree/master/include): include files (*.h) with declaration of every class,
-3. [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts): root macros and scripts with some gLike example applications,
-4. [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles): examples of rcfiles (in principle the only thing a regular user should edit and modify),
-5. [`data`](https://github.com/javierrico/gLike/tree/master/data): examples of input data files, e.g. events and corresponding IRFs mimicking a generic IACT telescope of the 2nd generation like MAGIC,
-6. [`DM`](https://github.com/javierrico/gLike/tree/master/DM): files for DM-related analysis, e.g. the dN/dE functions for different masses and annihilation channels,
-7. [`logo`](https://github.com/javierrico/gLike/tree/master/logo): the gLike logo
+3. [`exec`](https://github.com/javierrico/gLike/tree/master/exec): containing the source files (*.cc) for the executables generated by `cmake`,
+4. [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts): root macros and scripts with some gLike example applications,
+5. [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles): examples of rcfiles (in principle the only thing a regular user should edit and modify),
+6. [`data`](https://github.com/javierrico/gLike/tree/master/data): examples of input data files, e.g. events and corresponding IRFs mimicking a generic IACT telescope of the 2nd generation like MAGIC,
+7. [`DM`](https://github.com/javierrico/gLike/tree/master/DM): files for DM-related analysis, e.g. the dN/dE functions for different masses and annihilation channels,
+8. [`logo`](https://github.com/javierrico/gLike/tree/master/logo): the gLike logo
 
 ### Fast description of the code
  gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.
@@ -100,10 +95,20 @@ gLike consists of two main basic classes, [`Lkl`](https://github.com/javierrico/
 
 ### Basic Usage for dark matter searches
 Within the gLike library, there is no assumption about the physical meaning of the free parameter _g_. That needs to be assigned externally in the macros or executables using the gLike library.
-The gLike distribution provides, at the directory [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts), a few tutorial macros/executables for the most common use cases (e.g. minimisation of a Poisson likelihood, definition of a joint likelihood). 
-After building the porject the executable [`jointLklDM`](https://github.com/javierrico/gLike/blob/master/scripts/jointLklDM.C) can be used to search for dark matter, set limits in case of no detection and combine results from different targets and or instruments. 
+The gLike distribution provides, at the directory [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts), a few tutorial macros/executables for the most common use cases (e.g. minimisation of a Poisson likelihood, definition of a joint likelihood).    
+They can be executed from the root terminal
+```
+root[0] .X tutorialPoissonLkl.C
+```
+or can be loaded and then executed
+```
+root[0] .L tutorialPoissonLkl.C
+root[1] tutorialPoissonLkl()
+```
 
-The macro defining the executable does not need to be edited. 
+After building the project the executable [`jointLklDM`](https://github.com/javierrico/gLike/blob/master/scripts/jointLklDM.C) can be used to search for dark matter, set limits in case of no detection and combine results from different targets and or instruments. 
+The macros defining the executables do not need to be edited. 
+
 You can find some documentation in its [wiki entry](https://github.com/javierrico/gLike/wiki/jointLklDM.C).
 Example configuration files can be found in the [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles) directory. 
 There is a detailed documentation on how to configure it correctly both in the [wiki](https://github.com/javierrico/gLike/wiki/rc-files-for-jointLklDM.C), and the jointLklDM.rc rcfile provided with the distribution. 
