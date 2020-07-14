@@ -44,10 +44,10 @@ class Lkl : public TNamed
   {
     Margin(level); std::cout << "              Object Name : " << GetName() << std::endl;
   }
-  inline const TMinuit*  GetMinuit()                       const {return fMinuit;}
-  TGraph*                GetLklVsG(Bool_t units=kTRUE)     const; 
-  inline       Double_t  GetLklMin()                       const {return fLklMin;}
-  inline       Double_t  GetGLklMin(Bool_t units=kTRUE)    const 
+  inline  TMinuit*  GetMinuit()                       const {return fMinuit;}
+  TGraph*           GetLklVsG(Bool_t units=kTRUE)     const; 
+  inline  Double_t  GetLklMin()                       const {return fLklMin;}
+  inline  Double_t  GetGLklMin(Bool_t units=kTRUE)    const 
   {
     return (units? fParVal[gGParIndex]*fUnitsOfG: fParVal[gGParIndex]);
   }
@@ -59,16 +59,16 @@ class Lkl : public TNamed
   inline Double_t GetParErr(Int_t ipar)  const {return (ipar<fNPars?  fParErr[ipar] : 0);}
   inline Bool_t   IsParFixed(Int_t ipar) const {return (ipar<fNPars?  fIsParFixed[ipar] : 0);}
 
-  Double_t                 GetGForLkl(Double_t lkl,Bool_t units=kTRUE) const;
-  inline       Double_t    GetErrorDef()     const {return fErrorDef;}
-  inline const Double_t*   GetParDelta()     const {return fParDelta;}
-  inline const TString*    GetParName()      const {return fParName;}
-  inline const Double_t*   GetParStart()     const {return fParStart;}
-  virtual      Double_t    GetUnitsOfG()     const {return fUnitsOfG;}
-  virtual      Double_t    GetDUnitsOfG()    const {return fDUnitsOfG;}
-  virtual      DUofGType_t GetDUofGType()    const {return fDUofGType;}
-  inline       Bool_t      GetGIsPositive()  const {return fGIsPositive;}
-  inline       Int_t       GetNFreePars()    const {Int_t n=0; for(Int_t i=0;i<fNPars;i++) n+=!IsParFixed(i); return n;}
+  Double_t            GetGForLkl(Double_t lkl,Bool_t units=kTRUE) const;
+  inline  Double_t    GetErrorDef()     const {return fErrorDef;}
+  inline  Double_t*   GetParDelta()     const {return fParDelta;}
+  inline  TString*    GetParName()      const {return fParName;}
+  inline  Double_t*   GetParStart()     const {return fParStart;}
+  virtual Double_t    GetUnitsOfG()     const {return fUnitsOfG;}
+  virtual Double_t    GetDUnitsOfG()    const {return fDUnitsOfG;}
+  virtual DUofGType_t GetDUofGType()    const {return fDUofGType;}
+  inline  Bool_t      GetGIsPositive()  const {return fGIsPositive;}
+  inline  Int_t       GetNFreePars()    const {Int_t n=0; for(Int_t i=0;i<fNPars;i++) n+=!IsParFixed(i); return n;}
 
   // set/get a global normalization factor (units of g if you will), compulsory if 
   // object is going to be added to an JointLkl instance

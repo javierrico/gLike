@@ -29,12 +29,12 @@ class Iact1dBinnedLkl : public Iact1dUnbinnedLkl, public JointLkl
 
   inline void SetKnownBackground(Bool_t fix=kTRUE)   {fKnownBackground = fix;}
   
-  inline       UInt_t GetNBins()         const {return fNBins;}
-  inline       UInt_t GetMinBinContent() const {return fMinBinContent;}
+  inline UInt_t GetNBins()         const {return fNBins;}
+  inline UInt_t GetMinBinContent() const {return fMinBinContent;}
   
-  inline const TH1I*  GetHNOn()          const {return fHNOn;}
-  inline const TH1I*  GetHNOff()         const {return fHNOff;}
-  inline       Bool_t GetTauEDepFluct()  const {return fTauEDepFluct;}
+  inline TH1I*  GetHNOn()          const {return fHNOn;}
+  inline TH1I*  GetHNOff()         const {return fHNOff;}
+  inline Bool_t GetTauEDepFluct()  const {return fTauEDepFluct;}
 
   virtual TH1F*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
   virtual TH1F*   GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
