@@ -33,6 +33,7 @@ $(DICTSRC:%.cc=%.o): $(DICTSRC) $(HEADERS)
 
 $(DICTSRC): $(HEADERS) $(LINKDEF)
 	@echo "Generating dictionary $(@:out/%.cc=%)..."
+	@mkdir -p lib
 	$(ROOTSYS)/bin/rootcint -f $@ -c -p $(HEADERS:%=$(PWD)/%) $(PWD)/$(LINKDEF)
 	@echo "Generated $@ and $(@:.cc=.h) \n"
 
