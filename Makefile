@@ -17,7 +17,7 @@ SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedL
 SOURCES    = $(SRCFILES:%=$(SRCDIR)/%.cc)
 HEADERS    = $(SRCFILES:%=$(INCLDIR)/%.h)
 OBJECTS    = $(SRCFILES:%=$(OUTDIR)/%.o)
-DICTSRC    = $(OUTDIR)/$(TARGET)Dict.cc
+DICTSRC    = $(LIBDIR)/$(TARGET)Dict.cc
 LINKDEF    = $(INCLDIR)/$(TARGET)LinkDef.h
 
 $(LIBDIR)/lib$(TARGET).so: $(OBJECTS) $(DICTSRC:%.cc=%.o)
