@@ -71,7 +71,8 @@ If you want to load the gLike libraries each time you open ROOT, modify (or crea
 ```
 Rint.Logon: $GLIKESYS/scripts/rootlogon.C
 ```
-this should execute the `rootlogon.C` of gLike each time you launch root.
+this should execute the `rootlogon.C` of gLike each time you launch root. 
+An example `.rootrc` is available in `gLike` distribution repository.
 
 
 ### gLike distribution structure
