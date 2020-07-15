@@ -62,10 +62,12 @@ install(TARGETS gLike DESTINATION lib)
 
 # copy scripts, rcfiles, DM and data directories
 add_custom_target(copy_dirs ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}/include
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/scripts ${CMAKE_BINARY_DIR}/scripts
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/rcfiles ${CMAKE_BINARY_DIR}/rcfiles
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/DM ${CMAKE_BINARY_DIR}/DM
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/data ${CMAKE_BINARY_DIR}/data
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/.rootrc ${CMAKE_BINARY_DIR}/.rootrc
 )
 
 # create jointLklDM executable
@@ -77,3 +79,12 @@ install(TARGETS jointLklDM DESTINATION bin)
 add_executable(computeCLBands ${PROJECT_SOURCE_DIR}/exec/computeCLBands.cc)
 target_link_libraries(computeCLBands gLike)
 install(TARGETS computeCLBands DESTINATION bin)
+
+# if requested by the user, generate html documentation
+option(MAKE_DOCS "Generate html documentation" OFF)    
+if(MAKE_DOCS)                     
+    add_custom_target(html_doc ALL 
+        COMMAND root -b -q ${CMAKE_BINARY_DIR}/scripts/dohtml.C >& dohtml.log &
+        DEPENDS gLike copy_dirs
+    )
+endif() 
