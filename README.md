@@ -56,8 +56,10 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
     - run `cmake`, the first argument being the directory in which the `CMakeLists.txt` for building the project is defined 
       (the `gLike` directory we downloaded from git)     
       `cmake /path/to/the/source/gLike/dir/`    
-      if you want to unlock FITSIO support, use the cache variable `USE_FITSIO` (can be set to `ON` or `True`, default is `OFF`)    
-      `cmake /path/to/the/source/gLike/dir/ -DUSE_FITSIO=ON`    
+      if you want to **unlock FITSIO support**, use the cache variable `USE_FITSIO` (can be set to `ON` or `True`, default is `OFF`)    
+      `cmake /path/to/the/source/gLike/dir/ -DUSE_FITSIO=ON`  
+      if you want to **generate the html documentation**, use the cache variable `MAKE_DOCS` (can be set to `ON` or `True`, default is `OFF`)    
+      `cmake /path/to/the/source/gLike/dir/ -DMAKE_DOCS=ON`    
     - at this point `cmake` will have automatically generated the `Makefile` for us, so we just    
       `make`         
       and install    

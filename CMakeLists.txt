@@ -84,7 +84,8 @@ install(TARGETS computeCLBands DESTINATION bin)
 option(MAKE_DOCS "Generate html documentation" OFF)    
 if(MAKE_DOCS)                     
     add_custom_target(html_doc ALL 
-        COMMAND root -b -q ${CMAKE_BINARY_DIR}/scripts/dohtml.C >& dohtml.log &
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/htmldoc
+        COMMAND root -b -q ${CMAKE_BINARY_DIR}/scripts/dohtml.C 2>&1 > ${CMAKE_BINARY_DIR}/htmldoc/dohtml.log
         DEPENDS gLike copy_dirs
     )
 endif() 
