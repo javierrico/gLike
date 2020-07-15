@@ -85,8 +85,45 @@ In gLike you find the following directories:
 7. [`DM`](https://github.com/javierrico/gLike/tree/master/DM): files for DM-related analysis, e.g. the dN/dE functions for different masses and annihilation channels,
 8. [`logo`](https://github.com/javierrico/gLike/tree/master/logo): the gLike logo
 
+#### Build directory structure
+When compiling with `cmake` the following structure will be created in the build directory:
+```shell
+gLike_build
+├── CMakeCache.txt
+├── CMakeFiles
+├── DM
+├── Makefile
+├── bin
+├── cmake_install.cmake
+├── data
+├── gLikeDict.cxx
+├── htmldoc
+├── include
+├── lib
+├── rcfiles
+└── scripts
+```
+directories of the same name of the ones found in the original repository are copied for
+building purposes.     
+The two directories created by `cmake` are
+```shell
+gLike_build/lib
+├── libgLike.dylib
+├── libgLikeDict.rootmap
+└── libgLikeDict_rdict.pcm
+```
+containing the compiled library and the `ROOT` dictionary files;
+```
+gLike_build/bin
+├── computeCLBands
+└── jointLklDM
+````
+containing the `gLike` executables.     
+`htmldoc`, containing the `html` documentation, will be generated only if the 
+corresponding cache variable has been specified at building. 
+
 ### Fast description of the code
- gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.
+gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.
  
 gLike consists of two main basic classes, [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h)
       and [`JointLkl`](https://github.com/javierrico/gLike/blob/master/include/JointLkl.h):
