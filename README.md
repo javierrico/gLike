@@ -46,9 +46,9 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
       or outside in another repository    
       `mkdir ~/gLike_build`.    
       Just export this build directory as an environment variable in your `.bashrc`:     
-      `export $GLIKESYS="/home/user/gLike/build`    
+      `export GLIKESYS="/home/user/gLike/build"`    
       or    
-      `export $GLIKESYS="/home/user/gLike_build`   
+      `export GLIKESYS="/home/user/gLike_build"`   
       if the build directory is outside the one containing the source code.   
 
     - go in the build directory      
