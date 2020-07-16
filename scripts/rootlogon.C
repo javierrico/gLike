@@ -3,46 +3,35 @@
 // rootlogon.C
 // ===========
 //
-// Loading libgLike.so when using root in this directory.
+// Loading libgLike.so (.dylib) when using root in this directory.
 //
 ///////////////////////////////////////////////////////////////////////////
 
-bool load(TString &dir, const TString &libfilename)
-{
-    cout << "\033[33m\033[1m" << "Loading " << dir << libfilename << " \033[0m" << flush;
-
-    if (dir.IsNull()) dir = "../lib/";
-
-    if (gSystem->Load(dir+libfilename)!=0) {
-      cout << "\033[33m\033[1m" << "Error" << endl;
-      return false;
-    }
-    else {
-      cout << "\033[33m\033[1m" << "done." << endl;
-      return true;
-    }
-}
-
 void rootlogon()
 {
-    cout << endl;
-
-    const TString libfilename = "libgLike.so"; // default
-    const Bool_t  fileexist   = !gSystem->AccessPathName(libfilename.Data(), kFileExists);
-    TString       gLikeDir    = fileexist ? "" : gSystem->Getenv("GLIKESYS");
+    TString gLikeBuildDir = gSystem->ExpandPathName("$GLIKESYS");
+    cout << "\033[34m\033[1m" << "Searching gLike in " << gLikeBuildDir << "/lib" << "\033[0m" << endl ;
+    TString libFileNameUnix = "libgLike.so";
+    TString libFileNameMacOs = "libgLike.dylib";
+    // search if unix library exists, empty string if it does not
+    TString libUnixPath =  gSystem->FindFile(gLikeBuildDir + "/lib/", libFileNameUnix);
+    // search if MacOs library exists, empty string if it does not
+    TString libMacOsPath =  gSystem->FindFile(gLikeBuildDir + "/lib/", libFileNameMacOs);
     
-    TString libdir = gLikeDir + "/lib/";
-    TString outdir = gLikeDir + "/out/";
-    gSystem->AddDynamicPath(outdir);
-
-    if (!libdir.IsNull()) {
-     cout << "\033[34m\033[1m" << "Searching gLike in " << libdir << "\033[0m" << endl ;
-      if (!libdir.EndsWith("/")) libdir += "/";
+    if (!libUnixPath.IsNull()) {
+        cout << "\033[33m\033[1m" << "Loading " << libUnixPath << " \033[0m" << flush;
+        gSystem->Load(libUnixPath);
+        cout << "\033[33m\033[1m" << "done." << endl;   
+    } else if(!libMacOsPath.IsNull()) {
+        cout << "\033[33m\033[1m" << "Loading " << libMacOsPath << " \033[0m" << flush;
+        gSystem->Load(libMacOsPath);
+        cout << "\033[33m\033[1m" << "done." << endl;  
+    } else {
+        cout << "\033[33m\033[1m" << "Error: no gLike library found." << endl;
+        return;
     }
-
-    if (!load(libdir,libfilename)) return;
-
-    gInterpreter->AddIncludePath(gLikeDir+"/include");
+    
+    gInterpreter->AddIncludePath("$GLIKESYS/include/");
     gStyle->SetCanvasColor(0);
     gStyle->SetCanvasBorderMode(0);
     gStyle->SetFrameBorderMode(0);

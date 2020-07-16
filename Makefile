@@ -17,7 +17,7 @@ SRCFILES   = Lkl ParabolaLkl PoissonLkl JointLkl Iact1dUnbinnedLkl Iact1dBinnedL
 SOURCES    = $(SRCFILES:%=$(SRCDIR)/%.cc)
 HEADERS    = $(SRCFILES:%=$(INCLDIR)/%.h)
 OBJECTS    = $(SRCFILES:%=$(OUTDIR)/%.o)
-DICTSRC    = $(OUTDIR)/$(TARGET)Dict.cc
+DICTSRC    = $(LIBDIR)/$(TARGET)Dict.cc
 LINKDEF    = $(INCLDIR)/$(TARGET)LinkDef.h
 
 $(LIBDIR)/lib$(TARGET).so: $(OBJECTS) $(DICTSRC:%.cc=%.o)
@@ -33,6 +33,7 @@ $(DICTSRC:%.cc=%.o): $(DICTSRC) $(HEADERS)
 
 $(DICTSRC): $(HEADERS) $(LINKDEF)
 	@echo "Generating dictionary $(@:out/%.cc=%)..."
+	@mkdir -p lib
 	$(ROOTSYS)/bin/rootcint -f $@ -c -p $(HEADERS:%=$(PWD)/%) $(PWD)/$(LINKDEF)
 	@echo "Generated $@ and $(@:.cc=.h) \n"
 

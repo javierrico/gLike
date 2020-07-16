@@ -1,3 +1,4 @@
+#include "THtml.h"
 ///////////////////////////////////////////////////////////////////////////
 //
 // dohtml.C
@@ -12,9 +13,22 @@
 
 void dohtml()
 {
+    TString gLikeBuildDir = gSystem->ExpandPathName("$GLIKESYS");
     //Don't forget that the shared object must have been loaded
-    gSystem->Load("lib/libgLike.so");
-
+    TString libFileNameUnix = "libgLike.so";
+    TString libFileNameMacOs = "libgLike.dylib";
+    // search if unix library exists, empty string if it does not
+    TString libUnixPath =  gSystem->FindFile(gLikeBuildDir + "/lib/", libFileNameUnix);
+    // search if MacOs library exists, empty string if it does not
+    TString libMacOsPath =  gSystem->FindFile(gLikeBuildDir + "/lib/", libFileNameMacOs);
+    
+    if (!libUnixPath.IsNull()) {
+        gSystem->Load(libUnixPath);
+    } else if(!libMacOsPath.IsNull()) {
+        gSystem->Load(libMacOsPath);
+    } else {
+        return;
+    }
     //Do not print 'Info' messages from the root system such like TCanvas::Print
     gErrorIgnoreLevel=kWarning;
 
