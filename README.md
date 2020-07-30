@@ -20,7 +20,7 @@ Follows a non-exhaustive list of examples where gLike is useful (in order of inc
  - ...
 
 ## Citing gLike
-If you are using `gLike` for your work you can acknowledge and reference through its [zenodo record](https://zenodo.org/record/3967386).
+If you are using `gLike` for your work you can acknowledge and reference it through its [zenodo record](https://zenodo.org/record/3967386).
 
 ## Prerequisites
 `gLike`'s sole dependency is [ROOT](https://root.cern.ch). 
