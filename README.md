@@ -1,6 +1,6 @@
 ![gLike logo](https://github.com/javierrico/gLike/raw/master/logo/gLike_logo_small.png "gLike logo")
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3967386.svg)](https://doi.org/10.5281/zenodo.3967386)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3967385.svg)](https://doi.org/10.5281/zenodo.3967385)
 
 Numerical maximization of heterogeneous joint likelihood functions of a common free parameter plus nuisance parameters
 ------------------------------------------------------------------------------------------------
