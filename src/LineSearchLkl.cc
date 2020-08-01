@@ -36,14 +36,16 @@ static const Int_t    gNBins           = 100;                    // default numb
 // As many nuisance parameters as wanted can be added to the list
 // (check also LineSearchLkl::SetFunctionAndPars)
 
-static const Int_t    gNPars           = 1;                      // Number of free+nuisance parameters
-//static const Int_t    gNPars           = 2;                      // Number of free+nuisance parameters
-static const Char_t*  gParName[gNPars] = {"g"};              // Name of parameters
-//static const Char_t*  gParName[gNPars] = {"g","b"};              // Name of parameters
+//static const Int_t    gNPars           = 1;                      // Number of free+nuisance parameters
+static const Int_t    gNPars           = 2;                      // Number of free+nuisance parameters
+//static const Char_t*  gParName[gNPars] = {"g"};              // Name of parameters
+static const Char_t*  gParName[gNPars] = {"g","tau"};              // Name of parameters
 
 // static functions (for internal processing of input data)
 static Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
+static Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm);
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
+static Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
 
 // -2logL function for minuit
 // you can change its name but the format is required by ROOT, you should not change it
@@ -54,6 +56,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
 // also, do not change this
 static TMinuit* minuit = NULL;
 
+//count inside energy window
+int event_count =0;
 //test
 Double_t minEwindow = 0.;
 Double_t maxEwindow = 0.;
@@ -89,6 +93,23 @@ Int_t LineSearchLkl::InterpretInputString(TString inputString)
   return 0;
 }
 
+//////////////////////////////////////////////////////////////////
+// new Implented to access LineSearch Object for making a enregy window
+// implemented on 27th July
+
+// Return 0 in case checks are ok, 1 otherwise
+//
+
+Int_t LineSearchLkl::SetEnergyWindow(Int_t DMmass, Float_t windowsize)
+{
+    //Set fEpmin and fEpmax as corresponding edges of a energy window
+    cout<<"check"<<endl;
+    
+    
+    
+    return 0;
+}
+ 
 ////////////////////////////////////////////////////////////////
 // 
 // Destructor
@@ -123,12 +144,23 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
   fMinuit->SetName(Form("%s_Minuit",GetName()));
 
   // set and pars initial and step values
-  Double_t pStart[gNPars] = {ginit};//, (Double_t)Iact1dUnbinnedLkl::GetNon()};
-  Double_t pDelta[gNPars] = {TMath::Sqrt(Iact1dUnbinnedLkl::GetNon())/100.}; // Precision of parameters during minimization
+  //Double_t pStart[gNPars] = {ginit};
+  Double_t pStart[gNPars] = {ginit, Iact1dUnbinnedLkl::GetTau()}; //implemented on 26th July
+  //Double_t pDelta[gNPars] = {TMath::Sqrt(Iact1dUnbinnedLkl::GetNon())/100.}; // Precision of parameters during minimization
+  Double_t pDelta[gNPars] = //{TMath::Sqrt(Iact1dUnbinnedLkl::GetNon())/100.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
+    {TMath::Sqrt(event_count)/10.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
 
   // initialize the free (and nuisance) parameters
   SetParameters(gParName,pStart,pDelta);
 
+  // Fix tau if requested (both in minuit and in lkl), implemneted on 26th July
+    fMinuit->Release(Iact1dUnbinnedLkl::gTauIndex);
+    FixPar(Iact1dUnbinnedLkl::gTauIndex,kFALSE);
+    if(GetDTau()<=0)
+      {
+        fMinuit->FixParameter(Iact1dUnbinnedLkl::gTauIndex);
+        FixPar(Iact1dUnbinnedLkl::gTauIndex);
+      }
 }		
 
 ////////////////////////////////////////////////////////////////
@@ -165,135 +197,76 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
   const Float_t* onSample = Iact1dUnbinnedLkl::GetOnSample();
   UInt_t              Non = Iact1dUnbinnedLkl::GetNon();
 
-  TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+    //===define energy window===
+    Double_t low_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmin());
+    Double_t high_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmax());
 
+    TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+
+  //counting number of events instread of Non
+  //Fill all events from onsample into hdNdEpOn ("fine-bin" histogram)
+  int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
-      hdNdEpOn->Fill(onSample[ievent]);
+        //cout<<"unfilled energy = "<<onSample[ievent]<<endl;
+        if(onSample[ievent] > low_edge && onSample[ievent] < high_edge){
+            //cout<<"Filled Energy = "<<onSample[ievent]<<endl;
+            hdNdEpOn->Fill(onSample[ievent]);
+            count++;
+            }
     }
+    event_count=count;
+    
+    //cout<<"eventnumber 1 = "<<event_count<<endl;
 
-  Float_t PeakMaximum = GetHdNdEpSignal()->GetMaximum();
-  std::cout << "PeakMaximum = " << PeakMaximum << std::endl;
-  Int_t binLowBkgLow = 0;
-  Bool_t binLowBkgLowBool = kFALSE;
-  Int_t binLowBkgHigh = 0;
-  Bool_t binLowBkgHighBool = kFALSE;
-  Int_t binHighBkgLow = 0;
-  Bool_t binHighBkgLowBool = kFALSE;
-  Int_t binHighBkgHigh = 0;
-  Bool_t binHighBkgHighBool = kFALSE;
+    //cout<<"Non = "<<Non<<"\t count = "<<count<<endl;
 
-  for(Int_t i=1; i< GetHdNdEpSignal()->GetNbinsX()-1; i++)
-    {
-      if (GetHdNdEpSignal()->GetBinContent(i) > PeakMaximum*(fRelativePeakIntensity-fBkgRegionWidth) && !binLowBkgLowBool)
-        {
-          binLowBkgLow=i;
-          binLowBkgLowBool = kTRUE;
-	  //std::cout << "GetHdNdEpSignal()->GetBinContent(i) = " << GetHdNdEpSignal()->GetBinContent(i) << " and PeakMaximum*(fRelativePeakIntensity-fBkgRegionWidth) = " << PeakMaximum*(fRelativePeakIntensity-fBkgRegionWidth) << " GetHdNdEpSignal()->GetBinCenter(i) = " << GetHdNdEpSignal()->GetBinCenter(i) << std::endl;
-        }
+    //cout<<"Bin range Emin = "<<Iact1dUnbinnedLkl::GetFineLEMin()<<"\t Emax = "<<Iact1dUnbinnedLkl::GetFineLEMax()<<endl;
+    cout<<"Eest range Emin = "<<Iact1dUnbinnedLkl::GetEmin()<<"\t Emax = "<<Iact1dUnbinnedLkl::GetEmax()<<endl;
+    //sleep(200);
 
-      if (GetHdNdEpSignal()->GetBinContent(i) < PeakMaximum*(fRelativePeakIntensity+fBkgRegionWidth) && !binLowBkgHighBool)
-        {
-          binLowBkgHigh=i;
-        }
-      else if(!binLowBkgHighBool) {binLowBkgHighBool = kTRUE;
-      //else binLowBkgHighBool = kTRUE;
-	  //std::cout << "GetHdNdEpSignal()->GetBinContent(i) = " << GetHdNdEpSignal()->GetBinContent(i) << " and PeakMaximum*(fRelativePeakIntensity-fBkgRegionWidth) = " << PeakMaximum*(fRelativePeakIntensity+fBkgRegionWidth) << " GetHdNdEpSignal()->GetBinCenter(i) = " << GetHdNdEpSignal()->GetBinCenter(i) << std::endl;
+    
+    fHdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+
+    TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+    hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
+    
+    
+    for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
+      {
+          if (hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
+          }
       }
-    }
 
-  for(Int_t i=binLowBkgHigh+1; i< GetHdNdEpSignal()->GetNbinsX()-1; i++)
-    {
-      if (GetHdNdEpSignal()->GetBinContent(i) > PeakMaximum*(fRelativePeakIntensity+fBkgRegionWidth) && !binHighBkgLowBool)
+    //===Find bins ===
+    Int_t low_edge_bin =fHdNdEpBkg->FindBin(low_edge);
+    Int_t high_edge_bin =fHdNdEpBkg->FindBin(high_edge);
+
+    //===Normalization for On data and bkg model===
+    Double_t scale_1 = hdNdEpOn->Integral(low_edge_bin,high_edge_bin);
+    Double_t scale_2 = fHdNdEpBkg->Integral(low_edge_bin,high_edge_bin);
+
+    //cout<<"scale_1 = "<<scale_1<<endl;
+    //cout<<"scale_2 = "<<scale_2<<endl;
+
+    //sleep(100);
+
+    for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
         {
-          binHighBkgLow=i;
+            if(hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,scale_1*f1->Eval(fHdNdEpBkg->GetBinCenter(ibin))/scale_2);
+                //fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
+            }
         }
-      else binHighBkgLowBool = kTRUE;
 
-      if (GetHdNdEpSignal()->GetBinContent(i) < PeakMaximum*(fRelativePeakIntensity-fBkgRegionWidth) && !binHighBkgHighBool)
-        {
-          binHighBkgHigh=i;
-          binHighBkgHighBool = kTRUE;
-        }
-    }
 
-  if(binLowBkgHigh < 100) binLowBkgLow = 1;
-  else binLowBkgLow = binLowBkgHigh -100;
-  if(binHighBkgLow > 4900) binHighBkgHigh = 4999;
-  else binHighBkgHigh = binHighBkgLow + 100;
-  //binLowBkgLow = 1;
-  //binHighBkgHigh = 4999;
+    
+    
+    Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
 
-  //std::cout << "low " << hdNdEpOn->GetBinCenter(binLowBkgHigh) << std::endl;
-  //std::cout << "high " << hdNdEpOn->GetBinCenter(binHighBkgLow) << std::endl;
-  //std::cout << "low edge " << hdNdEpOn->GetBinLowEdge(binLowBkgHigh) << std::endl;
-  //std::cout << "high edge " << hdNdEpOn->GetBinLowEdge(binHighBkgLow) + hdNdEpOn->GetBinWidth(binHighBkgLow)<< std::endl;
+    delete hdNdEpOn;
+    delete f1;
 
-  minEwindow = hdNdEpOn->GetBinLowEdge(binLowBkgHigh);
-  maxEwindow = hdNdEpOn->GetBinLowEdge(binHighBkgLow)+ hdNdEpOn->GetBinWidth(binHighBkgLow);
-  minBinwindow = binLowBkgHigh;
-  maxBinwindow = binHighBkgLow;
-
-  fHdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-
-  TH1D* h1 = new TH1D("h1","h1",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-
-  for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
-    {
-      //if(ibin >= binLowBkgLow && ibin <= binLowBkgHigh) {h1->SetBinContent(ibin,hdNdEpOn->GetBinContent(ibin));}
-      //else if(ibin >= binHighBkgLow && ibin <= binHighBkgHigh) {h1->SetBinContent(ibin,hdNdEpOn->GetBinContent(ibin));}
-      //else h1->SetBinContent(ibin,0);
-      //if(ibin > binLowBkgHigh && ibin < binHighBkgLow) {h1->SetBinContent(ibin,hdNdEpOn->GetBinContent(ibin));}
-      h1->SetBinContent(ibin,hdNdEpOn->GetBinContent(ibin));
-    }
-
-  //TF1* f1 = new TF1("f1","[0]*(x**[1])+[2]",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //TF1* f1 = new TF1("f1","10.**(x*[0]+[1])",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //TF1* f1 = new TF1("f1","landau",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //TF1* f1 = new TF1("f1","[0]*((10.**x)**[1])+[2]",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //TF1* f1 = new TF1("f1","pol1",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  TF1* f1 = new TF1("f1","expo",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //TF1* f1 = new TF1("f1","pol2",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //TF1* f1 = new TF1("f1","pol1",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-  //cout << "LEmin = " << Iact1dUnbinnedLkl::GetFineLEMin() << " LEmax = " << Iact1dUnbinnedLkl::GetFineLEMax() << endl;
-  //cout << "min = " << h1->GetBinCenter(binLowBkgLow) << " max = " << h1->GetBinCenter(binHighBkgHigh) << endl;
-  h1->Fit("f1","0","",h1->GetBinCenter(binLowBkgLow),h1->GetBinCenter(binHighBkgHigh));
-  //h1->Fit("f1","0","",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-
-  for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
-    {
-      if(binLowBkgHigh < ibin && ibin < binHighBkgLow) {
-        if (hdNdEpOn->GetBinContent(ibin)>0) fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
-      }
-      else
-        fHdNdEpBkg->SetBinContent(ibin,hdNdEpOn->GetBinContent(ibin));
-    }
-
-  Double_t scale_1 = hdNdEpOn->Integral(binLowBkgHigh,binHighBkgLow);
-  Double_t scale_2 = fHdNdEpBkg->Integral(binLowBkgHigh,binHighBkgLow);
-
-  //cout << "Scale data = " << hdNdEpOn->Integral(binLowBkgHigh,binHighBkgLow) << endl;
-  //cout << "Scale bkgg = " << fHdNdEpBkg->Integral(binLowBkgHigh,binHighBkgLow) << endl;
-
-  for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
-    {
-      if(binLowBkgHigh < ibin && ibin < binHighBkgLow) {
-        if (hdNdEpOn->GetBinContent(ibin)>0) fHdNdEpBkg->SetBinContent(ibin,scale_1*f1->Eval(fHdNdEpBkg->GetBinCenter(ibin))/scale_2);
-      }
-      else
-        fHdNdEpBkg->SetBinContent(ibin,hdNdEpOn->GetBinContent(ibin));
-    }
-
-  //cout << "Scale data = " << hdNdEpOn->Integral(binLowBkgHigh,binHighBkgLow) << endl;
-  //cout << "Scale bkgg = " << fHdNdEpBkg->Integral(binLowBkgHigh,binHighBkgLow) << endl;
-
-  Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
-
-  delete hdNdEpOn;
-  delete h1;
-  delete f1;
-
-  return 0;
+    return 0;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -312,10 +285,15 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   // if fHdNdEpSignal is missing, try to construct it from fHdNdESignal, fHAeff fGEreso and fGEbias
   if(!fHdNdEpSignal && (Iact1dUnbinnedLkl::GetHdNdESignal() && Iact1dUnbinnedLkl::GetHAeff() && ((Iact1dUnbinnedLkl::GetGEreso() && Iact1dUnbinnedLkl::GetGEbias()) || Iact1dUnbinnedLkl::GetMigMatrix())))
     {
-      cout << "LineSearchLkl::CheckHistograms Message: will create fHdNdEpSignal from fHdNdESignal, fHAeff, fGEreso & fGEbias... " << flush;
-
+        if(Iact1dUnbinnedLkl::GetMigMatrix()){
+           cout << "Iact1dUnbinnedLkl::CheckHistograms Message: will create fHdNdEpSignal from fHdNdESignal, fHAeff & fMigMatrix... " << flush;
+        }
+        else{
+           cout << "Iact1dUnbinnedLkl::CheckHistograms Message: will create fHdNdEpSignal from fHdNdESignal, fHAeff, fGEreso & fGEbias... " << flush;
+        }
+        
       // multiply dNdESignal times Aeff
-      TH1F* hdNdESignalAeff = new TH1F("hdNdESignalAeff","Product of dN/dE for Signal and Aeff",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+        TH1F* hdNdESignalAeff = new TH1F("hdNdESignalAeff","Product of dN/dE for Signal and Aeff",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
       hdNdESignalAeff->SetDirectory(0);
       hdNdESignalAeff->Multiply(Iact1dUnbinnedLkl::GetHAeff(), Iact1dUnbinnedLkl::GetHdNdESignal());
 
@@ -323,9 +301,23 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
       fHdNdEpSignal = new TH1F("fHdNdEpSignal","dN/dE' for Signal",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
       fHdNdEpSignal->SetDirectory(0);
 
+        
       // smear hdNdESignalAeff
+          if(Iact1dUnbinnedLkl::GetMigMatrix())
+        {
+          if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetMigMatrix()))
+            return 1;
+        }
+          else
+        {
+          if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetGEreso(),Iact1dUnbinnedLkl::GetGEbias()))
+            return 1;
+        }
+/*
       if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetGEreso(),Iact1dUnbinnedLkl::GetGEbias()))
-        return 1;
+         return 1;
+*/
+
 
       cout << "Done! " << endl;
       // clean
@@ -362,6 +354,59 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
 
     return 1;
 }
+
+////////////////////////////////////////////////////////////////
+// smear a spectral shape <sp> (in true energy) using
+// the energy dispersion function from migration matrix <mm>
+// and put the result in histogram <smsp> (in measured energy)
+// <mm> is computed as N_ij/(N_j*DeltaE_j)
+// with N_ij number of events passing all analysis cuts, and
+// with true energy in DeltaE_j and recontructed energy in DeltaE_i;
+// N_j total number of events passing all analysis cuts with true energy in DeltaE_j;
+// and DeltaE_j the size [GeV] of the DeltaE_j energy bin
+//
+Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm)
+{
+  // checks
+  if(!sp || !smsp || !mm)
+    {
+      cout << "SmearHistogram Warning: missing histos" << endl;
+      return 1;
+    }
+
+  Int_t nbinste  = sp->GetNbinsX();     // number of bins in input histo
+  TH1F* provsmsp = new TH1F("provsmsp","Provisonal smeared histo",mm->GetXaxis()->GetNbins(),mm->GetXaxis()->GetXmin(),mm->GetXaxis()->GetXmax());
+  provsmsp->SetDirectory(0);
+  
+  // do the convolution of sp with mm and store result in smsp
+  for(Int_t ibinte=0;ibinte<nbinste;ibinte++)
+    {
+      Double_t et = sp->GetBinCenter(ibinte+1); // log of true energy
+
+      // bin size in true energy
+      Double_t minbinte = TMath::Power(10,sp->GetBinLowEdge(ibinte+1));
+      Double_t maxbinte = TMath::Power(10,sp->GetBinLowEdge(ibinte+1)+sp->GetBinWidth(ibinte+1));
+      Double_t det      = maxbinte-minbinte;  // bin size
+
+      // do the convolution of sp with the matrix row j=ibinte and fill
+      // a histogram with same binning as matrix column i=ibinme
+      for(Int_t iprovbinme=0;iprovbinme<mm->GetXaxis()->GetNbins();iprovbinme++)
+    {
+      Double_t em       = provsmsp->GetBinCenter(iprovbinme+1);
+      Int_t    gidbin   = mm->FindBin(em,et);
+      Double_t smfactor = mm->GetBinContent(gidbin);
+      provsmsp->SetBinContent(iprovbinme+1,provsmsp->GetBinContent(iprovbinme+1)+sp->GetBinContent(ibinte+1)*det*smfactor);
+    }
+    }
+
+  // transfer provsmsp to smsp (with different binning, in general...)
+  if(copyBinByBin(provsmsp,smsp))
+    return 1;
+  
+  delete provsmsp;
+  return 0;
+}
+
 
 ////////////////////////////////////////////////////////////////
 // Smear a histogram <sp> (in log of true energy) using 
@@ -413,6 +458,65 @@ Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias)
     }
   return 0;
 }
+
+//////////////////////////////////////////////////////////////////
+//
+// Copy the contents of ih into oh bin by bin
+// the x axis of ih and oh must be in log-scale and oh in even binning (not necessary for ih)
+// Coarse bins in ih are copied into finner bins in oh, but
+// the shape (i.e. the discontinuities between bin limits) is preserved
+// the units of the x-axis of ih are those of oh times 10^scale
+// if isDiff=kTRUE the input histogram is differential (default)
+// if isDiff=kFALSE the input histogram is bin-integrated
+// the output histogram is ALWAYS differential
+Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
+{
+  // input histogram binning
+  Double_t imine   = ih->GetXaxis()->GetXmin()+scale; // minimum log(E) in input histo
+  Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
+  Int_t    inbinse = ih->GetNbinsX();
+  
+
+  // output histogram binning
+  Double_t omine   = oh->GetXaxis()->GetXmin(); // minimum log(E) in output histo
+  Double_t omaxe   = oh->GetXaxis()->GetXmax(); // maximum log(E) in output histo
+  Int_t    onbinse = oh->GetNbinsX();
+  Double_t ode     = (omaxe-omine)/onbinse;
+
+  // copy values
+  for(Int_t ibin=0;ibin<onbinse;ibin++)
+    {
+      Double_t etest = omine+ode*(ibin+0.5);
+      
+      // copy bin by bin, zero outside limits
+      if(etest<imine || etest>imaxe)
+    oh->SetBinContent(ibin+1,0);
+      else
+    {
+      // corresponding bin in ih histo
+      Int_t etestbin;
+      for(etestbin=0;etestbin<inbinse;etestbin++)
+        if(ih->GetBinLowEdge(etestbin+1)+scale<etest && ih->GetBinLowEdge(etestbin+1)+ih->GetBinWidth(etestbin+1)+scale>etest)
+          break;
+      if(etestbin>=inbinse)
+        {
+          cout << "copyBinByBin Warning: the two histograms must have very different energy ranges" << endl;
+          return 1;
+        }
+      Float_t dE = 1;
+      if(!isDiff)
+        {
+          Double_t leminbin = ih->GetBinLowEdge(etestbin+1)+scale;
+          Double_t lemaxbin = ih->GetBinLowEdge(etestbin+1)+ih->GetBinWidth(etestbin+1)+scale;
+          dE                = TMath::Power(10,lemaxbin)-TMath::Power(10,leminbin);
+
+        }
+      oh->SetBinContent(ibin+1,ih->GetBinContent(etestbin+1)/dE);
+    }
+    }
+  return 0;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
@@ -535,7 +639,10 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
 
   // energy resolution and bias
   canvas->cd(3);
-
+    if(Iact1dUnbinnedLkl::GetMigMatrix()){
+    Iact1dUnbinnedLkl::GetMigMatrix()->DrawCopy("colz");
+    }
+    else{
   TH1I *dummye;
   if(Iact1dUnbinnedLkl::GetGEreso())
     dummye = new TH1I("dummye", "Energy resolution and bias",1,Iact1dUnbinnedLkl::GetGEreso()->GetX()[0],Iact1dUnbinnedLkl::GetGEreso()->GetX()[Iact1dUnbinnedLkl::GetGEreso()->GetN()-1]);
@@ -558,7 +665,7 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   if(Iact1dUnbinnedLkl::GetGEbias()) hleg2->AddEntry(Iact1dUnbinnedLkl::GetGEbias(),"Bias","LP");
   hleg2->Draw();
   delete dummye;
-
+    }
   gPad->SetGrid();
   gPad->Modified();
   gPad->Update();
@@ -835,33 +942,53 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   const Double_t   xmin            = hdNdEpBkg->GetXaxis()->GetXmin();
   const Double_t   xmax            = hdNdEpBkg->GetXaxis()->GetXmax();
 
-  // Estimated number of signal and background events in signal region
-  Double_t g       = par[0];
-  Double_t b       = Non-g;
-  //Double_t b       = par[1];
-  Double_t fnorm   = g+b;
+  //get energy window size
+    Float_t lowE = mylkl->GetEmin();
+    Float_t highE = mylkl->GetEmax();
+    
+    //cout<<"in lkl class : lowE = "<<lowE<<"\t highE = "<<highE<<endl;
 
+  //added on 26th July
+  Float_t tau = mylkl->GetTau();
+  Float_t dTau = mylkl->GetDTau();
+
+  //counting number of events instread of Non
   int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
-      if((onSample[ievent] > minEwindow && onSample[ievent] < maxEwindow)) {
-	count++;
-      }
+        if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
+            count++;
+            }
     }
+    event_count=count;
+    //cout<<"event number2 inside window is "<<event_count<<endl;
+    //cout<<"Non = "<<Non<<"\t count = "<<count<<endl;
+    
+    //sleep(200);
 
-  b=count-g;
-  fnorm=g+b;
+  // Estimated number of signal and background events in signal region
+  Double_t g       = par[0];
+  //Double_t b       = Non-g;
+  Double_t b = count-g;
+
+  //new parameter for background normalization factor
+  Double_t tauest = par[1];
+    
+  //Double_t fnorm   = g+b; // original for line search
+  Double_t boff = b*tauest;
+  Double_t fnorm   = g+boff;
 
   // sum signal and background (and maybe foreground) contributions and normalize resulting pdf (only On)
+  
   TH1F* hdNdEpOn  = new TH1F("hdNdEpOn", "On  event rate vs E'",nbins,xmin,xmax);
   hdNdEpOn->Reset();
-
-  hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,b);
+  hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,boff);
 
   // normalize
   if(fnorm>0)
-    hdNdEpOn->Scale(1./Non);
-    //hdNdEpOn->Scale(1./fnorm);
+    //hdNdEpOn->Scale(1./Non);
+    //hdNdEpOn->Scale(1./count);
+    hdNdEpOn->Scale(1./fnorm);
   else
     mylkl->Iact1dUnbinnedLkl::NormalizedNdEHisto(hdNdEpOn);
 
@@ -873,24 +1000,36 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
       Float_t val = hdNdEpOn->GetBinContent(hdNdEpOn->FindBin(onSample[ievent]));
-      if(val>0) {
-      //if(val>0 && (onSample[ievent] > minEwindow && onSample[ievent] < maxEwindow)) {
-	//count++;
-        f += -2*TMath::Log(val);
-      }
+      //if(val>=0) {
+        if(val>0 && (onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE))){
+        
+            f += -2*TMath::Log(val);
+            //cout<<"LowE = "<<lowE<<"\t HighE = "<<highE<<"\tEnegies = "<<onSample[ievent]<<endl;
+            //cout<<"-2*TMath::Log(val) = "<<-2*TMath::Log(val)<<endl;
+        }
+        else
+            f += 0;
+/*
       else if (val > 0)
 	f += 0;
       else
         f += 1e99;
+ */
     }
-  //std::cout << "Non = " << Non << "counter = " << count << " g = " << g << " b = " << b << std::endl;
+        //std::cout << "Non = " << Non << "counter = " << count << " g = " << g << " b = " << b << std::endl;
 
+  // nuisance tau implemented on 26th July
+    if(dTau>0)
+      f+=-2*TMath::Log(TMath::Gaus(tauest, tau, dTau, kTRUE));
+    
   // tot Nevts
   if(g+b>0)
-    f += -2*TMath::Log(TMath::Poisson(count,g+b));
+    f += -2*TMath::Log(TMath::Poisson(count,g+boff));
     //f += -2*TMath::Log(TMath::Poisson(Non,g+b));
-  else
-    f += 1e99;
-
+  else{
+      f += 0;
+    //f += 1e99;
+  }
   delete hdNdEpOn;
+    
 }		
