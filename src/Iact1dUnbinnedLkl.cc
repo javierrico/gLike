@@ -187,7 +187,7 @@ static const Char_t*  gParName[gNPars] = {"g","b","tau"};        // Name of para
 static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
 static const Int_t    gNFineBins       = 5000;                   // default number of fine bins for internal histos
 static const Double_t gFineLEMin       = TMath::Log10(10);       // default minimum log(energy[GeV]) for internal histos
-static const Double_t gFineLEMax       = TMath::Log10(1000000);  // default maximum log(energy[GeV]) for internal histos
+static const Double_t gFineLEMax       = TMath::Log10(1e6);  // default maximum log(energy[GeV]) for internal histos
 static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
 
 // static functions (for internal processing of input data)
@@ -195,6 +195,7 @@ static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm);
 static void  readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
 static Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
+//static TH1F* GetResidualHisto(TH1F* hModel,TH1F* hData);
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
 static void  NormalizeMatrix(TH2F* im,TH2F* om,Double_t scale=0);
 //static void  makeLogAndInterpolate(TH1D* ih,TH1F* oh);
@@ -806,6 +807,7 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
       Float_t Emax = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+fHdNdESignal->GetBinWidth(ibin+1));
       Float_t dE   = Emax-Emin;
       fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
+        cout <<"signal PDF : Emin = "<<Emin<<"\t Eamx = "<<Emax<<endl;
     }
   else if(functionType==gBox)
     {

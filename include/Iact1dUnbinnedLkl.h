@@ -11,11 +11,11 @@
 #include "TRandom3.h"
 #include "TF1.h"
 #include "TMath.h"
-
 #include "Lkl.h"
 
 static const Float_t  gEpmin           = 1e01;                   // [GeV] default value of minimum E_est
 static const Float_t  gEpmax           = 1e06;                   // [GeV] default value of maximum E_est
+
 
 class Iact1dUnbinnedLkl : public virtual Lkl
 {
@@ -77,7 +77,9 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline TH1F*          GetHdNdESignal()      const {return fHdNdESignal;}
   virtual inline TGraph*  GetGEreso()         const {return fGEreso;}
   virtual inline TGraph*  GetGEbias()         const {return fGEbias;}
-  inline const TH2F*    GetMigMatrix()        const {return fMigMatrix;}
+    //Tomo chnaged
+  //inline const TH2F*    GetMigMatrix()        const {return fMigMatrix;}
+  inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
   inline const Float_t  GetLogJ()             const {return fLogJ;}
 
   inline Double_t GetdNdEpBkgIntegral()       {if(!fHdNdEpBkg) return 0; NormalizedNdEHisto(fHdNdEpBkg); return fHdNdEpBkg->GetBinContent(0);}
