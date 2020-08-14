@@ -226,19 +226,14 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     Int_t high_edge_bin =fHdNdEpBkg->FindBin(high_edge);
 
     //===Normalization for On data and bkg model===
-    Double_t scale_1 = hdNdEpOn->Integral(low_edge_bin,high_edge_bin);
-    Double_t scale_2 = fHdNdEpBkg->Integral(low_edge_bin,high_edge_bin);
+    Double_t scale_1 = Lkl::IntegrateLogE(hdNdEpOn,low_edge,high_edge);
+    Double_t scale_2 = Lkl::IntegrateLogE(fHdNdEpBkg,low_edge,high_edge);
 
-    //cout<<"scale_1 = "<<scale_1<<endl;
-    //cout<<"scale_2 = "<<scale_2<<endl;
-
-    //sleep(100);
 
     for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
         {
             if(hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,scale_1*f1->Eval(fHdNdEpBkg->GetBinCenter(ibin))/scale_2);
-                //fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
-            }
+	    }
         }
 
 
