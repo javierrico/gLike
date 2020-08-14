@@ -93,23 +93,6 @@ Int_t LineSearchLkl::InterpretInputString(TString inputString)
   return 0;
 }
 
-//////////////////////////////////////////////////////////////////
-// new Implented to access LineSearch Object for making a enregy window
-// implemented on 27th July
-
-// Return 0 in case checks are ok, 1 otherwise
-//
-
-Int_t LineSearchLkl::SetEnergyWindow(Int_t DMmass, Float_t windowsize)
-{
-    //Set fEpmin and fEpmax as corresponding edges of a energy window
-    cout<<"check"<<endl;
-    
-    
-    
-    return 0;
-}
- 
 ////////////////////////////////////////////////////////////////
 // 
 // Destructor
