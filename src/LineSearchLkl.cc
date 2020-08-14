@@ -311,6 +311,9 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   if(checkdNdEpBkg)
     Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
 
+  cout << "Int sig = " << IntegrateLogE(fHdNdEpSignal,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
+  cout << "Int bkg = " << IntegrateLogE(fHdNdEpBkg,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
+
   // if there are the dNdE' histograms for signal and background + data we're ready to go
   if(checkdNdEpBkg)
     {
