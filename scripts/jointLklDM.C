@@ -363,6 +363,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	}
       else if(classType.CompareTo("GloryDuckTables2019Lkl")==0)
 	{
+          if(isSimulation)
+            {
+              TPMERegexp re(".txt");
+              UInt_t nfields = re.Split(inputString);
+              inputString = re[0] + Form("_%d.txt",seed) + re[1];
+              cout << "  * Modified        : " << inputString << endl;
+            }
 	  GloryDuckTables2019Lkl *tmpLkl =  new GloryDuckTables2019Lkl(inputString);
           Bool_t massAvailable = kFALSE;
           for(Int_t jmass=0;jmass<nmass;jmass++)
