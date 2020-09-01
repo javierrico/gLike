@@ -290,7 +290,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
     }
   
   // open and read input files with data and IRFs
-  IactEventListIrf* dataSet = new IactEventListIrf("dataSet", "", inputfileName);
+  IactEventListIrf* dataSet = new IactEventListIrf("dataSet", "", path+(path==""?"":"/")+inputfileName);
 
   // extract info from file 
   fEpmin       = dataSet->GetEpmin();
