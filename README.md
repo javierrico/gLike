@@ -1,4 +1,8 @@
 ![gLike logo](https://github.com/javierrico/gLike/raw/master/logo/gLike_logo_small.png "gLike logo")
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3967385.svg)](https://doi.org/10.5281/zenodo.3967385)
+
+Numerical maximization of heterogeneous joint likelihood functions of a common free parameter plus nuisance parameters
 ------------------------------------------------------------------------------------------------
 
 gLike is a general-purpose [ROOT](root.cern.ch)-based code framework for the numerical maximization of joint likelihood functions.
@@ -14,15 +18,18 @@ Follows a non-exhaustive list of examples where gLike is useful (in order of inc
  - Estimating the dark matter annihilation cross-section combining observations of dwarf spheroidal galaxies by different ground-based gamma-ray telescopes, satellite gamma-ray detectors, neutrino telescopes, ....
  - Estimating the energy scale of quantum gravity by combining observations of fast gamma-ray flares observed by different ground-based gamma-ray telescopes.
  - ...
- 
-### Prerequisites
+
+## Citing gLike
+If you are using `gLike` for your work you can acknowledge and reference it through its [zenodo record](https://zenodo.org/record/3967386).
+
+## Prerequisites
 `gLike`'s sole dependency is [ROOT](https://root.cern.ch). 
 
-#### Note on IACT analyses with gLike 
+### Note on IACT analyses with gLike 
 To input [IACT data in FITS format](https://github.com/javierrico/gLike/wiki/Data-format-for-analysis-of-IACT-data#fits-format) `gLike` uses special `TFITSHDU` methods available only in very recent ROOT versions (> 6.20.04).     
 If you build `gLike` using an older ROOT version, the interface to FITS data for IACT analysis will not be available.
 
-### Installation
+## Installation
 1. Get the code from the GitHub [gLike repository](https://github.com/javierrico/gLike)
 
 2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
@@ -75,7 +82,7 @@ this should execute the `rootlogon.C` of gLike each time you launch root.
 An example `.rootrc` is available in `gLike` distribution repository.
 
 
-### gLike distribution structure
+## gLike distribution structure
 In gLike you find the following directories:
 1. [`src`](https://github.com/javierrico/gLike/tree/master/src): source files (*.cc) with definition of every class,
 2. [`include`](https://github.com/javierrico/gLike/tree/master/include): include files (*.h) with declaration of every class,
@@ -123,7 +130,7 @@ containing the `gLike` executables.
 `htmldoc`, containing the `html` documentation, will be generated only if the 
 corresponding cache variable has been specified at building. 
 
-### Fast description of the code
+## Fast description of the code
 gLike is a general-purpose collection of root-based classes for maximum likelihood analysis. gLike provides a framework for producing an arbitrarily complicated joint likelihood as the product of likelihood functions of any kind. The structure is modular, so if the likelihood function you need to use is not included yet, you can program it and make a pull request. The likelihood function has one free parameter (_g_) and as many nuisance parameters as needed.
  
 gLike consists of two main basic classes, [`Lkl`](https://github.com/javierrico/gLike/blob/master/include/Lkl.h)
@@ -133,7 +140,7 @@ gLike consists of two main basic classes, [`Lkl`](https://github.com/javierrico/
  
  Almost all the other gLike classes ([`Iact1dUnbinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dUnbinnedLkl.h),[`Iact1dBinnedLkl`](https://github.com/javierrico/gLike/blob/master/include/Iact1dBinnedLkl.h), [`FermiTables2016Lkl`](https://github.com/javierrico/gLike/blob/master/include/FermiTables2016Lkl.h),  [`Parabola`](https://github.com/javierrico/gLike/blob/master/include/Parabola.h), [`Poisson`](https://github.com/javierrico/gLike/blob/master/include/PoissonLkl.h)) just implement a particular likelihood function. Adding other likelihood functions can be easily done starting from the basic skeleton provided at [`TemplateLkl`](https://github.com/javierrico/gLike/blob/master/include/TemplateLkl.h) and following one of the previously listed classes as example.
 
-### Basic Usage for dark matter searches
+## Basic Usage for dark matter searches
 Within the gLike library, there is no assumption about the physical meaning of the free parameter _g_. That needs to be assigned externally in the macros or executables using the gLike library.
 The gLike distribution provides, at the directory [`scripts`](https://github.com/javierrico/gLike/tree/master/scripts), a few tutorial macros/executables for the most common use cases (e.g. minimisation of a Poisson likelihood, definition of a joint likelihood).    
 They can be executed from the root terminal
@@ -153,6 +160,6 @@ You can find some documentation in its [wiki entry](https://github.com/javierric
 Example configuration files can be found in the [`rcfiles`](https://github.com/javierrico/gLike/tree/master/rcfiles) directory. 
 There is a detailed documentation on how to configure it correctly both in the [wiki](https://github.com/javierrico/gLike/wiki/rc-files-for-jointLklDM.C), and the jointLklDM.rc rcfile provided with the distribution. 
 
-### Transition from old cvs mdm distribution to the git gLike standalone distribution
+## Transition from old cvs mdm distribution to the git gLike standalone distribution
 
 If you are a pre-gitHub gLike user, and you whish to keep using new gLike distribututions with some old input files, you may need to adapt them following the advice of this [wiki entry](https://github.com/javierrico/gLike/wiki/Transition-from-old-cvs-mdm-distribution-to-the-git-gLike-standalone-distribution).
