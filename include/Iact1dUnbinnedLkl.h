@@ -81,6 +81,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline       Float_t  GetNFineBins()        const {return fNFineBins;}
   inline       Float_t  GetFineLEMin()        const {return fFineLEMin;}
   inline       Float_t  GetFineLEMax()        const {return fFineLEMax;}
+  //virtual inline TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
   //virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
   //virtual inline TGraph*  GetGEreso()         const {return fGEreso;}
   //virtual inline TGraph*  GetGEbias()         const {return fGEbias;}

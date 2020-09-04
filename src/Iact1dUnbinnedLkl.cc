@@ -1698,7 +1698,7 @@ void Iact1dUnbinnedLkl::PlotHistosAndData(TCanvas* canvas)
   /////////////////////////
   canvas->cd(5);
   dummya->SetMinimum(1e-7);
-  dummya->SetMaximum(1e0);
+  dummya->SetMaximum(1e2);
   dummya->SetTitle("dN/dE for signal events");
   dummya->SetXTitle("log_{10}(E [GeV])");
   dummya->SetYTitle("dN/dE [GeV^{-1}]");

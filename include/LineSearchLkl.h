@@ -27,9 +27,12 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
   inline  Double_t GetdNdEpSignalIntegral()   {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
   Int_t ReaddNdEpSignal(TString filename);
   virtual TH1F* GetHdNdEpModelBkg(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
+  virtual TH1F*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const; // Tomo
   inline  void  SetRelativePeakIntensity(Float_t relativeIntensity) {fRelativePeakIntensity = relativeIntensity;};
-  inline  void  SetBkgRegionWidht(Float_t bkgWidth) {fBkgRegionWidth = bkgWidth;};
+  inline  void  SetBkgRegionWidth(Float_t bkgWidth) {fBkgRegionWidth = bkgWidth;};
 
+  //newly implemeted on 27th July
+  Int_t SetEnergyWindow(Int_t DMmass, Float_t windowsize);
   // Plots
   TCanvas* PlotHistosAndData();
 
@@ -47,7 +50,7 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
   Int_t SetdNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
 
  private:  
-
+    
   TH1F*    fHdNdEpBkg;              //-> dN/dE'dt vs E' for background events (normalized)
   TH1F*    fHdNdEpSignal;           //-> dN/dE' vs E' histogram for signal events (normalized)
   Float_t  fRelativePeakIntensity;  // Relative peak intensity (compare to signal maximum) to define regions where the backrground is estimated. By default it is 10%.

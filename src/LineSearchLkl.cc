@@ -29,7 +29,12 @@ using namespace std;
 static const TString  gName            = "LineSearchLkl";
 static const TString  gTitle           = "Line Search Likelihood";
 static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge
-static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
+//static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
+//count inside energy window
+int event_count =0;
+int bin_enwindow =0;
+
+Int_t gNBins = bin_enwindow;
 
 // List of free parameters.
 // Here we consider the minimal case with just the "g" free parameter
@@ -56,8 +61,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
 // also, do not change this
 static TMinuit* minuit = NULL;
 
-//count inside energy window
-int event_count =0;
 //test
 Double_t minEwindow = 0.;
 Double_t maxEwindow = 0.;
@@ -130,8 +133,7 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
   //Double_t pStart[gNPars] = {ginit};
   Double_t pStart[gNPars] = {ginit, Iact1dUnbinnedLkl::GetTau()}; //implemented on 26th July
   //Double_t pDelta[gNPars] = {TMath::Sqrt(Iact1dUnbinnedLkl::GetNon())/100.}; // Precision of parameters during minimization
-  Double_t pDelta[gNPars] = //{TMath::Sqrt(Iact1dUnbinnedLkl::GetNon())/100.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
-    {TMath::Sqrt(event_count)/10.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
+  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
 
   // initialize the free (and nuisance) parameters
   SetParameters(gParName,pStart,pDelta);
@@ -169,6 +171,60 @@ Int_t LineSearchLkl::MakeChecks()
   return 0;
 }	      
 
+//////////////////////////////////////////////////////////////////
+//
+// Produce the E' distribution of On events and return the
+// corresponding histogram.
+// if isDifferential=kTRUE (default is kTRUE), return the
+// dN/dE' distribution (i.e. number of entries in the bin divided
+// by the size of the bin in E' unit). Otherwise the returned
+// histogram is the number of events per bin of E'.
+// The returned histogram will not be deleted by the destructor
+// of Iact1dUnbinnedLkl.
+//
+TH1F* LineSearchLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
+{
+  // we need a positive number of bins
+  //if(nbins<=0) nbins = gNBins;
+  nbins = bin_enwindow;
+  // create histo
+  TH1F* h = new TH1F("dNdEpOn","dN/dE' for On events",nbins,TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
+  h->SetDirectory(0);
+  h->SetXTitle("log_{10}(E' [GeV])");
+  h->SetYTitle("dN/dE' [GeV^{-1}]");
+
+  const Float_t* onSampledNdE = Iact1dUnbinnedLkl::GetOnSample();
+    
+  // fill histo
+  for(Int_t i=0;i<Iact1dUnbinnedLkl::GetNon();i++)
+    h->Fill(onSampledNdE[i]);
+
+  // divide by bin width
+  if(h->GetEntries()>0)
+    if(isDifferential)
+      for(Int_t ibin=0;ibin<nbins;ibin++)
+    {
+      Double_t leminbin = h->GetBinLowEdge(ibin+1);
+      Double_t lemaxbin = leminbin+h->GetBinWidth(ibin+1);
+      Double_t deltaE   = TMath::Power(10,lemaxbin)-TMath::Power(10,leminbin);
+      h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
+      h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
+    }
+  
+    /*
+     TCanvas *c_test2 = new TCanvas("c_test2","c_test2",600,600);
+      c_test2->cd();
+      c_test2->SetLogy();
+      h->Draw();
+      c_test2->SaveAs("c_test2_fig.png");
+      c_test2->SaveAs("c_test2_fig.root");
+    */
+    //cout<<"gNBins = "<<nbins<<endl;
+    //sleep(30);
+    
+  return h;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Compute background model from On data
@@ -191,33 +247,26 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
   int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
-        //cout<<"unfilled energy = "<<onSample[ievent]<<endl;
         if(onSample[ievent] > low_edge && onSample[ievent] < high_edge){
-            //cout<<"Filled Energy = "<<onSample[ievent]<<endl;
             hdNdEpOn->Fill(onSample[ievent]);
             count++;
             }
     }
     event_count=count;
     
-    //cout<<"eventnumber 1 = "<<event_count<<endl;
-
-    //cout<<"Non = "<<Non<<"\t count = "<<count<<endl;
-
-    //cout<<"Bin range Emin = "<<Iact1dUnbinnedLkl::GetFineLEMin()<<"\t Emax = "<<Iact1dUnbinnedLkl::GetFineLEMax()<<endl;
-    cout<<"Eest range Emin = "<<Iact1dUnbinnedLkl::GetEmin()<<"\t Emax = "<<Iact1dUnbinnedLkl::GetEmax()<<endl;
-    //sleep(200);
-
     
     fHdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
     TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+    //TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
     hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
+    //sleep(100);
     
-    
+
     for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
       {
           if (hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
+              bin_enwindow++;
           }
       }
 
@@ -230,17 +279,15 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     Double_t scale_2 = Lkl::IntegrateLogE(fHdNdEpBkg,low_edge,high_edge);
 
 
+    
+    /* TOMO : I don't think this re-scale is neccesary, what do you think?
     for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
         {
             if(hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,scale_1*f1->Eval(fHdNdEpBkg->GetBinCenter(ibin))/scale_2);
 	    }
         }
-
-
+    */
     
-    
-    Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
-
     delete hdNdEpOn;
     delete f1;
 
@@ -291,10 +338,9 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
           if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetGEreso(),Iact1dUnbinnedLkl::GetGEbias()))
             return 1;
         }
-/*
-      if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetGEreso(),Iact1dUnbinnedLkl::GetGEbias()))
-         return 1;
-*/
+
+      //if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetGEreso(),Iact1dUnbinnedLkl::GetGEbias()))
+      //   return 1;
 
 
       cout << "Done! " << endl;
@@ -311,8 +357,8 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   if(checkdNdEpBkg)
     Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
 
-  cout << "Int sig = " << IntegrateLogE(fHdNdEpSignal,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
-  cout << "Int bkg = " << IntegrateLogE(fHdNdEpBkg,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
+  //cout << "Int sig = " << IntegrateLogE(fHdNdEpSignal,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
+  //cout << "Int bkg = " << IntegrateLogE(fHdNdEpBkg,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
 
   // if there are the dNdE' histograms for signal and background + data we're ready to go
   if(checkdNdEpBkg)
@@ -570,7 +616,8 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
 
   // dN/dE' background vs data
   canvas->cd(2);
-  TH1F* hOn  = Iact1dUnbinnedLkl::GetHdNdEpOn();
+  //TH1F* hOn  = Iact1dUnbinnedLkl::GetHdNdEpOn();
+  TH1F* hOn  = LineSearchLkl::GetHdNdEpOn();
   hOn->SetDirectory(0);
 
   TH1I *dummya = new TH1I("dummya", "dN/dE' bkg model vs On distribution",1,TMath::Log10(Iact1dUnbinnedLkl::GetEmin()),TMath::Log10(Iact1dUnbinnedLkl::GetEmax()));
@@ -592,15 +639,18 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   dummya->DrawCopy();
 
   TH1F* hBkg  = GetHdNdEpModelBkg();
+  //TH1F* hBkg  = GetHdNdEpBkg();
   hBkg->SetDirectory(0);
   if(fHdNdEpBkg)
     {
-      Double_t scale = hBkg->GetBinContent(0);
-      Double_t scale2 = hOn->GetBinContent(0);
+      //Double_t scale = hBkg->GetBinContent(0);
+      //Double_t scale2 = hOn->GetBinContent(0);
+
       hBkg->SetLineColor(2);
       hBkg->SetMarkerColor(2);
       hBkg->SetMarkerStyle(2);
       hBkg->DrawCopy("esame");
+
     }
   hOn->DrawCopy("esame");
 
@@ -725,6 +775,7 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   return canvas;
 }
 
+
 //////////////////////////////////////////////////////////////////
 //
 // Produce the E' distribution of On events and return the 
@@ -739,9 +790,10 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
 TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
 {
   // we need a positive number of bins
-  if(nbins<=0) nbins = gNBins;
-
-  fHdNdEpBkg->Scale(fHdNdEpBkg->GetBinContent(0));
+  //if(nbins<=0) nbins = gNBins;
+  nbins = bin_enwindow;
+  cout<<fHdNdEpBkg->GetBinContent(0)<<endl;
+    sleep(3);
 
   // create histo
   TH1F* h = new TH1F("dNdEpBkg","dN/dE' for Bkg events",nbins,TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
@@ -749,12 +801,13 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
   h->SetXTitle("log_{10}(E' [GeV])");
   h->SetYTitle("dN/dE' [GeV^{-1}]");
 
+
   // fill histo
   for(Int_t i=1;i<fHdNdEpBkg->GetNbinsX()-1;i++)
     {
       for(Int_t j=1;j<fHdNdEpBkg->GetBinContent(i)+0.5;j++)
         {
-          h->Fill(fHdNdEpBkg->GetBinCenter(i));
+          h->Fill(fHdNdEpBkg->GetBinCenter(i));	  
         }
     }
 
@@ -770,6 +823,7 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
           h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
         }
 
+
   fHdNdEpBkg->Scale(1./fHdNdEpBkg->GetBinContent(0));
 
   return h;
@@ -780,7 +834,7 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
 // Given a histogram hModel representing a model
 // and another one hData representing data (with properly computed errors)
 // return the histogram of residuals (hData-hModel)
-//
+//1
 TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 {
   // basic check
@@ -922,13 +976,12 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   const Int_t      nbins           = hdNdEpBkg->GetNbinsX();
   const Double_t   xmin            = hdNdEpBkg->GetXaxis()->GetXmin();
   const Double_t   xmax            = hdNdEpBkg->GetXaxis()->GetXmax();
-
+  
   //get energy window size
-    Float_t lowE = mylkl->GetEmin();
-    Float_t highE = mylkl->GetEmax();
+  Float_t lowE = mylkl->GetEmin();
+  Float_t highE = mylkl->GetEmax();
     
-    //cout<<"in lkl class : lowE = "<<lowE<<"\t highE = "<<highE<<endl;
-
+    
   //added on 26th July
   Float_t tau = mylkl->GetTau();
   Float_t dTau = mylkl->GetDTau();
@@ -942,10 +995,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
             }
     }
     event_count=count;
-    //cout<<"event number2 inside window is "<<event_count<<endl;
-    //cout<<"Non = "<<Non<<"\t count = "<<count<<endl;
-    
-    //sleep(200);
 
   // Estimated number of signal and background events in signal region
   Double_t g       = par[0];
@@ -985,8 +1034,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
         if(val>0 && (onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE))){
         
             f += -2*TMath::Log(val);
-            //cout<<"LowE = "<<lowE<<"\t HighE = "<<highE<<"\tEnegies = "<<onSample[ievent]<<endl;
-            //cout<<"-2*TMath::Log(val) = "<<-2*TMath::Log(val)<<endl;
         }
         else
             f += 0;
@@ -997,7 +1044,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
         f += 1e99;
  */
     }
-        //std::cout << "Non = " << Non << "counter = " << count << " g = " << g << " b = " << b << std::endl;
 
   // nuisance tau implemented on 26th July
     if(dTau>0)
