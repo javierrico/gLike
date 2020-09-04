@@ -70,7 +70,8 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline       Float_t  GetDataObsTime()      const {return fDataObsTime;}
   inline const TH1F*    GetHAeff()            const {return fHAeff;}
   inline const TH1F*    GetHAeffOff()         const {return fHAeffOff;}
-  inline const TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
+  //inline const TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
+  virtual inline TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
   inline const TH1F*    GetHdNdEpFrg()        const {return fHdNdEpFrg;}
   virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
   inline const TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
