@@ -52,6 +52,11 @@ static Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm);
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
 static Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
 
+//newly implemented 04/09/2020
+static void  readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
+void differentiate(TH1F* h);
+
+
 // -2logL function for minuit
 // you can change its name but the format is required by ROOT, you should not change it
 // if you change the name, do it consistently in all this file
@@ -210,18 +215,7 @@ TH1F* LineSearchLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
       h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
       h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
     }
-  
-    /*
-     TCanvas *c_test2 = new TCanvas("c_test2","c_test2",600,600);
-      c_test2->cd();
-      c_test2->SetLogy();
-      h->Draw();
-      c_test2->SaveAs("c_test2_fig.png");
-      c_test2->SaveAs("c_test2_fig.root");
-    */
-    //cout<<"gNBins = "<<nbins<<endl;
-    //sleep(30);
-    
+      
   return h;
 }
 
@@ -253,13 +247,15 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
             }
     }
     event_count=count;
-    
-    
+
     fHdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+    
+    //TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x+[4]*x*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
     TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-    //TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+
     hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
+    //TF1* f1 = new TF1("f1","pol3",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
     //sleep(100);
     
 
@@ -270,6 +266,17 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
           }
       }
 
+    TCanvas *c1_test = new TCanvas("c1_test","c1_test",1200,600);
+    c1_test->Divide(2,1);
+    c1_test->cd(1);
+    hdNdEpOn->DrawCopy();
+    f1->DrawCopy("sames");
+
+    
+    // convert event distribution into dNdE histogra,
+    differentiate(hdNdEpOn);
+    differentiate(fHdNdEpBkg);
+    
     //===Find bins ===
     Int_t low_edge_bin =fHdNdEpBkg->FindBin(low_edge);
     Int_t high_edge_bin =fHdNdEpBkg->FindBin(high_edge);
@@ -278,8 +285,15 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     Double_t scale_1 = Lkl::IntegrateLogE(hdNdEpOn,low_edge,high_edge);
     Double_t scale_2 = Lkl::IntegrateLogE(fHdNdEpBkg,low_edge,high_edge);
 
-
+    c1_test->cd(2);
+    fHdNdEpBkg->SetLineColor(2);
+    fHdNdEpBkg->SetMarkerColor(2);
+    fHdNdEpBkg->SetMarkerStyle(2);
+    fHdNdEpBkg->DrawCopy();
+    hdNdEpOn->DrawCopy("sames");
     
+    c1_test->SaveAs("c1_test.root");
+
     /* TOMO : I don't think this re-scale is neccesary, what do you think?
     for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
         {
@@ -293,6 +307,8 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
 
     return 0;
 }
+
+
 
 ////////////////////////////////////////////////////////////////
 //
@@ -792,8 +808,9 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
   // we need a positive number of bins
   //if(nbins<=0) nbins = gNBins;
   nbins = bin_enwindow;
+  fHdNdEpBkg->Scale(fHdNdEpBkg->GetBinContent(0));
   cout<<fHdNdEpBkg->GetBinContent(0)<<endl;
-    sleep(3);
+  sleep(3);
 
   // create histo
   TH1F* h = new TH1F("dNdEpBkg","dN/dE' for Bkg events",nbins,TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
@@ -810,7 +827,7 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
           h->Fill(fHdNdEpBkg->GetBinCenter(i));	  
         }
     }
-
+/*
   // divide by bin width
   if(h->GetEntries()>0)
     if(isDifferential)
@@ -822,11 +839,156 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
           h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
           h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
         }
-
+*/
 
   fHdNdEpBkg->Scale(1./fHdNdEpBkg->GetBinContent(0));
 
   return h;
+}
+
+/////////////////////////////////////////////////////////////////
+//
+// conversion histogram of event count into dNdE histogram
+void differentiate(TH1F* h)
+{
+    Int_t nbins = h->GetXaxis()->GetNbins();
+    // divide by bin width
+    if(h->GetEntries()>0)
+        for(Int_t ibin=0;ibin<nbins;ibin++)
+      {
+        Double_t leminbin = h->GetBinLowEdge(ibin+1);
+        Double_t lemaxbin = leminbin+h->GetBinWidth(ibin+1);
+        Double_t deltaE   = TMath::Power(10,lemaxbin)-TMath::Power(10,leminbin);
+        h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
+        h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
+      }
+}
+
+//////////////////////////////////////////////////////////////////
+//
+// Copy the contents of ih into oh by interpolating if necessary
+// the x axis of ih and oh must be in log-scale and even binning
+// the interpolation is done linearly in log(y)
+// the units of the x-axis of ih are those of oh times 10^scale
+// if isDiff=kTRUE the input histogram is differential (default)
+// if isDiff=kFALSE the input histogram is bin-integrated
+// the output histogram is ALWAYS differential
+//
+void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
+{
+  // input histogram binning
+  Double_t imine   = ih->GetXaxis()->GetXmin()+scale; // minimum log(E) in input histo
+  Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
+  Int_t    inbinse = ih->GetNbinsX();
+  Double_t ide     = (imaxe-imine)/inbinse;
+
+  // output histogram binning
+  Double_t omine   = oh->GetXaxis()->GetXmin(); // minimum log(E) in output histo
+  Double_t omaxe   = oh->GetXaxis()->GetXmax(); // maximum log(E) in output histo
+  Int_t    onbinse = oh->GetNbinsX();
+  Double_t ode     = (omaxe-omine)/onbinse;
+  
+  // interpolate values
+  Double_t x0,x1,dx0i,dx1i,y0,y1,etest,etestbin,y,rtest,ycontent0,ycontent1;
+  for(Int_t ibin=0;ibin<onbinse;ibin++)
+    {
+      etest = omine+ode*(ibin+gCenterBin);
+
+      // log-log interpolation
+      if(etest<imine+gCenterBin*ide) // extrapolation of values below the minimum input energy
+    {
+      // ycontent0 = ih->GetBinContent(1);
+      // ycontent1 = ih->GetBinContent(2);
+      
+      // if(ycontent0<=0 || ycontent1<=0)
+      //   {
+      //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+      //     continue;
+      //   }
+
+      // x0 = imine+gCenterBin*ide;
+      // x1 = imine+(1.+gCenterBin)*ide;
+
+      // if(!isDiff)
+      //   {
+      //     dx0i = TMath::Power(10,imine+ide)-TMath::Power(10,imine);
+      //     dx1i = TMath::Power(10,imine+2*ide)-TMath::Power(10,imine+ide);
+
+      //     y0  = TMath::Log10(ycontent0/dx0i);
+      //     y1  = TMath::Log10(ycontent1/dx1i);
+      //   }
+      // else
+      //   {
+      //     y0 = TMath::Log10(ycontent0);
+      //     y1 = TMath::Log10(ycontent1);
+      //   }
+      oh->SetBinContent(ibin+1,0);
+      continue;
+    }
+      else if(etest>imaxe-(1-gCenterBin)*ide) // extrapolation of values above the maximum input energy
+    {
+      // ycontent0 = ih->GetBinContent(onbinse-1);
+      // ycontent1 = ih->GetBinContent(onbinse);
+      
+      // if(ycontent0<=0 || ycontent1<=0)
+      //   {
+      //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
+      //     continue;
+      //   }
+
+      // x0 = imaxe-(2.-gCenterBin)*ide;
+      // x1 = imaxe-(1.-gCenterBin)*ide;
+      // if(!isDiff)
+      //   {
+      //     dx0i = TMath::Power(10,imine+(inbinse-1)*ide)-TMath::Power(10,imine+(inbinse-2)*ide);
+      //     dx1i = TMath::Power(10,imine+inbinse*ide)-TMath::Power(10,imine+(inbinse-1)*ide);
+      //     y0  = TMath::Log10(ycontent0/dx0i);
+      //     y1  = TMath::Log10(ycontent1/dx1i);
+      //   }
+      // else
+      //   {
+      //     y0 = TMath::Log10(ycontent0);
+      //     y1 = TMath::Log10(ycontent1);
+      //   }
+      oh->SetBinContent(ibin+1,0);
+      continue;
+
+    }
+      else // interpolation of values in the range of provided energies
+    {
+      etestbin  = Int_t((etest-imine-gCenterBin*ide)/ide); // corresponding bin in ih histo
+
+      ycontent0 = ih->GetBinContent(etestbin+1);
+      ycontent1 = ih->GetBinContent(etestbin+2);
+      
+      if(ycontent0<=0 || ycontent1<=0)
+        {
+          oh->SetBinContent(ibin+1,0);
+          continue;
+        }
+      
+      x0 = imine+(etestbin+gCenterBin)*ide;
+      x1 = imine+(etestbin+1+gCenterBin)*ide;
+      
+      if(!isDiff)
+        {
+          dx0i = TMath::Power(10,imine+(etestbin+1)*ide)-TMath::Power(10,imine+etestbin*ide);
+          dx1i = TMath::Power(10,imine+(etestbin+2)*ide)-TMath::Power(10,imine+(etestbin+1)*ide);
+          y0 = TMath::Log10(ycontent0/dx0i);
+          y1 = TMath::Log10(ycontent1/dx1i);
+        }
+      else
+        {
+          y0 = TMath::Log10(ycontent0);
+          y1 = TMath::Log10(ycontent1);
+        }
+    }
+      
+      y     = y0+(etest-x0)*(y1-y0)/(x1-x0);
+      rtest = TMath::Power(10,y);
+      oh->SetBinContent(ibin+1,rtest);
+      // cout << ibin+1 << ": ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << "y0 = " << y0 << ", y1 = " << y1 << ", x0 = " << x0 << ", x1 = " << x1 << ", rtest = " << rtest << endl;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////

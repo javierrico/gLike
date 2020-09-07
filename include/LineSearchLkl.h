@@ -23,6 +23,9 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
   inline  Float_t  GetBkgRegionWigth()        const {return fBkgRegionWidth;};
   inline  TH1F*    GetHdNdEpBkg()             const {return fHdNdEpBkg;}
   inline  TH1F*    GetHdNdEpSignal()          const {return fHdNdEpSignal;}
+  
+  //new implemented 04/09/2020
+  //inline  TF1*    GetfFEventbkg()          const {return fFEventbkg;}
 
   inline  Double_t GetdNdEpSignalIntegral()   {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
   Int_t ReaddNdEpSignal(TString filename);
@@ -53,6 +56,7 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
     
   TH1F*    fHdNdEpBkg;              //-> dN/dE'dt vs E' for background events (normalized)
   TH1F*    fHdNdEpSignal;           //-> dN/dE' vs E' histogram for signal events (normalized)
+  //TF1*     fFEventbkg;              //-> fitting function to event distribution (part of fOnsample) inside slinding window  
   Float_t  fRelativePeakIntensity;  // Relative peak intensity (compare to signal maximum) to define regions where the backrground is estimated. By default it is 10%.
   Float_t  fBkgRegionWidth;         // Relative peak intensity (compare to signal maximum) to define regions where the backrground is estimated. By default it is 10%.
 
