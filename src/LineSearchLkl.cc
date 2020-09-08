@@ -29,12 +29,12 @@ using namespace std;
 static const TString  gName            = "LineSearchLkl";
 static const TString  gTitle           = "Line Search Likelihood";
 static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge
-//static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
+static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
 //count inside energy window
 int event_count =0;
 int bin_enwindow =0;
 
-Int_t gNBins = bin_enwindow;
+//Int_t gNBins = bin_enwindow;
 
 // List of free parameters.
 // Here we consider the minimal case with just the "g" free parameter
@@ -54,7 +54,7 @@ static Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE
 
 //newly implemented 04/09/2020
 static void  readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
-void differentiate(TH1F* h);
+void differentiate(TH1F* h,Int_t error_flag);
 
 
 // -2logL function for minuit
@@ -192,6 +192,7 @@ TH1F* LineSearchLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
   // we need a positive number of bins
   //if(nbins<=0) nbins = gNBins;
   nbins = bin_enwindow;
+
   // create histo
   TH1F* h = new TH1F("dNdEpOn","dN/dE' for On events",nbins,TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
   h->SetDirectory(0);
@@ -255,6 +256,7 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
     hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
+
     //TF1* f1 = new TF1("f1","pol3",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
     //sleep(100);
     
@@ -265,17 +267,17 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
               bin_enwindow++;
           }
       }
-
+/*
     TCanvas *c1_test = new TCanvas("c1_test","c1_test",1200,600);
     c1_test->Divide(2,1);
     c1_test->cd(1);
     hdNdEpOn->DrawCopy();
     f1->DrawCopy("sames");
-
+*/
     
     // convert event distribution into dNdE histogra,
-    differentiate(hdNdEpOn);
-    differentiate(fHdNdEpBkg);
+    differentiate(hdNdEpOn,1);
+    differentiate(fHdNdEpBkg,0);
     
     //===Find bins ===
     Int_t low_edge_bin =fHdNdEpBkg->FindBin(low_edge);
@@ -285,6 +287,7 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     Double_t scale_1 = Lkl::IntegrateLogE(hdNdEpOn,low_edge,high_edge);
     Double_t scale_2 = Lkl::IntegrateLogE(fHdNdEpBkg,low_edge,high_edge);
 
+    /*
     c1_test->cd(2);
     fHdNdEpBkg->SetLineColor(2);
     fHdNdEpBkg->SetMarkerColor(2);
@@ -293,7 +296,8 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     hdNdEpOn->DrawCopy("sames");
     
     c1_test->SaveAs("c1_test.root");
-
+*/
+    
     /* TOMO : I don't think this re-scale is neccesary, what do you think?
     for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
         {
@@ -367,7 +371,7 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   // normalize unnormalized histos
   Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpSignal);
 
-  //if(!fHdNdEpBkg)
+  if(!fHdNdEpBkg)
     ComputeBkgModelFromOnHisto();
 
   if(checkdNdEpBkg)
@@ -716,11 +720,12 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   gPad->SetGrid();
   gPad->Modified();
   gPad->Update();
+    
 
   // residuals
   canvas->cd(4);
-  dummya->SetMinimum(-5);
-  dummya->SetMaximum(5);
+  dummya->SetMinimum(-10);
+  dummya->SetMaximum(10);
   dummya->SetTitle("Residuals");
   dummya->SetXTitle("log_{10}(E' [GeV])");
   if(fHdNdEpBkg)
@@ -729,6 +734,7 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
     dummya->SetTitle("(On-Off)/ #Delta On");
   dummya->DrawCopy();
   TH1F* hResidualsOn  = NULL;
+
   if(fHdNdEpBkg && hOn)
     {
       hResidualsOn  =  GetResidualsHisto(hBkg,hOn);
@@ -746,6 +752,8 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   gPad->Modified();
   gPad->Update();
 
+  hResidualsOn->SaveAs("resi.root");
+    
   // dN/dE for signal
   canvas->cd(5);
   dummya->SetMinimum(1e-7);
@@ -808,9 +816,11 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
   // we need a positive number of bins
   //if(nbins<=0) nbins = gNBins;
   nbins = bin_enwindow;
+  cout<<"number of bkg bin = "<<nbins<<endl;
+  sleep(5);
+    
+
   fHdNdEpBkg->Scale(fHdNdEpBkg->GetBinContent(0));
-  cout<<fHdNdEpBkg->GetBinContent(0)<<endl;
-  sleep(3);
 
   // create histo
   TH1F* h = new TH1F("dNdEpBkg","dN/dE' for Bkg events",nbins,TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
@@ -849,7 +859,7 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
 /////////////////////////////////////////////////////////////////
 //
 // conversion histogram of event count into dNdE histogram
-void differentiate(TH1F* h)
+void differentiate(TH1F* h, Int_t error_flag=0)
 {
     Int_t nbins = h->GetXaxis()->GetNbins();
     // divide by bin width
@@ -859,8 +869,10 @@ void differentiate(TH1F* h)
         Double_t leminbin = h->GetBinLowEdge(ibin+1);
         Double_t lemaxbin = leminbin+h->GetBinWidth(ibin+1);
         Double_t deltaE   = TMath::Power(10,lemaxbin)-TMath::Power(10,leminbin);
-        h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
-        h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
+          if(error_flag==0){
+              h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
+          }
+          h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
       }
 }
 
@@ -1005,6 +1017,9 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
   // get number of data bins
   UInt_t nbins = hData->GetNbinsX();
 
+  cout<<"number of bins = "<<nbins<<endl;
+  sleep(10);
+    
   // check if bin width is constant
   Bool_t binWidthIsConstant = kTRUE;
   for(Int_t ibin=0;ibin<nbins-1;ibin++)
@@ -1187,15 +1202,15 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   // -2 log-likelihood
   f = 0;
 
-  //int count=0;
   // On events
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
       Float_t val = hdNdEpOn->GetBinContent(hdNdEpOn->FindBin(onSample[ievent]));
       //if(val>=0) {
-        if(val>0 && (onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE))){
-        
+        if(val>0){
+            //if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
             f += -2*TMath::Log(val);
+            //}
         }
         else
             f += 0;
@@ -1216,8 +1231,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
     f += -2*TMath::Log(TMath::Poisson(count,g+boff));
     //f += -2*TMath::Log(TMath::Poisson(Non,g+b));
   else{
-      f += 0;
-    //f += 1e99;
+      //f += 0;
+      f += 1e99;
   }
   delete hdNdEpOn;
     
