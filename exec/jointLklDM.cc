@@ -381,6 +381,13 @@ int main(int argc,char* argv[])
 	}
       else if(classType.CompareTo("GloryDuckTables2019Lkl")==0)
 	{
+          if(isSimulation)
+            {
+              TPMERegexp re(".txt");
+              UInt_t nfields = re.Split(inputString);
+              inputString = re[0] + Form("_%d.txt",seed) + re[1];
+              cout << "  * Modified        : " << inputString << endl;
+            }
 	  GloryDuckTables2019Lkl *tmpLkl =  new GloryDuckTables2019Lkl(inputString);
           Bool_t massAvailable = kFALSE;
           for(Int_t jmass=0;jmass<nmass;jmass++)
@@ -1004,7 +1011,7 @@ int main(int argc,char* argv[])
   gSystem->Exec(Form("mkdir -p %s/root",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
   
-  TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+  TString seedTag  = (seed<0? "" : Form("_%d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
