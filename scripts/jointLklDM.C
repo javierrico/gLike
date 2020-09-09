@@ -492,7 +492,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       // Create directory and open file for data export
       TString exportDataDir = fExportDataPath+simulationlabel+"/";
       gSystem->Exec(Form("mkdir -p %s",exportDataDir.Data()));
-      TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+      TString seedTag  = (seed<0? "" : Form("_%d",seed));
       TString dataFile = exportDataDir+label+seedTag+".txt";
       data.open(dataFile);
 
@@ -1081,7 +1081,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   gSystem->Exec(Form("mkdir -p %s/root",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
   
-  TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+  TString seedTag  = (seed<0? "" : Form("_%d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
