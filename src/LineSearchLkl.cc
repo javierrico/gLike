@@ -253,7 +253,9 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     
     //TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x+[4]*x*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
-    TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+   // TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+    
+     TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
     hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
 
@@ -377,8 +379,6 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   if(checkdNdEpBkg)
     Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
 
-  //cout << "Int sig = " << IntegrateLogE(fHdNdEpSignal,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
-  //cout << "Int bkg = " << IntegrateLogE(fHdNdEpBkg,TMath::Log10(GetEmin()),TMath::Log10(GetEmax())) << endl;
 
   // if there are the dNdE' histograms for signal and background + data we're ready to go
   if(checkdNdEpBkg)
@@ -816,10 +816,7 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
   // we need a positive number of bins
   //if(nbins<=0) nbins = gNBins;
   nbins = bin_enwindow;
-  cout<<"number of bkg bin = "<<nbins<<endl;
-  sleep(5);
     
-
   fHdNdEpBkg->Scale(fHdNdEpBkg->GetBinContent(0));
 
   // create histo
@@ -1016,9 +1013,6 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 
   // get number of data bins
   UInt_t nbins = hData->GetNbinsX();
-
-  cout<<"number of bins = "<<nbins<<endl;
-  sleep(10);
     
   // check if bin width is constant
   Bool_t binWidthIsConstant = kTRUE;
@@ -1186,12 +1180,12 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   Double_t fnorm   = g+boff;
 
   // sum signal and background (and maybe foreground) contributions and normalize resulting pdf (only On)
-  
   TH1F* hdNdEpOn  = new TH1F("hdNdEpOn", "On  event rate vs E'",nbins,xmin,xmax);
   hdNdEpOn->Reset();
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,boff);
 
-  // normalize
+  
+    // normalize
   if(fnorm>0)
     //hdNdEpOn->Scale(1./Non);
     //hdNdEpOn->Scale(1./count);
@@ -1231,8 +1225,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
     f += -2*TMath::Log(TMath::Poisson(count,g+boff));
     //f += -2*TMath::Log(TMath::Poisson(Non,g+b));
   else{
-      //f += 0;
-      f += 1e99;
+      f += 0;
+      //f += 1e99;
   }
   delete hdNdEpOn;
     
