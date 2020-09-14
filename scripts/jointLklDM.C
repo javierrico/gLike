@@ -588,7 +588,29 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
-	      
+
+              // implementation of sliding window technique
+              if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
+                {
+                  cout << "  ** Applying sliding window technique for sample " << fullLkl->GetName() << ":" << endl;
+                  cout << "  * Previous settings were Epmin = " << fullLkl->GetEpmin() << " and Epmax = " << fullLkl->GetEpmax() << endl;
+
+                  // define energy window width, hardcoded for now
+                  Double_t energyWindowWidth = 2;
+
+                  // define low threshold, hardcoded for now
+                  Double_t windowLowThreshold = 100.0;
+
+                  Double_t energyWindowLowEdge = mass * (1. - energyWindowWidth * fullLkl->GetGEreso()->Eval(TMath::Log10(mass)));
+                  Double_t energyWindowHighEdge = mass * (1. + energyWindowWidth * fullLkl->GetGEreso()->Eval(TMath::Log10(mass)));
+                  if(energyWindowLowEdge<windowLowThreshold) energyWindowLowEdge = windowLowThreshold;
+
+                  fullLkl->SetEpmin(energyWindowLowEdge);
+                  fullLkl->SetEpmax(energyWindowHighEdge);
+
+                  cout << "  * New settings are Epmin = " << fullLkl->GetEpmin() << " and Epmax = " << fullLkl->GetEpmax() << endl;
+                }
+
 	      cout << "  ** Reading histos for sample " << fullLkl->GetName() << ":" << endl;
 	      // Delete existing fHdNdESignal and create empty one
 	      fullLkl->ResetdNdESignal();
