@@ -95,6 +95,7 @@ Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
 const Int_t nMaxLkls = 1000;
 
 void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t seed=-1)
+//void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/testTomo.rc",Int_t seed=-1)
 {
   setDefaultStyle();
 
@@ -589,6 +590,33 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
 	      
+
+	      //new implementation for slinding window
+            if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl")){
+                     
+                     cout<<"################################"<<endl;
+                     cout<<"                               "<<endl;
+                     cout<<"### Making slindinwg window ###"<<endl;
+                     cout<<"                               "<<endl;
+                     cout<<"################################"<<endl;
+                     
+                     //define energy window for each mass
+                     Float_t ewindow_fac = 2;
+                     Float_t ereso = fullLkl->GetGEreso()->Eval(TMath::Log10(mass));
+
+		     Double_t threshold = 100.0;
+                     Double_t low_edge = mass - ewindow_fac*ereso*mass;
+
+                     if(low_edge<threshold){
+                         low_edge=threshold;
+                     }
+                     Double_t high_edge = mass + ewindow_fac*ereso*mass;
+                     
+                     fullLkl->SetEpmin(low_edge);
+                     fullLkl->SetEpmax(high_edge);
+                     
+                 }
+            
 	      cout << "  ** Reading histos for sample " << fullLkl->GetName() << ":" << endl;
 	      // Delete existing fHdNdESignal and create empty one
 	      fullLkl->ResetdNdESignal();
@@ -600,6 +628,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		    {
 		      if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase))
 			{
+			    cout << "br = " << brval[iChannel] << endl;
 			  cout << "   * Setting dN/dE for a monochromatic line at energy " << mdm  << " GeV with BR = " << brval[iChannel] << " ... " << flush;
 			  if(fullLkl->SetdNdESignalFunction("line",mdm,2,brval[iChannel]))
 			    {

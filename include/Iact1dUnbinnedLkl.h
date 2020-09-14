@@ -16,7 +16,6 @@
 static const Float_t  gEpmin           = 1e01;                   // [GeV] default value of minimum E_est
 static const Float_t  gEpmax           = 1e06;                   // [GeV] default value of maximum E_est
 
-
 class Iact1dUnbinnedLkl : public virtual Lkl
 {
  public:
@@ -78,7 +77,6 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline TH1F*          GetHdNdESignal()      const {return fHdNdESignal;}
   virtual inline TGraph*  GetGEreso()         const {return fGEreso;}
   virtual inline TGraph*  GetGEbias()         const {return fGEbias;}
-    //Tomo chnaged
   //inline const TH2F*    GetMigMatrix()        const {return fMigMatrix;}
   inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
   inline const Float_t  GetLogJ()             const {return fLogJ;}
