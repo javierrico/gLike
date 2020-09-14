@@ -524,16 +524,12 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   // normalize unnormalized histos
   NormalizedNdEHisto(fHdNdESignal);
   NormalizedNdEHisto(fHdNdEpSignal);
-  //cout<<"signal pdf normalized"<<endl;
 
   NormalizedNdEHisto(fHdNdEpSignalOff);
-  //cout<<"signal off pdf normalized"<<endl;
 
     
     if(checkdNdEpBkg){
     NormalizedNdEHisto(fHdNdEpBkg);
-    //cout<<"signal off pdf normalized"<<endl;
-
     }
         if(fHdNdEpFrg)
     NormalizedNdEHisto(fHdNdEpFrg);
@@ -585,7 +581,6 @@ Int_t Iact1dUnbinnedLkl::NormalizedNdEHisto(TH1F* histo)
   Double_t intSignal = IntegrateLogE(histo,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
   histo->Scale(1./intSignal);
   histo->SetBinContent(0,intSignal);
-  //cout<<"min range = "<<fEpmin<<"\t max range = "<<fEpmax<<"\t intsignal = "<<intSignal<<endl;
   
 
   return 0;
@@ -808,8 +803,8 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
       Float_t Emax = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+fHdNdESignal->GetBinWidth(ibin+1));
       Float_t dE   = Emax-Emin;
       fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
-        cout <<"signal PDF : Emin = "<<Emin<<"\t Eamx = "<<Emax<<endl;
     }
+
   else if(functionType==gBox)
     {
       Float_t Emin  = p0;
@@ -1698,7 +1693,7 @@ void Iact1dUnbinnedLkl::PlotHistosAndData(TCanvas* canvas)
   /////////////////////////
   canvas->cd(5);
   dummya->SetMinimum(1e-7);
-  dummya->SetMaximum(1e2);
+  dummya->SetMaximum(1e0);
   dummya->SetTitle("dN/dE for signal events");
   dummya->SetXTitle("log_{10}(E [GeV])");
   dummya->SetYTitle("dN/dE [GeV^{-1}]");
@@ -2282,7 +2277,6 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   const TH1F*      hdNdEpSignal    = mylkl->GetHdNdEpSignal();
   const TH1F*      hdNdEpSignalOff = mylkl->GetHdNdEpSignalOff();
   const TH1F*      hdNdEpBkg       = mylkl->GetHdNdEpBkg();
-    
   const TH1F*      hdNdEpFrg       = mylkl->GetHdNdEpFrg();
   const Float_t*   onSample        = mylkl->GetOnSample();
   const Float_t*   offSample       = mylkl->GetOffSample();
@@ -2312,20 +2306,7 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
 
   Double_t low_edge_bin = hdNdEpOn->FindBin(xmin);
   Double_t high_edge_bin = hdNdEpOn->FindBin(xmax);
-  /*
-  cout<<"xmin = "<<xmin<<"\t xmax = "<<xmax<<endl;
-    cout<<"Integral hdNdEpSignal = "<<hdNdEpSignal->Integral()<<endl;
-    cout<<"Integral hdNdEpBkg = "<<hdNdEpBkg->Integral()<<endl;
-    
-    cout<<"Integral hdNdEpSignal Bin(0) = "<<hdNdEpSignal->GetBinContent(0)<<endl;
-    cout<<"Integral hdNdEpBkg Bin(0) = "<<hdNdEpBkg->GetBinContent(0)<<endl;
-
-    cout<<"the number of events = "<<Non<<endl;
-    cout<<"##########################"<<endl;
-    cout<<"##########################"<<endl;
-    cout<<"##########################"<<endl;
-  */
-    
+      
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,b);
   if(hdNdEpFrg)
     hdNdEpOn->Add(hdNdEpOn,hdNdEpFrg,1,frg);
@@ -2336,7 +2317,6 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   else
     mylkl->NormalizedNdEHisto(hdNdEpOn);
 
-  //cout<<"Integral hdNdEpOn = "<<hdNdEpOn->Integral(low_edge_bin,high_edge_bin)<<endl;
 
     TH1F* hdNdEpOff = new TH1F("hdNdEpOff","Off event rate vs E'", nbins,xmin,xmax);
   hdNdEpOff->Reset();
@@ -2368,12 +2348,14 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   for(ULong_t ievent=0; ievent<Noff; ievent++)
     {
       Float_t val = hdNdEpOff->GetBinContent(hdNdEpOff->FindBin(offSample[ievent]));
-      if(val>0)
-	f += -2*TMath::Log(val);
+        if(val>0){
+            f += -2*TMath::Log(val);
+        }
       else
 	f += gLklValVeryHigh;
     }
-  
+
+    
   // nuisance tau
   if(dTau>0)
     f+=-2*TMath::Log(TMath::Gaus(tauest, tau, dTau, kTRUE));
