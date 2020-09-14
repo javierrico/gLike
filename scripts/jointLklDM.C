@@ -614,7 +614,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
               if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
                 {
                   cout << "  ** Applying sliding window technique for sample " << fullLkl->GetName() << ":" << endl;
-                  cout << "  * Previous settings were Epmin = " << fullLkl->GetEpmin() << " and Epmax = " << fullLkl->GetEpmax() << endl;
+                  cout << "  * Previous settings were Emin = " << fullLkl->GetEmin() << " and Emax = " << fullLkl->GetEmax() << endl;
 
                   // define energy window width, hardcoded for now
                   Double_t energyWindowWidth = 2;
@@ -629,7 +629,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
                   fullLkl->SetEpmin(energyWindowLowEdge);
                   fullLkl->SetEpmax(energyWindowHighEdge);
 
-                  cout << "  * New settings are Epmin = " << fullLkl->GetEpmin() << " and Epmax = " << fullLkl->GetEpmax() << endl;
+                  cout << "  * New settings are Emin = " << fullLkl->GetEmin() << " and Emax = " << fullLkl->GetEmax() << endl;
                 }
 
 	      TString dNdEpSignalFileName;
