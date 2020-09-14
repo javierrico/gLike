@@ -42,9 +42,9 @@ int bin_enwindow =0;
 // (check also LineSearchLkl::SetFunctionAndPars)
 
 //static const Int_t    gNPars           = 1;                      // Number of free+nuisance parameters
-static const Int_t    gNPars           = 2;                      // Number of free+nuisance parameters
+static const Int_t    gNPars           = 3;                      // Number of free+nuisance parameters
 //static const Char_t*  gParName[gNPars] = {"g"};              // Name of parameters
-static const Char_t*  gParName[gNPars] = {"g","tau"};              // Name of parameters
+static const Char_t*  gParName[gNPars] = {"g","b","tau"};              // Name of parameters
 
 // static functions (for internal processing of input data)
 static Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
@@ -136,10 +136,11 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
 
   // set and pars initial and step values
   //Double_t pStart[gNPars] = {ginit};
-  Double_t pStart[gNPars] = {ginit, Iact1dUnbinnedLkl::GetTau()}; //implemented on 26th July
+  Double_t pStart[gNPars] = {ginit, event_count, Iact1dUnbinnedLkl::GetTau()}; //implemented on 26th July
   //Double_t pDelta[gNPars] = {TMath::Sqrt(Iact1dUnbinnedLkl::GetNon())/100.}; // Precision of parameters during minimization
-  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
+  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,TMath::Sqrt(event_count)/10.,Iact1dUnbinnedLkl::GetDTau()/10.}; //implemented on 26th July
 
+    
   // initialize the free (and nuisance) parameters
   SetParameters(gParName,pStart,pDelta);
 
@@ -365,7 +366,7 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
       //   return 1;
 
 
-      cout << "Done! " << endl;
+      //cout << "Done! " << endl;
       // clean
       delete hdNdESignalAeff;
     }
@@ -1168,12 +1169,12 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
     event_count=count;
 
   // Estimated number of signal and background events in signal region
-  Double_t g       = par[0];
+  Double_t g = par[0];
   //Double_t b       = Non-g;
-  Double_t b = count-g;
+  Double_t b = par[1];
 
   //new parameter for background normalization factor
-  Double_t tauest = par[1];
+  Double_t tauest = par[2];
     
   //Double_t fnorm   = g+b; // original for line search
   Double_t boff = b*tauest;

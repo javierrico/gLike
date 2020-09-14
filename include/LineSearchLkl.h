@@ -41,7 +41,7 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
 
  protected:
           Int_t    InterpretInputString(TString inputString);
-  virtual void     SetFunctionAndPars(Double_t ginit=0);
+  virtual void     SetFunctionAndPars(Double_t ginit=0.);
   virtual Int_t    MakeChecks();
   virtual void     SetMinuitLink();
 
