@@ -101,7 +101,6 @@ class Lkl : public TNamed
   virtual void     SetFunctionAndPars(Double_t ginit=0) = 0;  // NEEDS TO BE OVERRIDEN BY DAUGHTERS
 
   void     SetParameters(const Char_t** parname, Double_t* pstart, Double_t* pdelta);
-
   Double_t CallMinimization(Double_t g=0,Bool_t isVerbose=kFALSE,Int_t strategy=2);
   
   inline void   FixPar(Int_t ipar,Bool_t fix=kTRUE) {if(ipar<fNPars) fIsParFixed[ipar] = fix;}
