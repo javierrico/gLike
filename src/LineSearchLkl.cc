@@ -177,7 +177,7 @@ Int_t LineSearchLkl::MakeChecks()
   return 0;
 }	      
 
-//////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Produce the E' distribution of On events and return the
 // corresponding histogram.
@@ -232,44 +232,40 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
   const Float_t* onSample = Iact1dUnbinnedLkl::GetOnSample();
   UInt_t              Non = Iact1dUnbinnedLkl::GetNon();
 
-    //===define energy window===
-    Double_t low_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmin());
-    Double_t high_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmax());
+  //===define energy window===
+  Double_t low_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmin());
+  Double_t high_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmax());
 
-    TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
   //counting number of events instread of Non
   //Fill all events from onsample into hdNdEpOn ("fine-bin" histogram)
   int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
-        if(onSample[ievent] > low_edge && onSample[ievent] < high_edge){
-            hdNdEpOn->Fill(onSample[ievent]);
-            count++;
-            }
-    }
-    event_count=count;
-
-    fHdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-    
-    //TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x+[4]*x*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-
-   // TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-    
-     TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-
-    hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
-
-    //TF1* f1 = new TF1("f1","pol3",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-    //sleep(100);
-    
-
-    for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
-      {
-          if (hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
-              bin_enwindow++;
-          }
+      if(onSample[ievent] > low_edge && onSample[ievent] < high_edge){
+        hdNdEpOn->Fill(onSample[ievent]);
+        count++;
       }
+    }
+  event_count=count;
+
+  fHdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+
+  //TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x+[4]*x*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  // TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+
+  hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
+  //TF1* f1 = new TF1("f1","pol3",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  //sleep(100);
+
+  for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
+    {
+      if (hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,f1->Eval(fHdNdEpBkg->GetBinCenter(ibin)));
+          bin_enwindow++;
+      }
+    }
 /*
     TCanvas *c1_test = new TCanvas("c1_test","c1_test",1200,600);
     c1_test->Divide(2,1);
@@ -309,13 +305,11 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
         }
     */
     
-    delete hdNdEpOn;
-    delete f1;
+  delete hdNdEpOn;
+  delete f1;
 
-    return 0;
+  return 0;
 }
-
-
 
 ////////////////////////////////////////////////////////////////
 //
@@ -341,7 +335,7 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
         }
         
       // multiply dNdESignal times Aeff
-        TH1F* hdNdESignalAeff = new TH1F("hdNdESignalAeff","Product of dN/dE for Signal and Aeff",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+      TH1F* hdNdESignalAeff = new TH1F("hdNdESignalAeff","Product of dN/dE for Signal and Aeff",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
       hdNdESignalAeff->SetDirectory(0);
       hdNdESignalAeff->Multiply(Iact1dUnbinnedLkl::GetHAeff(), Iact1dUnbinnedLkl::GetHdNdESignal());
 
@@ -349,7 +343,6 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
       fHdNdEpSignal = new TH1F("fHdNdEpSignal","dN/dE' for Signal",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
       fHdNdEpSignal->SetDirectory(0);
 
-        
       // smear hdNdESignalAeff
           if(Iact1dUnbinnedLkl::GetMigMatrix())
         {
@@ -365,7 +358,6 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
       //if(SmearHistogram(hdNdESignalAeff,fHdNdEpSignal,Iact1dUnbinnedLkl::GetGEreso(),Iact1dUnbinnedLkl::GetGEbias()))
       //   return 1;
 
-
       //cout << "Done! " << endl;
       // clean
       delete hdNdESignalAeff;
@@ -379,7 +371,6 @@ Int_t LineSearchLkl::CheckHistograms(Bool_t checkdNdEpBkg)
 
   if(checkdNdEpBkg)
     Iact1dUnbinnedLkl::NormalizedNdEHisto(fHdNdEpBkg);
-
 
   // if there are the dNdE' histograms for signal and background + data we're ready to go
   if(checkdNdEpBkg)
@@ -455,7 +446,6 @@ Int_t SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm)
   return 0;
 }
 
-
 ////////////////////////////////////////////////////////////////
 // Smear a histogram <sp> (in log of true energy) using 
 // the energy dispersion function described by grreso and grbias
@@ -523,7 +513,6 @@ Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
   Double_t imine   = ih->GetXaxis()->GetXmin()+scale; // minimum log(E) in input histo
   Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
   Int_t    inbinse = ih->GetNbinsX();
-  
 
   // output histogram binning
   Double_t omine   = oh->GetXaxis()->GetXmin(); // minimum log(E) in output histo
@@ -564,7 +553,6 @@ Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
     }
   return 0;
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
@@ -666,12 +654,10 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
     {
       //Double_t scale = hBkg->GetBinContent(0);
       //Double_t scale2 = hOn->GetBinContent(0);
-
       hBkg->SetLineColor(2);
       hBkg->SetMarkerColor(2);
       hBkg->SetMarkerStyle(2);
       hBkg->DrawCopy("esame");
-
     }
   hOn->DrawCopy("esame");
 
@@ -721,7 +707,6 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   gPad->SetGrid();
   gPad->Modified();
   gPad->Update();
-    
 
   // residuals
   canvas->cd(4);
@@ -800,7 +785,6 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   return canvas;
 }
 
-
 //////////////////////////////////////////////////////////////////
 //
 // Produce the E' distribution of On events and return the 
@@ -826,14 +810,11 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
   h->SetXTitle("log_{10}(E' [GeV])");
   h->SetYTitle("dN/dE' [GeV^{-1}]");
 
-
   // fill histo
   for(Int_t i=1;i<fHdNdEpBkg->GetNbinsX()-1;i++)
     {
       for(Int_t j=1;j<fHdNdEpBkg->GetBinContent(i)+0.5;j++)
-        {
-          h->Fill(fHdNdEpBkg->GetBinCenter(i));	  
-        }
+          h->Fill(fHdNdEpBkg->GetBinCenter(i)); 
     }
 /*
   // divide by bin width
@@ -856,7 +837,7 @@ TH1F* LineSearchLkl::GetHdNdEpModelBkg(Bool_t isDifferential,Int_t nbins) const
 
 /////////////////////////////////////////////////////////////////
 //
-// conversion histogram of event count into dNdE histogram
+// Conversion histogram of event count into dNdE histogram
 void differentiate(TH1F* h, Int_t error_flag=0)
 {
     Int_t nbins = h->GetXaxis()->GetNbins();
@@ -1006,7 +987,7 @@ void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
 // Given a histogram hModel representing a model
 // and another one hData representing data (with properly computed errors)
 // return the histogram of residuals (hData-hModel)
-//1
+//
 TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 {
   // basic check
@@ -1014,7 +995,7 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 
   // get number of data bins
   UInt_t nbins = hData->GetNbinsX();
-    
+ 
   // check if bin width is constant
   Bool_t binWidthIsConstant = kTRUE;
   for(Int_t ibin=0;ibin<nbins-1;ibin++)
@@ -1152,9 +1133,7 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   //get energy window size
   Float_t lowE = mylkl->GetEmin();
   Float_t highE = mylkl->GetEmax();
-    
-    
-  //added on 26th July
+ 
   Float_t tau = mylkl->GetTau();
   Float_t dTau = mylkl->GetDTau();
 
@@ -1162,15 +1141,13 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
-        if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
-            count++;
-            }
+        if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE))
+          count++;
     }
-    event_count=count;
+  event_count=count;
 
   // Estimated number of signal and background events in signal region
   Double_t g = par[0];
-  //Double_t b       = Non-g;
   Double_t b = par[1];
 
   //new parameter for background normalization factor
@@ -1185,11 +1162,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   hdNdEpOn->Reset();
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,boff);
 
-  
-    // normalize
+  // normalize
   if(fnorm>0)
-    //hdNdEpOn->Scale(1./Non);
-    //hdNdEpOn->Scale(1./count);
     hdNdEpOn->Scale(1./fnorm);
   else
     mylkl->Iact1dUnbinnedLkl::NormalizedNdEHisto(hdNdEpOn);
@@ -1224,11 +1198,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   // tot Nevts
   if(g+b>0)
     f += -2*TMath::Log(TMath::Poisson(count,g+boff));
-    //f += -2*TMath::Log(TMath::Poisson(Non,g+b));
-  else{
-      //f += 0;
-      f += 1e99;
-  }
+  else
+    f += 1e99;
+
   delete hdNdEpOn;
-    
 }		
