@@ -188,7 +188,7 @@ static const Char_t*  gParName[gNPars] = {"g","b","tau"};        // Name of para
 static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
 static const Int_t    gNFineBins       = 5000;                   // default number of fine bins for internal histos
 static const Double_t gFineLEMin       = TMath::Log10(10);       // default minimum log(energy[GeV]) for internal histos
-static const Double_t gFineLEMax       = TMath::Log10(1e6);  // default maximum log(energy[GeV]) for internal histos
+static const Double_t gFineLEMax       = TMath::Log10(1000000);  // default maximum log(energy[GeV]) for internal histos
 static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge)
 
 // static functions (for internal processing of input data)
@@ -196,7 +196,6 @@ static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm);
 static void  readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
 static Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
-//static TH1F* GetResidualHisto(TH1F* hModel,TH1F* hData);
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
 static void  NormalizeMatrix(TH2F* im,TH2F* om,Double_t scale=0);
 //static void  makeLogAndInterpolate(TH1D* ih,TH1F* oh);
@@ -528,11 +527,11 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   NormalizedNdEHisto(fHdNdEpSignalOff);
 
     
-    if(checkdNdEpBkg){
-    NormalizedNdEHisto(fHdNdEpBkg);
-    }
-        if(fHdNdEpFrg)
-    NormalizedNdEHisto(fHdNdEpFrg);
+    if(checkdNdEpBkg)
+        NormalizedNdEHisto(fHdNdEpBkg);
+    
+    if(fHdNdEpFrg)
+        NormalizedNdEHisto(fHdNdEpFrg);
   
   
   // if there are the dNdE' histograms for signal and background + data we're ready to go
@@ -581,7 +580,6 @@ Int_t Iact1dUnbinnedLkl::NormalizedNdEHisto(TH1F* histo)
   Double_t intSignal = IntegrateLogE(histo,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
   histo->Scale(1./intSignal);
   histo->SetBinContent(0,intSignal);
-  
 
   return 0;
 }
@@ -804,7 +802,6 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float
       Float_t dE   = Emax-Emin;
       fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
     }
-
   else if(functionType==gBox)
     {
       Float_t Emin  = p0;
@@ -2304,9 +2301,6 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   TH1F* hdNdEpOn  = new TH1F("hdNdEpOn", "On  event rate vs E'",nbins,xmin,xmax);
   hdNdEpOn->Reset();
 
-  Double_t low_edge_bin = hdNdEpOn->FindBin(xmin);
-  Double_t high_edge_bin = hdNdEpOn->FindBin(xmax);
-      
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,b);
   if(hdNdEpFrg)
     hdNdEpOn->Add(hdNdEpOn,hdNdEpFrg,1,frg);
@@ -2316,7 +2310,6 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
     hdNdEpOn->Scale(1./fnorm);
   else
     mylkl->NormalizedNdEHisto(hdNdEpOn);
-
 
     TH1F* hdNdEpOff = new TH1F("hdNdEpOff","Off event rate vs E'", nbins,xmin,xmax);
   hdNdEpOff->Reset();
@@ -2348,13 +2341,12 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   for(ULong_t ievent=0; ievent<Noff; ievent++)
     {
       Float_t val = hdNdEpOff->GetBinContent(hdNdEpOff->FindBin(offSample[ievent]));
-        if(val>0){
-            f += -2*TMath::Log(val);
+      if(val>0){
+      f += -2*TMath::Log(val);
         }
       else
 	f += gLklValVeryHigh;
     }
-
     
   // nuisance tau
   if(dTau>0)
