@@ -16,7 +16,6 @@
 static const Float_t  gEpmin           = 1e01;                   // [GeV] default value of minimum E_est
 static const Float_t  gEpmax           = 1e06;                   // [GeV] default value of maximum E_est
 
-
 class Iact1dUnbinnedLkl : public virtual Lkl
 {
  public:

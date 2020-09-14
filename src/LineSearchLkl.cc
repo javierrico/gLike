@@ -80,7 +80,7 @@ Int_t maxBinwindow = 0;
 //
 LineSearchLkl::LineSearchLkl(TString inputString) :
   Lkl(gNPars,inputString,gName,gTitle), Iact1dUnbinnedLkl(inputString),
-  fHdNdEpSignal(NULL), fHdNdEpBkg(NULL), fRelativePeakIntensity(0.2), fBkgRegionWidth(0.1)
+  fHdNdEpSignal(NULL), fHdNdEpBkg(NULL)
 {
   if(InterpretInputString(inputString))
     cout << "LineSearchLkl::LineSearchLkl Warning: there were problems interpreting the input string" << endl;      

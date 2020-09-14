@@ -39,8 +39,6 @@ class Lkl : public TNamed
 
   // call minimization of the  Likelihood function
   virtual Double_t ComputeLklVsG(Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
-  //reimplemanted on 27th July
-  //virtual Double_t ComputeLklVsG(Bool_t centerAtZero=kFALSE,Int_t npoints=2000,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
 
   static void PrintGLikeBanner();
   
@@ -103,6 +101,7 @@ class Lkl : public TNamed
   virtual void     SetFunctionAndPars(Double_t ginit=0) = 0;  // NEEDS TO BE OVERRIDEN BY DAUGHTERS
 
   void     SetParameters(const Char_t** parname, Double_t* pstart, Double_t* pdelta);
+
   Double_t CallMinimization(Double_t g=0,Bool_t isVerbose=kFALSE,Int_t strategy=2);
   
   inline void   FixPar(Int_t ipar,Bool_t fix=kTRUE) {if(ipar<fNPars) fIsParFixed[ipar] = fix;}
