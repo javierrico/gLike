@@ -1226,8 +1226,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
     f += -2*TMath::Log(TMath::Poisson(count,g+boff));
     //f += -2*TMath::Log(TMath::Poisson(Non,g+b));
   else{
-      f += 0;
-      //f += 1e99;
+      //f += 0;
+      f += 1e99;
   }
   delete hdNdEpOn;
     
