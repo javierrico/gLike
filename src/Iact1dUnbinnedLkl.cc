@@ -532,16 +532,11 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   
   // normalize unnormalized histos
   NormalizedNdEHisto(fHdNdEpSignal);
-
   NormalizedNdEHisto(fHdNdEpSignalOff);
-
-    
   if(checkdNdEpBkg)
     NormalizedNdEHisto(fHdNdEpBkg);
-    
   if(fHdNdEpFrg)
     NormalizedNdEHisto(fHdNdEpFrg);
-  
   
   // if there are the dNdE' histograms for signal and background + data we're ready to go
   if(checkdNdEpBkg)
@@ -2223,11 +2218,9 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   Double_t goff    = (hdNdEpSignalOff? tauest*g*mylkl->GetdNdEpSignalOffIntegral()/mylkl->GetdNdEpSignalIntegral() : 0);
   Double_t fnorm   = g+b+frg+boff+goff;
   
-  
   // sum signal and background (and maybe foreground) contributions and normalize resulting pdf (On + Off)
   TH1F* hdNdEpOn  = new TH1F("hdNdEpOn", "On  event rate vs E'",nbins,xmin,xmax);
   hdNdEpOn->Reset();
-
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,b);
   if(hdNdEpFrg)
     hdNdEpOn->Add(hdNdEpOn,hdNdEpFrg,1,frg);
@@ -2269,11 +2262,11 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
     {
       Float_t val = hdNdEpOff->GetBinContent(hdNdEpOff->FindBin(offSample[ievent]));
       if(val>0)
-      f += -2*TMath::Log(val);
-        
+        f += -2*TMath::Log(val);
       else
 	f += 1e99;
-    }    
+    }
+
   // nuisance tau
   if(dTau>0)
     f+=-2*TMath::Log(TMath::Gaus(tauest, tau, dTau, kTRUE));
