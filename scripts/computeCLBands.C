@@ -221,7 +221,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   for(Int_t ifile=1;ifile<nSimuFiles+1;ifile++)
     {
       // file name
-      TString seedtag  = Form("_%05d",ifile);
+      TString seedtag  = Form("_%d",ifile);
       TString filename = simusPath+label+"_MC_limits"+seedtag+".root";
       cout << "Opening file " << filename << endl;
       Int_t exist = gSystem->Exec("ls " + filename + " > /dev/null");
