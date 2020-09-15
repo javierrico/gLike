@@ -22,7 +22,7 @@ jointLklDM.plotmax: 1e-22
 # jointLklDM.plotScale: 1
 
 # Configuration for data exporter into the Glory Duck file format (i.e. likelihood values for all DM masses specified below)
-jointLklDM.exportData: FALSE
+jointLklDM.exportData: TRUE
 # Minimum, maximum and number of scanned values
 jointLklDM.exportSvMin: 1e-28
 jointLklDM.exportSvMax: 1e-18
@@ -33,7 +33,7 @@ jointLklDM.exportSvLogStep: TRUE
 jointLklDM.exportDataPath: exported_files
 
 # Path (will be added to all specified files and directories in this rcfile)
-jointLklDM.path: /nfs/pic.es/user/d/dkerszbe/gLike
+jointLklDM.path: ./
 
 # Directory with dN/dE files
 jointLklDM.dNdEDir: DM/dNdE/Cirelli/
