@@ -88,7 +88,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
 
   inline Double_t GetdNdEpBkgIntegral()       {if(!fHdNdEpBkg) return 0; NormalizedNdEHisto(fHdNdEpBkg); return fHdNdEpBkg->GetBinContent(0);}
   inline Double_t GetdNdEpFrgIntegral()       {if(!fHdNdEpFrg) return 0; NormalizedNdEHisto(fHdNdEpFrg); return fHdNdEpFrg->GetBinContent(0);}
-  virtual inline Double_t GetdNdEpSignalIntegral()    {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
+  inline Double_t GetdNdEpSignalIntegral()    {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
   inline Double_t GetdNdEpSignalOffIntegral() {if(!fHdNdEpSignalOff) return 0; return fHdNdEpSignalOff->GetBinContent(0);}
   inline Double_t GetdNdESignalIntegral()     {if(!fHdNdESignal) return 0; NormalizedNdEHisto(fHdNdESignal); return fHdNdESignal->GetBinContent(0);}
   virtual TH1F*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;

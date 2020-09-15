@@ -22,7 +22,7 @@ jointLklDM.plotmax: 1e-22
 # jointLklDM.plotScale: 1
 
 # Configuration for data exporter into the Glory Duck file format (i.e. likelihood values for all DM masses specified below)
-jointLklDM.exportData: TRUE
+jointLklDM.exportData: FALSE
 # Minimum, maximum and number of scanned values
 jointLklDM.exportSvMin: 1e-28
 jointLklDM.exportSvMax: 1e-18
@@ -33,7 +33,7 @@ jointLklDM.exportSvLogStep: TRUE
 jointLklDM.exportDataPath: exported_files
 
 # Path (will be added to all specified files and directories in this rcfile)
-jointLklDM.path: ./
+jointLklDM.path: /nfs/pic.es/user/d/dkerszbe/gLike
 
 # Directory with dN/dE files
 jointLklDM.dNdEDir: DM/dNdE/Cirelli/
@@ -60,9 +60,11 @@ jointLklDM.Process: ann
 
 # channel to be analyzed (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, nutaunutau, numunumu, nuenue, VV-4tau, VV-4mu, VV-4e, branon or an arbitrary linear combination of them)
 # The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
+#jointLklDM.Channel: gammagamma
 jointLklDM.Channel: bb
 
 # list of DM masses to be considered (in GeV)
+#jointLklDM.MassList: 200 500
 jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
 # Simulated signal data characteristics (i.e. true values assumed for simulations, no to be confused with the values assumed for the likelihood function
@@ -135,3 +137,7 @@ JOINT LIKELIHOOD CONFIGURATION
 jointLklDM.lklTerm000: JointLkl -   DlogJ=0
 jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_01.root  
 jointLklDM.lklTerm002: Iact1dBinnedLkl    0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_02.root  nbins=20
+#jointLklDM.lklTerm001: LineSearchLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
+#jointLklDM.lklTerm002: LineSearchLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root
+#jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
+#jointLklDM.lklTerm002: Iact1dUnbinnedLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root
