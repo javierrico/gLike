@@ -1037,7 +1037,7 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 // Return 0 in case of success
 //        1 if file is not found
 //
-Int_t LineSearchLkl::ResetdNdESignal()
+/*Int_t LineSearchLkl::ResetdNdESignal()
 {
   // Delete existing fHdNdEpSignal 
   if(fHdNdEpSignal)
@@ -1050,7 +1050,7 @@ Int_t LineSearchLkl::ResetdNdESignal()
 
   // exit
   return 0;
-}
+}*/
 
 //////////////////////////////////////////////////////////////////
 // 
@@ -1064,7 +1064,7 @@ Int_t LineSearchLkl::ResetdNdESignal()
 // Return 0 in case of success
 //        1 if file is not found
 //
-Int_t LineSearchLkl::SetdNdESignalFunction(TString function,Float_t p0,Float_t p1,Float_t p2,Float_t p3,Float_t p4,Float_t p5,Float_t p6,Float_t p7,Float_t p8,Float_t p9)
+/*Int_t LineSearchLkl::SetdNdESignalFunction(TString function,Float_t p0,Float_t p1,Float_t p2,Float_t p3,Float_t p4,Float_t p5,Float_t p6,Float_t p7,Float_t p8,Float_t p9)
 {
 
   // Delete existing fHdNdESignal and create empty one
@@ -1102,7 +1102,7 @@ Int_t LineSearchLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_t em
 
   // exit
   return 0;
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////
 // Line search likelihood function (-2logL) 

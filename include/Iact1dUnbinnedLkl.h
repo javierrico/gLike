@@ -52,33 +52,35 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline void SetFineLEMax(Double_t finelemax) {fFineLEMax = finelemax;}
 
   // getters
-  inline       Float_t  GetEmin()             const {return fEpmin;} 
-  inline       Float_t  GetEmax()             const {return fEpmax;}
-  inline       Float_t  GetNFineBins()        const {return fNFineBins;}
-  inline       Float_t  GetFineLEMin()        const {return fFineLEMin;}
-  inline       Float_t  GetFineLEMax()        const {return fFineLEMax;}
-  inline       UInt_t   GetNon()              const {return fNon;}
-  inline       UInt_t   GetNoff()             const {return fNoff;}
-  inline       Float_t* GetOnSample()         const {return fOnSample;}
-  inline       Float_t* GetOffSample()        const {return fOffSample;}
-  inline       Float_t  GetTau()              const {return fTau;}
-  inline       Float_t  GetDTau()             const {return fDTau;}
-  inline       Float_t  GetTrueTau()          const {return fTrueTau;}
-  inline       Float_t  GetObsTime()          const {return fObsTime;}
-  inline       Float_t  GetDataTau()          const {return fDataTau;}
-  inline       Float_t  GetDataDTau()         const {return fDataDTau;}
-  inline       Float_t  GetDataObsTime()      const {return fDataObsTime;}
-  inline       TH1F*    GetHAeff()            const {return fHAeff;}
-  inline       TH1F*    GetHAeffOff()         const {return fHAeffOff;}
-  virtual inline TH1F*  GetHdNdEpBkg()        const {return fHdNdEpBkg;}
-  inline       TH1F*    GetHdNdEpFrg()        const {return fHdNdEpFrg;}
-  virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
-  inline       TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
-  inline       TH1F*    GetHdNdESignal()      const {return fHdNdESignal;}
-  inline       TGraph*  GetGEreso()           const {return fGEreso;}
-  inline       TGraph*  GetGEbias()           const {return fGEbias;}
-  inline       TH2F*    GetMigMatrix()        const {return fMigMatrix;}
-  inline       Float_t  GetLogJ()             const {return fLogJ;}
+  inline Float_t  GetEmin()             const {return fEpmin;} 
+  inline Float_t  GetEmax()             const {return fEpmax;}
+  inline Float_t  GetNFineBins()        const {return fNFineBins;}
+  inline Float_t  GetFineLEMin()        const {return fFineLEMin;}
+  inline Float_t  GetFineLEMax()        const {return fFineLEMax;}
+  inline UInt_t   GetNon()              const {return fNon;}
+  inline UInt_t   GetNoff()             const {return fNoff;}
+  inline Float_t* GetOnSample()         const {return fOnSample;}
+  inline Float_t* GetOffSample()        const {return fOffSample;}
+  inline Float_t  GetTau()              const {return fTau;}
+  inline Float_t  GetDTau()             const {return fDTau;}
+  inline Float_t  GetTrueTau()          const {return fTrueTau;}
+  inline Float_t  GetObsTime()          const {return fObsTime;}
+  inline Float_t  GetDataTau()          const {return fDataTau;}
+  inline Float_t  GetDataDTau()         const {return fDataDTau;}
+  inline Float_t  GetDataObsTime()      const {return fDataObsTime;}
+  inline TH1F*    GetHAeff()            const {return fHAeff;}
+  inline TH1F*    GetHAeffOff()         const {return fHAeffOff;}
+  inline TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
+  //virtual inline TH1F*  GetHdNdEpBkg()        const {return fHdNdEpBkg;}
+  inline TH1F*    GetHdNdEpFrg()        const {return fHdNdEpFrg;}
+  inline TH1F*    GetHdNdEpSignal()     const {return fHdNdEpSignal;}
+  //virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
+  inline TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
+  inline TH1F*    GetHdNdESignal()      const {return fHdNdESignal;}
+  inline TGraph*  GetGEreso()           const {return fGEreso;}
+  inline TGraph*  GetGEbias()           const {return fGEbias;}
+  inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
+  inline Float_t  GetLogJ()             const {return fLogJ;}
 
   inline Double_t GetdNdEpBkgIntegral()       {if(!fHdNdEpBkg) return 0; NormalizedNdEHisto(fHdNdEpBkg); return fHdNdEpBkg->GetBinContent(0);}
   inline Double_t GetdNdEpFrgIntegral()       {if(!fHdNdEpFrg) return 0; NormalizedNdEHisto(fHdNdEpFrg); return fHdNdEpFrg->GetBinContent(0);}
