@@ -125,12 +125,12 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
   SetParameters(gParName,pStart,pDelta);
 
   // Fix tau if requested (both in minuit and in lkl)
-  fMinuit->Release(Iact1dUnbinnedLkl::gTauIndex);
-  FixPar(Iact1dUnbinnedLkl::gTauIndex,kFALSE);
+  fMinuit->Release(gTauIndex);
+  FixPar(gTauIndex,kFALSE);
   if(GetDTau()<=0)
     {
-      fMinuit->FixParameter(Iact1dUnbinnedLkl::gTauIndex);
-      FixPar(Iact1dUnbinnedLkl::gTauIndex);
+      fMinuit->FixParameter(gTauIndex);
+      FixPar(gTauIndex);
     }
 }
 
@@ -166,14 +166,14 @@ Int_t LineSearchLkl::MakeChecks()
 //
 Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
 {
-  const Float_t* onSample = Iact1dUnbinnedLkl::GetOnSample();
-  UInt_t              Non = Iact1dUnbinnedLkl::GetNon();
+  const Float_t* onSample = GetOnSample();
+  UInt_t              Non = GetNon();
 
   //===define energy window===
-  Double_t low_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmin());
-  Double_t high_edge = TMath::Log10(Iact1dUnbinnedLkl::GetEmax());
+  Double_t low_edge = TMath::Log10(GetEmin());
+  Double_t high_edge = TMath::Log10(GetEmax());
 
-  TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
 
   //counting number of events instread of Non
   //Fill all events from onsample into hdNdEpOn ("fine-bin" histogram)
@@ -189,13 +189,13 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
 
   differentiate(hdNdEpOn,1);
 
-  TH1F* hdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  TH1F* hdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
 
-  TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
+  TF1* f1 = new TF1("f1","expo",GetFineLEMin(),GetFineLEMax());
 
   hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
 
-  for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
+  for(Int_t ibin=1; ibin < GetNFineBins()-1; ibin++)
     {
       if (hdNdEpOn->GetBinContent(ibin)>0){ hdNdEpBkg->SetBinContent(ibin,f1->Eval(hdNdEpBkg->GetBinCenter(ibin)));
           bin_enwindow++;
