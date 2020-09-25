@@ -628,6 +628,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 
                   fullLkl->SetEpmin(energyWindowLowEdge);
                   fullLkl->SetEpmax(energyWindowHighEdge);
+                  fullLkl->SetChecked(kFALSE);
 
                   cout << "  * New settings are Emin = " << fullLkl->GetEmin() << " and Emax = " << fullLkl->GetEmax() << endl;
                 }

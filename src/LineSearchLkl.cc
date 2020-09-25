@@ -162,8 +162,8 @@ Int_t LineSearchLkl::MakeChecks()
 
   if(IsChecked()) return 0;
 
-  //if(!GetHdNdEpBkg())
-    ComputeBkgModelFromOnHisto();
+  cout << "Now I'm doing Make checks..." << endl;
+  ComputeBkgModelFromOnHisto();
 
   // check if all needed histos are there
   if(CheckHistograms())
@@ -205,15 +205,13 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     }
   event_count=count;
 
+  differentiate(hdNdEpOn,1);
+
   TH1F* hdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",Iact1dUnbinnedLkl::GetNFineBins(),Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
-  //TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x+[4]*x*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-  // TF1* f1 = new TF1("f1","TMath::Exp([0]+[1]*x*[2]*x*x+[3]*x*x*x)",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
   TF1* f1 = new TF1("f1","expo",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
 
   hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
-  //TF1* f1 = new TF1("f1","pol3",Iact1dUnbinnedLkl::GetFineLEMin(),Iact1dUnbinnedLkl::GetFineLEMax());
-  //sleep(100);
 
   for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
     {
@@ -221,49 +219,10 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
           bin_enwindow++;
       }
     }
-/*
-    TCanvas *c1_test = new TCanvas("c1_test","c1_test",1200,600);
-    c1_test->Divide(2,1);
-    c1_test->cd(1);
-    hdNdEpOn->DrawCopy();
-    f1->DrawCopy("sames");
-*/
-    
-    // convert event distribution into dNdE histogra,
-    differentiate(hdNdEpOn,1);
-    differentiate(hdNdEpBkg,0); //CHECK do we still need to diferentiate or can we use isDiff from TransformAndSavedNdEpBkg?
-    
-    //===Find bins ===
-    Int_t low_edge_bin =hdNdEpBkg->FindBin(low_edge);
-    Int_t high_edge_bin = hdNdEpBkg->FindBin(high_edge);
 
-    //===Normalization for On data and bkg model===
-    Double_t scale_1 = Lkl::IntegrateLogE(hdNdEpOn,low_edge,high_edge);
-    Double_t scale_2 = Lkl::IntegrateLogE(hdNdEpBkg,low_edge,high_edge);
-
-    /*
-    c1_test->cd(2);
-    fHdNdEpBkg->SetLineColor(2);
-    fHdNdEpBkg->SetMarkerColor(2);
-    fHdNdEpBkg->SetMarkerStyle(2);
-    fHdNdEpBkg->DrawCopy();
-    hdNdEpOn->DrawCopy("sames");
-    
-    c1_test->SaveAs("c1_test.root");
-*/
-    
-    /* TOMO : I don't think this re-scale is neccesary, what do you think?
-    for(Int_t ibin=1; ibin < Iact1dUnbinnedLkl::GetNFineBins()-1; ibin++)
-        {
-            if(hdNdEpOn->GetBinContent(ibin)>0){ fHdNdEpBkg->SetBinContent(ibin,scale_1*f1->Eval(fHdNdEpBkg->GetBinCenter(ibin))/scale_2);
-	    }
-        }
-    */
-   
   //DANIEL here we need to set fHdNdEpBkg of Iact1dUnbinned class with this newly computed histo
-  TransformAndSavedNdEpBkg(hdNdEpBkg,kFALSE);
-  hdNdEpBkg->SaveAs("./bkg_before.root");
- 
+  SetdNdEpBkg(hdNdEpBkg);
+
   delete hdNdEpOn;
   delete f1;
 
@@ -328,7 +287,6 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   //TH1F* hBkg  = GetHdNdEpModelBkg();
   TH1F* hBkg  = GetHdNdEpBkg();
   hBkg->SetDirectory(0);
-  hBkg->SaveAs("bkg.root");
   if(hdNdEpBkg)
     {
       //Double_t scale = hBkg->GetBinContent(0);
@@ -417,8 +375,6 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   gPad->Modified();
   gPad->Update();
 
-  hResidualsOn->SaveAs("resi.root");
-    
   TH1I *dummyabis = new TH1I("dummyabis", "dN/dE' bkg model vs On distribution",1,TMath::Log10(10.),TMath::Log10(100000.));
   dummyabis->SetStats(0);
   // dN/dE for signal
@@ -608,13 +564,24 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
     {
       Float_t val = hdNdEpOn->GetBinContent(hdNdEpOn->FindBin(onSample[ievent]));
       //if(val>=0) {
-        if(val>0){
-            //if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
-            f += -2*TMath::Log(val);
-            //}
+        /*if(val>0){
+            if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
+              f += -2*TMath::Log(val);
+            }
+            else
+              f += 0;
         }
         else
-            f += 0;
+          f += 0;*/
+            if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
+              if(val>0){
+                f += -2*TMath::Log(val);
+              }
+              else
+                f += 1e99;
+            }
+            else
+              f += 0;
 /*
       else if (val > 0)
 	f += 0;
