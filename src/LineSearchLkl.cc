@@ -36,31 +36,18 @@ static const Int_t    gNBins           = 100;                    // default numb
 int event_count =0;
 int bin_enwindow =0;
 
-//Int_t gNBins = bin_enwindow;
-
 // List of free parameters.
-// Here we consider the minimal case with just the "g" free parameter
-// As many nuisance parameters as wanted can be added to the list
-// (check also LineSearchLkl::SetFunctionAndPars)
-
-//static const Int_t    gNPars           = 1;                      // Number of free+nuisance parameters
 static const Int_t    gNPars           = 3;                      // Number of free+nuisance parameters
-//static const Char_t*  gParName[gNPars] = {"g"};              // Name of parameters
-static const Char_t*  gParName[gNPars] = {"g","b","tau"};              // Name of parameters
+static const Char_t*  gParName[gNPars] = {"g","b","tau"};        // Name of parameters
 
 // static functions (for internal processing of input data)
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
-
-//newly implemented 04/09/2020
 void differentiate(TH1F* h,Int_t error_flag);
 
 // -2logL function for minuit
-// you can change its name but the format is required by ROOT, you should not change it
-// if you change the name, do it consistently in all this file
 void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
 
 // static minuit object for passing class info into the -2logL function
-// also, do not change this
 static TMinuit* minuit = NULL;
 
 //test
@@ -104,8 +91,6 @@ Int_t LineSearchLkl::InterpretInputString(TString inputString)
 //
 LineSearchLkl::~LineSearchLkl()
 {
-  //if(fHdNdEpBkg)       delete fHdNdEpBkg;
-  //if(fHdNdEpSignal)    delete fHdNdEpSignal;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -132,23 +117,22 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
 
   // set and pars initial and step values
   //Double_t pStart[gNPars] = {ginit};
-  Double_t pStart[gNPars] = {ginit, event_count,GetTau()}; //implemented on 26th July DANIEL: why tau?
   //Double_t pDelta[gNPars] = {TMath::Sqrt(GetNon())/100.}; // Precision of parameters during minimization
-  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,TMath::Sqrt(event_count)/10.,GetDTau()/10.}; //implemented on 26th July
+  Double_t pStart[gNPars] = {ginit, event_count,GetTau()};
+  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,TMath::Sqrt(event_count)/10.,GetDTau()/10.};
 
-    
   // initialize the free (and nuisance) parameters
   SetParameters(gParName,pStart,pDelta);
 
-  // Fix tau if requested (both in minuit and in lkl), implemneted on 26th July
-    fMinuit->Release(Iact1dUnbinnedLkl::gTauIndex);
-    FixPar(Iact1dUnbinnedLkl::gTauIndex,kFALSE);
-    if(GetDTau()<=0)
-      {
-        fMinuit->FixParameter(Iact1dUnbinnedLkl::gTauIndex);
-        FixPar(Iact1dUnbinnedLkl::gTauIndex);
-      }
-}		
+  // Fix tau if requested (both in minuit and in lkl)
+  fMinuit->Release(Iact1dUnbinnedLkl::gTauIndex);
+  FixPar(Iact1dUnbinnedLkl::gTauIndex,kFALSE);
+  if(GetDTau()<=0)
+    {
+      fMinuit->FixParameter(Iact1dUnbinnedLkl::gTauIndex);
+      FixPar(Iact1dUnbinnedLkl::gTauIndex);
+    }
+}
 
 ////////////////////////////////////////////////////////////////
 //
@@ -162,7 +146,7 @@ Int_t LineSearchLkl::MakeChecks()
 
   if(IsChecked()) return 0;
 
-  cout << "Now I'm doing Make checks..." << endl;
+  // compute background model
   ComputeBkgModelFromOnHisto();
 
   // check if all needed histos are there
@@ -182,8 +166,6 @@ Int_t LineSearchLkl::MakeChecks()
 //
 Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
 {
-  //if(fHdNdEpBkg) return 0;
-
   const Float_t* onSample = Iact1dUnbinnedLkl::GetOnSample();
   UInt_t              Non = Iact1dUnbinnedLkl::GetNon();
 
@@ -220,7 +202,7 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
       }
     }
 
-  //DANIEL here we need to set fHdNdEpBkg of Iact1dUnbinned class with this newly computed histo
+  // set fHdNdEpBkg with newly computed background histogram
   SetdNdEpBkg(hdNdEpBkg);
 
   delete hdNdEpOn;
@@ -563,34 +545,18 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
       Float_t val = hdNdEpOn->GetBinContent(hdNdEpOn->FindBin(onSample[ievent]));
-      //if(val>=0) {
-        /*if(val>0){
-            if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
-              f += -2*TMath::Log(val);
-            }
-            else
-              f += 0;
+      if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE))
+        {
+          if(val>0)
+            f += -2*TMath::Log(val);
+          else
+            f += 1e99;
         }
-        else
-          f += 0;*/
-            if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE)){
-              if(val>0){
-                f += -2*TMath::Log(val);
-              }
-              else
-                f += 1e99;
-            }
-            else
-              f += 0;
-/*
-      else if (val > 0)
-	f += 0;
       else
-        f += 1e99;
- */
+        f += 0;
     }
 
-  // nuisance tau implemented on 26th July
+  // nuisance tau
     if(dTau>0)
       f+=-2*TMath::Log(TMath::Gaus(tauest, tau, dTau, kTRUE));
     
