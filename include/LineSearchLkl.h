@@ -22,6 +22,9 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
   // Plots
   TCanvas* PlotHistosAndData();
 
+  // getters
+  inline Int_t GetEventsInEnergyWindow()             const {return fEventsInEnergyWindow;}
+
  protected:
           Int_t    InterpretInputString(TString inputString);
   virtual void     SetFunctionAndPars(Double_t ginit=0);
@@ -31,6 +34,8 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
   Int_t ComputeBkgModelFromOnHisto();
 
  private:
+
+  Int_t fEventsInEnergyWindow;
 
   ClassDef(LineSearchLkl,1) // Line Search Likelihood
 };
