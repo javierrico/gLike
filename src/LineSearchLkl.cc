@@ -32,9 +32,6 @@ static const TString  gName            = "LineSearchLkl";
 static const TString  gTitle           = "Line Search Likelihood";
 static const Double_t gCenterBin       = 0.5;                    // decide which value represents bin in histogram (= 0 for lower bin edge, 0.5 for the middle, 1 for the right edge
 static const Int_t    gNBins           = 100;                    // default number of histograms for dN/dE plots
-//count inside energy window
-int event_count =0;
-int bin_enwindow =0;
 
 // List of free parameters.
 static const Int_t    gNPars           = 3;                      // Number of free+nuisance parameters
@@ -58,7 +55,8 @@ static TMinuit* minuit = NULL;
 // which you can read from e.g. an rc input file
 //
 LineSearchLkl::LineSearchLkl(TString inputString) :
-  Lkl(gNPars,inputString,gName,gTitle), Iact1dUnbinnedLkl(inputString)
+  Lkl(gNPars,inputString,gName,gTitle), Iact1dUnbinnedLkl(inputString),
+ fEventsInEnergyWindow(0)
 {
   if(InterpretInputString(inputString))
     cout << "LineSearchLkl::LineSearchLkl Warning: there were problems interpreting the input string" << endl;      
@@ -111,8 +109,8 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
   fMinuit->SetName(Form("%s_Minuit",GetName()));
 
   // set and pars initial and step values
-  Double_t pStart[gNPars] = {ginit, event_count,GetTau()};
-  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,TMath::Sqrt(event_count)/10.,GetDTau()/10.};    // Precision of parameters during minimization
+  Double_t pStart[gNPars] = {ginit, fEventsInEnergyWindow,GetTau()};
+  Double_t pDelta[gNPars] = {TMath::Sqrt(fEventsInEnergyWindow)/10.,TMath::Sqrt(fEventsInEnergyWindow)/10.,GetDTau()/10.};    // Precision of parameters during minimization
 
   // initialize the free (and nuisance) parameters
   SetParameters(gParName,pStart,pDelta);
@@ -162,23 +160,18 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
   const Float_t* onSample = GetOnSample();
   UInt_t              Non = GetNon();
 
-  //===define energy window===
-  Double_t low_edge = TMath::Log10(GetEmin());
-  Double_t high_edge = TMath::Log10(GetEmax());
-
   TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
 
-  //counting number of events instread of Non
-  //Fill all events from onsample into hdNdEpOn ("fine-bin" histogram)
+  // filling and counting number of events inside energy wondow
   int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
-      if(onSample[ievent] > low_edge && onSample[ievent] < high_edge){
+      if(onSample[ievent] > TMath::Log10(GetEmin()) && onSample[ievent] < TMath::Log10(GetEmax())){
         hdNdEpOn->Fill(onSample[ievent]);
         count++;
       }
     }
-  event_count=count;
+  fEventsInEnergyWindow=count;
 
   differentiate(hdNdEpOn,1);
 
@@ -186,16 +179,13 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
 
   TF1* f1 = new TF1("f1","expo",GetFineLEMin(),GetFineLEMax());
 
-  hdNdEpOn->Fit("f1","0","",low_edge,high_edge);
+  hdNdEpOn->Fit("f1","0","",TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
 
   for(Int_t ibin=1; ibin < GetNFineBins()-1; ibin++)
-    {
-      if (hdNdEpOn->GetBinContent(ibin)>0){ hdNdEpBkg->SetBinContent(ibin,f1->Eval(hdNdEpBkg->GetBinCenter(ibin)));
-          bin_enwindow++;
-      }
-    }
+    if (hdNdEpOn->GetBinContent(ibin)>0)
+      hdNdEpBkg->SetBinContent(ibin,f1->Eval(hdNdEpBkg->GetBinCenter(ibin)));
 
-  // set fHdNdEpBkg with newly computed background histogram
+  // replace fHdNdEpBkg with newly computed background histogram
   SetdNdEpBkg(hdNdEpBkg);
 
   delete hdNdEpOn;
@@ -237,7 +227,6 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   // dN/dE' background vs data
   canvas->cd(2);
   TH1F* hOn  = GetHdNdEpOn();
-  //TH1F* hOn  = LineSearchLkl::GetHdNdEpOn();
   hOn->SetDirectory(0);
   TH1F* hdNdEpBkg = GetHdNdEpBkg();
 
@@ -259,17 +248,13 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   dummya->SetYTitle("dN/dE' [GeV^{-1}]");
   dummya->DrawCopy();
 
-  //TH1F* hBkg  = GetHdNdEpModelBkg();
-  TH1F* hBkg  = GetHdNdEpBkg();
-  hBkg->SetDirectory(0);
+  hdNdEpBkg->SetDirectory(0);
   if(hdNdEpBkg)
     {
-      //Double_t scale = hBkg->GetBinContent(0);
-      //Double_t scale2 = hOn->GetBinContent(0);
-      hBkg->SetLineColor(2);
-      hBkg->SetMarkerColor(2);
-      hBkg->SetMarkerStyle(2);
-      hBkg->DrawCopy("esame");
+      hdNdEpBkg->SetLineColor(2);
+      hdNdEpBkg->SetMarkerColor(2);
+      hdNdEpBkg->SetMarkerStyle(2);
+      hdNdEpBkg->DrawCopy("esame");
     }
   hOn->DrawCopy("esame");
 
@@ -281,7 +266,7 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   hleg->SetMargin(0.40);
   hleg->SetBorderSize(0);
   hleg->AddEntry(hOn,"On events","LP");
-  hleg->AddEntry(hBkg,"Bkg model","LP");
+  hleg->AddEntry(hdNdEpBkg,"Bkg model","LP");
   hleg->Draw();
 
   gPad->Modified();
@@ -335,7 +320,7 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
 
   if(hdNdEpBkg && hOn)
     {
-      hResidualsOn  =  GetResidualsHisto(hBkg,hOn);
+      hResidualsOn = GetResidualsHisto(hdNdEpBkg,hOn);
       hResidualsOn->DrawCopy("esame");
     }
 
@@ -501,15 +486,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   Float_t tau = mylkl->GetTau();
   Float_t dTau = mylkl->GetDTau();
 
-  //counting number of events instead of Non
-  int count=0;
-  for(ULong_t ievent=0; ievent<Non; ievent++)
-    {
-        if(onSample[ievent] > TMath::Log10(lowE) && onSample[ievent] < TMath::Log10(highE))
-          count++;
-    }
-  event_count=count;
-
   // Estimated number of signal and background events in signal region
   Double_t g = par[0];
   Double_t b = par[1];
@@ -556,7 +532,7 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
     
   // tot Nevts
   if(g+b>0)
-    f += -2*TMath::Log(TMath::Poisson(count,g+boff));
+    f += -2*TMath::Log(TMath::Poisson(mylkl->GetEventsInEnergyWindow(),g+boff));
   else
     f += 1e99;
 
