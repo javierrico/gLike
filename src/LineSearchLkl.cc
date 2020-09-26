@@ -50,11 +50,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
 // static minuit object for passing class info into the -2logL function
 static TMinuit* minuit = NULL;
 
-//test
-Double_t minEwindow = 0.;
-Double_t maxEwindow = 0.;
-Int_t minBinwindow = 0;
-Int_t maxBinwindow = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -116,10 +111,8 @@ void LineSearchLkl::SetFunctionAndPars(Double_t ginit)
   fMinuit->SetName(Form("%s_Minuit",GetName()));
 
   // set and pars initial and step values
-  //Double_t pStart[gNPars] = {ginit};
-  //Double_t pDelta[gNPars] = {TMath::Sqrt(GetNon())/100.}; // Precision of parameters during minimization
   Double_t pStart[gNPars] = {ginit, event_count,GetTau()};
-  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,TMath::Sqrt(event_count)/10.,GetDTau()/10.};
+  Double_t pDelta[gNPars] = {TMath::Sqrt(event_count)/10.,TMath::Sqrt(event_count)/10.,GetDTau()/10.};    // Precision of parameters during minimization
 
   // initialize the free (and nuisance) parameters
   SetParameters(gParName,pStart,pDelta);
@@ -480,6 +473,7 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 // Free parameters:
 // par[0] = g (total estimated number of signal events in On region)
 // par[1] = b (total estimated number of background events in On region)
+// par[2] = estimated value of tau
 //
 void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {
@@ -507,7 +501,7 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   Float_t tau = mylkl->GetTau();
   Float_t dTau = mylkl->GetDTau();
 
-  //counting number of events instread of Non
+  //counting number of events instead of Non
   int count=0;
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
