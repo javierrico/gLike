@@ -71,10 +71,8 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline TH1F*    GetHAeff()            const {return fHAeff;}
   inline TH1F*    GetHAeffOff()         const {return fHAeffOff;}
   inline TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
-  //virtual inline TH1F*  GetHdNdEpBkg()        const {return fHdNdEpBkg;}
   inline TH1F*    GetHdNdEpFrg()        const {return fHdNdEpFrg;}
   inline TH1F*    GetHdNdEpSignal()     const {return fHdNdEpSignal;}
-  //virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
   inline TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
   inline TH1F*    GetHdNdESignal()      const {return fHdNdESignal;}
   inline TGraph*  GetGEreso()           const {return fGEreso;}
