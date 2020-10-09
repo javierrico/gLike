@@ -146,7 +146,7 @@ Int_t TemplateLkl::MakeChecks()
 // par[0] = g 
 //
 // this is a trivial funcion that just returs 0, so probably not a good idea
-// to try to minimize it. You must replace this but your likelihood function
+// to try to minimize it. You must replace this by your likelihood function
 //
 void templateLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 {
@@ -156,6 +156,6 @@ void templateLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t i
   iflag*=1;
 
   // get internal object, histos, values, etc
-  Double_t g       = par[0];
+  Double_t g = par[0];
   f = -2*TMath::Log(1);
 }		

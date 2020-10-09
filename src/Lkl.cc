@@ -455,7 +455,7 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(glow) = " << lklval << ", glow rised from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
     }
   
-  // expand the upper end
+  // expand the lower end
   while((lklval=MinimizeLkl(glow,kTRUE,kFALSE,kTRUE))<fgmin+fErrorDef || (centerAtZero && glow>0))
     {
       Double_t save  = glow;      

@@ -9,7 +9,7 @@ I/O CONFIGURATION
 #################
 
 # Label to indentify this analysis (for naming plots and output files)
-jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisFree_JisFixed
+jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisPositive_JisFixed
 
 # Configuration for plots
 jointLklDM.showSamplePlots:   TRUE
@@ -60,7 +60,7 @@ jointLklDM.Channel: bb
 jointLklDM.Process: ann
 
 # list of DM masses to be considered (in GeV)
-jointLklDM.MassList: 100  200 500  1000  2000  5000  10000  20000  50000  100000
+jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
 # Mean g (number of signal events) for simulations
 # this should be replaced in future release by <sv>
@@ -126,5 +126,5 @@ JOINT LIKELIHOOD CONFIGURATION
 #   DlogJ indicates that the uncertainty in the units of a particular lkl term is an *independent* random variable.
 #
 jointLklDM.lklTerm000: JointLkl -   DlogJ=0
-jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
-jointLklDM.lklTerm002: Iact1dBinnedLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root  nbins=20
+jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/root/genericIact_dataIRF_01.root  
+jointLklDM.lklTerm002: Iact1dBinnedLkl      0   logJ=19.  DlogJ=0  inputfile=data/root/genericIact_dataIRF_02.root  nbins=20

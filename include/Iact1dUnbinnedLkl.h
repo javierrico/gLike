@@ -75,7 +75,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline TH1F*    GetHdNdEpSignal()     const {return fHdNdEpSignal;}
   inline TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
   inline TH1F*    GetHdNdESignal()      const {return fHdNdESignal;}
-  inline TGraph*  GetGEreso()           const {return fGEreso;}
+  inline TGraph*  GetGEreso()           const {return fGEreso;} 
   inline TGraph*  GetGEbias()           const {return fGEbias;}
   inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
   inline Float_t  GetLogJ()             const {return fLogJ;}

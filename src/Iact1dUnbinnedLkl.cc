@@ -166,6 +166,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <cstdio>
 
 #include "TMath.h"
 #include "TFile.h"
@@ -289,66 +290,56 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
     }
   
   // open and read input files with data and IRFs
-  TFile* ifile = new TFile(path+(path==""?"":"/")+inputfileName,"READ");
-  IactEventListIrf* dataSet = (IactEventListIrf*) ifile->Get("IactEventListIrf");
-  if(!dataSet)
+  IactEventListIrf* dataSet = new IactEventListIrf("dataSet", "", path+(path==""?"":"/")+inputfileName);
+
+  // extract info from file 
+  fEpmin       = dataSet->GetEpmin();
+  fEpmax       = dataSet->GetEpmax();
+  fTrueTau     = fDataTau     = fTau      = dataSet->GetTau();
+  fDataDTau    = fDTau     = TMath::Sqrt(TMath::Power(dataSet->GetDTau(),2)+TMath::Power(relDTauSyst*fTau,2));
+  fDataObsTime = fObsTime  = dataSet->GetObsTime();
+  fNon         = dataSet->GetOnSample()->GetEntries();
+  fNoff        = dataSet->GetOffSample()->GetEntries();
+  
+  // extract data
+  Double_t eventOnE,eventOffE;
+  dataSet->SetOnBranchAddress("E",&eventOnE);
+  dataSet->SetOffBranchAddress("E",&eventOffE);
+ 
+  fOnSample  = new Float_t[fNon];
+  fOffSample = new Float_t[fNoff];
+
+  for(Int_t i=0;i<fNon;i++)
     {
-      cout << "Iact1dUnbinnedLkl::InterpretInputString Warning: no IactEventListIrf object in file " << inputfileName << ", trying the CTAIRF format" << endl;
-      delete ifile; ifile=NULL;
-      if(ReadCTAIRF(path+"/"+inputfileName))
-	return 1;
+      dataSet->GetOnEntry(i);
+      fOnSample[i] = TMath::Log10(eventOnE);
     }
-  else
+  for(Int_t i=0;i<fNoff;i++)
     {
-      // extract info from file 
-      fEpmin       = dataSet->GetEpmin();
-      fEpmax       = dataSet->GetEpmax();
-      fTrueTau     = fDataTau     = fTau      = dataSet->GetTau();
-      fDataDTau    = fDTau     = TMath::Sqrt(TMath::Power(dataSet->GetDTau(),2)+TMath::Power(relDTauSyst*fTau,2));
-      fDataObsTime = fObsTime  = dataSet->GetObsTime();
-      fNon         = dataSet->GetOnSample()->GetEntries();
-      fNoff        = dataSet->GetOffSample()->GetEntries();
-
-      // extract data
-      Double_t eventOnE,eventOffE;
-      dataSet->SetOnBranchAddress("E",&eventOnE);
-      dataSet->SetOffBranchAddress("E",&eventOffE);
-
-      fOnSample  = new Float_t[fNon];
-      fOffSample = new Float_t[fNoff];
-
-      for(Int_t i=0;i<fNon;i++)
-	{
-	  dataSet->GetOnEntry(i);
-	  fOnSample[i] = TMath::Log10(eventOnE);
-	}
-      for(Int_t i=0;i<fNoff;i++)
-	{
-	  dataSet->GetOffEntry(i);
-	  fOffSample[i] = TMath::Log10(eventOffE);
-	}
-
-      // extract and copy IRFs
-      if(dataSet->GetHAeff()->GetEntries())
-	if(SetAeff(dataSet->GetHAeff()))
-	  cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting AEff histogram" << endl;
-      if(dataSet->GetHAeffOff()->GetEntries())
-	if(SetAeffOff(dataSet->GetHAeffOff()))
-	  cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting AEffOff histogram" << endl;      
-      if(dataSet->GetGEreso()->GetN() && dataSet->GetGEbias()->GetN())
-	if(SetEResoAndBias(dataSet->GetGEreso(),dataSet->GetGEbias()))
-	  cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting Ereso and Ebias graphs" << endl;
-      if(dataSet->GetMigMatrix()->GetEntries())
-	if(SetMigMatrix(dataSet->GetMigMatrix()))
-	  cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting MigMatrix histogram" << endl;   
-      if(dataSet->GetHdNdEpBkg()->GetEntries())
-	if(SetdNdEpBkg(dataSet->GetHdNdEpBkg()))
-	  cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting dNdEpBkg histogram" << endl;   
-      if(dataSet->GetHdNdEpFrg()->GetEntries())
-	if(SetdNdEpFrg(dataSet->GetHdNdEpFrg()))
-	  cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting dNdEpFrg histogram" << endl;   
+      dataSet->GetOffEntry(i);
+      fOffSample[i] = TMath::Log10(eventOffE);
     }
   
+  // create IRFs object only if their correspondent in IactEventListIrf is non empty
+  if(dataSet->GetHAeff()->GetEntries())
+    if(SetAeff(dataSet->GetHAeff()))
+      cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting AEff histogram" << endl;
+  if(dataSet->GetHAeffOff()->GetEntries())
+    if(SetAeffOff(dataSet->GetHAeffOff()))
+      cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting AEffOff histogram" << endl;      
+  if(dataSet->GetGEreso()->GetN() && dataSet->GetGEbias()->GetN())
+    if(SetEResoAndBias(dataSet->GetGEreso(),dataSet->GetGEbias()))
+      cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting Ereso and Ebias graphs" << endl;
+  if(dataSet->GetMigMatrix()->GetEntries())
+    if(SetMigMatrix(dataSet->GetMigMatrix()))
+      cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting MigMatrix histogram" << endl;   
+  if(dataSet->GetHdNdEpBkg()->GetEntries())
+    if(SetdNdEpBkg(dataSet->GetHdNdEpBkg()))
+      cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting dNdEpBkg histogram" << endl;   
+  if(dataSet->GetHdNdEpFrg()->GetEntries())
+    if(SetdNdEpFrg(dataSet->GetHdNdEpFrg()))
+      cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: problems setting dNdEpFrg histogram" << endl;   
+
   // if observation time was specified, override the value in the input data file (for simulation of different obs time)
   if(obstime>0)
     fObsTime = obstime;
@@ -365,8 +356,7 @@ Int_t Iact1dUnbinnedLkl::InterpretInputString(TString inputString)
   if(CheckEnergyLimits())
     cout << "Iact1dUnbinnedLkl::Iact1dUnbinnedLkl Warning: energy limits out of allowed bounds!" << endl;
   
-  if(ifile) {ifile->Close(); delete ifile;}
-  
+  delete dataSet;  
   return 0;
 }
 
