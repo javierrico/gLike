@@ -1274,7 +1274,7 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
 {
   if(meanG<0) meanG=0;
-  
+ 
   // Sanity checks
   if(!fHdNdEpBkg)
     {
