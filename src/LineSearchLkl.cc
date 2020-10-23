@@ -185,7 +185,8 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
     if (hdNdEpOn->GetBinContent(ibin)>0)
       hdNdEpBkg->SetBinContent(ibin,f1->Eval(hdNdEpBkg->GetBinCenter(ibin)));
 
-  // replace fHdNdEpBkg with newly computed background histogram
+  // rescale and replace fHdNdEpBkg with newly computed background histogram
+  hdNdEpBkg->Scale(1./GetObsTime());
   SetdNdEpBkg(hdNdEpBkg);
 
   delete hdNdEpOn;
@@ -452,6 +453,22 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
   return hResiduals;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+// Simulate list of On and Off events
+// see also Iact1dUnbinnedLkl::SimulateDataSamples for more details
+//
+// Returns: 0 in case of success
+//          1 otherwise
+//
+Int_t LineSearchLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
+{
+  // compute background model
+  ComputeBkgModelFromOnHisto();
+
+  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,meanG);
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Line search likelihood function (-2logL) 
 // To be minimized by TMinuit
@@ -473,7 +490,6 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   const TH1F*      hdNdEpBkg       = mylkl->GetHdNdEpBkg();
   const Float_t*   onSample        = mylkl->GetOnSample();
   UInt_t           Non             = mylkl->GetNon();
-  Float_t          Tobs            = mylkl->GetObsTime();
 
   const Int_t      nbins           = hdNdEpBkg->GetNbinsX();
   const Double_t   xmin            = hdNdEpBkg->GetXaxis()->GetXmin();

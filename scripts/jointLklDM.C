@@ -385,6 +385,22 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 
 	  // configure
 	  lkl[iLkl]->SetName(Form("LineSearchLkl_%02d",iLkl));
+
+	  // if it's simulation, simulate the data sample
+	  if(isSimulation)
+	    {
+	      if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcG))
+		{
+		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+		  return;
+		}
+	    }
+	  else
+	    if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->GetNon()<1)
+	      {
+		cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+		return;
+	      }	 
         }
       else if(classType.CompareTo("JointLkl")==0)
 	{	  
