@@ -39,7 +39,7 @@ static const Char_t*  gParName[gNPars] = {"g","b","tau"};        // Name of para
 
 // static functions (for internal processing of input data)
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
-void differentiate(TH1F* h,Int_t error_flag);
+void differentiate(TH1F* h, TH1F* ho, Int_t error_flag);
 
 // -2logL function for minuit
 void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
@@ -160,6 +160,7 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
   const Float_t* onSample = GetOnSample();
   UInt_t              Non = GetNon();
 
+  TH1F* hOn = new TH1F("hOn","Event distribution",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
   TH1F* hdNdEpOn = new TH1F("hdNdEpOn","dN/dE' for On data",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
 
   // filling and counting number of events inside energy wondow
@@ -167,13 +168,13 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
   for(ULong_t ievent=0; ievent<Non; ievent++)
     {
       if(onSample[ievent] > TMath::Log10(GetEmin()) && onSample[ievent] < TMath::Log10(GetEmax())){
-        hdNdEpOn->Fill(onSample[ievent]);
+        hOn->Fill(onSample[ievent]);
         count++;
       }
     }
   fEventsInEnergyWindow=count;
 
-  differentiate(hdNdEpOn,1);
+  differentiate(hOn,hdNdEpOn,1);
 
   TH1F* hdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
 
@@ -186,7 +187,7 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
       hdNdEpBkg->SetBinContent(ibin,f1->Eval(hdNdEpBkg->GetBinCenter(ibin)));
 
   // rescale and replace fHdNdEpBkg with newly computed background histogram
-  hdNdEpBkg->Scale(1./GetObsTime());
+  //hdNdEpBkg->Scale(1./GetObsTime());
   SetdNdEpBkg(hdNdEpBkg);
 
   delete hdNdEpOn;
@@ -388,7 +389,7 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
 /////////////////////////////////////////////////////////////////
 //
 // Conversion histogram of event count into dNdE histogram
-void differentiate(TH1F* h, Int_t error_flag=0)
+void differentiate(TH1F* h, TH1F* ho, Int_t error_flag=0)
 {
     Int_t nbins = h->GetXaxis()->GetNbins();
     // divide by bin width
@@ -464,7 +465,7 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 Int_t LineSearchLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
 {
   // compute background model
-  ComputeBkgModelFromOnHisto();
+  //ComputeBkgModelFromOnHisto();
 
   return Iact1dUnbinnedLkl::SimulateDataSamples(seed,meanG);
 }
