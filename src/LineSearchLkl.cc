@@ -178,7 +178,7 @@ Int_t LineSearchLkl::ComputeBkgModelFromOnHisto()
 
   TH1F* hdNdEpBkg = new TH1F("HdNdEpBkg","dN/dE' for background model",GetNFineBins(),GetFineLEMin(),GetFineLEMax());
 
-  TF1* f1 = new TF1("f1","expo",GetFineLEMin(),GetFineLEMax());
+  TF1* f1 = new TF1("f1","TMath::Exp([3]*x*x*x+[2]*x*x+[1]*x+[0])",GetFineLEMin(),GetFineLEMax());
 
   hdNdEpOn->Fit("f1","0","",TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
 
@@ -400,9 +400,9 @@ void differentiate(TH1F* h, TH1F* ho, Int_t error_flag=0)
         Double_t lemaxbin = leminbin+h->GetBinWidth(ibin+1);
         Double_t deltaE   = TMath::Power(10,lemaxbin)-TMath::Power(10,leminbin);
           if(error_flag==0){
-              h->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
+              ho->SetBinError(ibin+1,h->GetBinError(ibin+1)/deltaE);
           }
-          h->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
+          ho->SetBinContent(ibin+1,h->GetBinContent(ibin+1)/deltaE);
       }
 }
 
