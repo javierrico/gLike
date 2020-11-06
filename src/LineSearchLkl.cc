@@ -231,6 +231,10 @@ TCanvas* LineSearchLkl::PlotHistosAndData()
   TH1F* hOn  = GetHdNdEpOn();
   hOn->SetDirectory(0);
   TH1F* hdNdEpBkg = GetHdNdEpBkg();
+  // scale and rebin before plotting
+  hdNdEpBkg->Scale(GetdNdEpBkgIntegral());
+  hdNdEpBkg->Rebin(TMath::Nint(10.*(TMath::Log10(GetEmax()) - TMath::Log10(GetEmin()))));
+  hdNdEpBkg->Scale(1./TMath::Nint(10.*(TMath::Log10(GetEmax()) - TMath::Log10(GetEmin()))));
 
   TH1I *dummya = new TH1I("dummya", "dN/dE' bkg model vs On distribution",1,TMath::Log10(GetEmin()),TMath::Log10(GetEmax()));
   dummya->SetStats(0);
