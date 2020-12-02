@@ -460,7 +460,7 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
     {
       Double_t save  = glow;      
       glow-=(glow>0? 2*TMath::Abs(glow) : TMath::Abs(glow));
-      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", glow lowered from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
+      cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(glow) = " << lklval << ", glow lowered from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
     }
   
   // if only positive values set glow to zero
