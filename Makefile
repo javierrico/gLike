@@ -46,7 +46,7 @@ $(OUTDIR)/%.o: $(SRCDIR)/%.cc $(HEADERS)
 .PHONY : clean
 clean:
 	@rm -f $(OUTDIR)/*.o
-	@rm -f $(OUTDIR)/$(TARGET)Dict.*
+	@rm -f $(LIBDIR)/$(TARGET)Dict.*
 	@rm -f $(LIBDIR)/lib$(TARGET).so
 	@rm -rf htmldoc/* 2>&1
 
