@@ -9,7 +9,7 @@ I/O CONFIGURATION
 #################
 
 # Label to indentify this analysis (for naming plots and output files)
-jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisPositive_JisFixed
+jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_and_Binned_GisPositive_JisFixed
 
 # Configuration for plots
 jointLklDM.showSamplePlots:   TRUE
@@ -33,7 +33,7 @@ jointLklDM.exportSvLogStep: TRUE
 jointLklDM.exportDataPath: exported_files
 
 # Path (will be added to all specified files and directories in this rcfile)
-jointLklDM.path: ./
+jointLklDM.path: .
 
 # Directory with dN/dE files
 jointLklDM.dNdEDir: DM/dNdE/Cirelli
