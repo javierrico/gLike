@@ -71,7 +71,8 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
       `make`         
       and install    
       `make install`    
-      this last step will make gLike libraries available system-wise, i.e. libraries will be saved in `/usr/local/lib` and executables in `/usr/local/bin`.
+      this last step will make gLike libraries available system-wise, i.e. libraries will be saved in `/usr/local/lib` and executables in `/usr/local/bin`. If you do not have root privileges and cannot write into `/usr`, you can specify the path where you want the gLike libraries to be compiled and installed. Alternatives might be `$HOME/.local` or `$HOME/opt`. Pass the their path via the `CMAKE_INSTALL_PREFIX` option, e.g.   
+      `cmake /path/to/the/source/gLike/dir/ -DCMAKE_INSTALL_PREFIX=$HOME/opt # install cmake system-wise without root privileges`
 
 ### load gLike libraries in ROOT
 If you want to load the gLike libraries each time you open ROOT, modify (or create) in your home a `.rootrc` file, inserting (editing) the line
