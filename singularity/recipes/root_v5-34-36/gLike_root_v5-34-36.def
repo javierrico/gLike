@@ -1,0 +1,60 @@
+Bootstrap: docker
+From: ubuntu:18.04
+
+%labels
+    Maintainer "Cosimo Nigro"
+    Description "Container for gLike with root v5.34.36"
+
+%post 
+    # install basic utilities and ROOT dependencies 
+    # g++-5 and gcc-5 are needed to compile old root version
+    apt update
+    apt install -y git 
+    apt install -y cmake g++-5 gcc-5 binutils 
+    apt install -y libx11-dev libxpm-dev libxft-dev libxext-dev
+    apt install -y libpng16-16 libpng-dev libjpeg8 libjpeg8-dev
+    apt install -y libgsl23 libgsl-dev
+    apt install -y vim                                      
+
+    # create directory to install software
+    mkdir /soft 
+    
+    # - install ROOT
+    cd /soft
+    mkdir /soft/root
+    mkdir /soft/root/source
+    mkdir /soft/root/build 
+    # download it from git, go to v5-34-36 tag
+    cd /soft/root/source
+    git clone http://root.cern/git/root.git
+    cd root
+    git checkout -b v5-34-36 v5-34-36 
+    # build it
+    cd /soft/root/build
+    cmake -S /soft/root/source/root -DCMAKE_C_COMPILER=/usr/bin/gcc-5 -DCMAKE_CXX_COMPILER=/usr/bin/g++-5 -Dmathmore=ON -Dminuit2=ON -Dbuiltin_zlib=ON 
+    make -j4
+    # export ROOT variables for gLike compilation
+    export ROOTSYS=/soft/root/build
+    export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH
+    export PATH=$ROOTSYS/bin:$PATH
+    
+    # - install gLike
+    cd /soft
+    mkdir /soft/gLike
+    mkdir /soft/gLike/source
+    mkdir /soft/gLike/build
+    # download it from git
+    cd /soft/gLike/source
+    git clone https://github.com/javierrico/gLike.git
+    # build it
+    cd /soft/gLike/build
+    cmake -S /soft/gLike/source/gLike
+    make CC=/usr/bin/gcc-5 CCX=/usr/bin/g++-5
+    make install
+
+%environment
+    export ROOTSYS=/soft/root/build
+    export LD_LIBRARY_PATH=$ROOTSYS/lib:$LD_LIBRARY_PATH
+    export PATH=$ROOTSYS/bin:$PATH
+    export GLIKESYS=/soft/gLike/build
+    export PATH=/usr/local:$PATH
