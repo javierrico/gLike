@@ -1233,6 +1233,7 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
     Float_t particle_mass[9]        = {4.18,1.28,173.1,0.511e-3,0.106,1.7768,80.39,91.19,125.0};
     // Classification of the elementary particles
     TString dirac_fermions          = "cc_tt_bb_ee_mumu_tautau";
+    TString quarks                  = "cc_tt_bb";
     TString gauge_bosons            = "WW_ZZ";
     TString scalar_bosons           = "hh";
     // Loop over the channels and compute their branching ratios
@@ -1249,6 +1250,8 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
               ann_crosssection[iChannel] = (mass*mass)/(64. * TMath::Pi()*TMath::Pi()) * (4. * TMath::Power(mass,4) - 4. * mass*mass * particle_mass[iChannel]*particle_mass[iChannel] + 3. * TMath::Power(particle_mass[iChannel],4)) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
             else if (scalar_bosons.Contains(particle_type[iChannel]))
               ann_crosssection[iChannel] = (mass*mass)/(32. * TMath::Pi()*TMath::Pi()) * TMath::Power((2.* mass*mass + particle_mass[iChannel]*particle_mass[iChannel]),2) * TMath::Sqrt(1-((particle_mass[iChannel]*particle_mass[iChannel])/(mass*mass)));
+            // Quarks with a factor of 3 (because of the color of the quarks)
+            if (quarks.Contains(particle_type[iChannel])) ann_crosssection[iChannel] *= 3.;
             // WW with a factor 2 (because the W is complex)
             if(!particle_type[iChannel].CompareTo("WW",TString::kIgnoreCase)) ann_crosssection[iChannel] *= 2.;
             // hh with a factor 1/2 (because the Higgs is real)
