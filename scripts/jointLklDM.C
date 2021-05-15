@@ -195,20 +195,26 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
             }
       normchannel.Append(channelval[iChannel]);
 
-      if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");          minmass=5;}
-      else if(!channelval[iChannel].CompareTo("cc",TString::kIgnoreCase))         {strchannel.Append("c#bar{c}");          minmass=1.3;}
-      else if(!channelval[iChannel].CompareTo("tt",TString::kIgnoreCase))         {strchannel.Append("t#bar{t}");          minmass=173;}
-      else if(!channelval[iChannel].CompareTo("tautau",TString::kIgnoreCase))     {strchannel.Append("#tau^{+}#tau^{-}");  minmass=1.8;}
-      else if(!channelval[iChannel].CompareTo("mumu",TString::kIgnoreCase))       {strchannel.Append("#mu^{+}#mu^{-}");    minmass=0.106;}
-      else if(!channelval[iChannel].CompareTo("WW",TString::kIgnoreCase))         {strchannel.Append("W^{+}W^{-}");        minmass=80.3;}
-      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("ZZ");                minmass=91.2;}
-      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("HH");                minmass=125;}
-      else if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel.Append("#gamma#gamma");      minmass=0;}
-      else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");    minmass=0.135;}
-      else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
-      else if(!channelval[iChannel].CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");     minmass=0.135/2.;}
-      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");        minmass=0.511e-3;}
-      else if(!channelval[iChannel].CompareTo("branon",TString::kIgnoreCase))     {strchannel.Append("branon");            minmass=0;}
+      if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");              minmass=5;}
+      else if(!channelval[iChannel].CompareTo("cc",TString::kIgnoreCase))         {strchannel.Append("c#bar{c}");              minmass=1.3;}
+      else if(!channelval[iChannel].CompareTo("tt",TString::kIgnoreCase))         {strchannel.Append("t#bar{t}");              minmass=173;}
+      else if(!channelval[iChannel].CompareTo("tautau",TString::kIgnoreCase))     {strchannel.Append("#tau^{+}#tau^{-}");      minmass=1.8;}
+      else if(!channelval[iChannel].CompareTo("mumu",TString::kIgnoreCase))       {strchannel.Append("#mu^{+}#mu^{-}");        minmass=0.106;}
+      else if(!channelval[iChannel].CompareTo("WW",TString::kIgnoreCase))         {strchannel.Append("W^{+}W^{-}");            minmass=80.3;}
+      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("ZZ");                    minmass=91.2;}
+      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("HH");                    minmass=125;}
+      else if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel.Append("#gamma#gamma");          minmass=0;}
+      else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");        minmass=0.135;}
+      else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");         minmass=0.135/2.;}
+      else if(!channelval[iChannel].CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");         minmass=0.135/2.;}
+      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");            minmass=0.511e-3;}
+      else if(!channelval[iChannel].CompareTo("nuenue",TString::kIgnoreCase))     {strchannel.Append("#nu_{e}#nu_{e}");        minmass=120.0;}
+      else if(!channelval[iChannel].CompareTo("numunumu",TString::kIgnoreCase))   {strchannel.Append("#nu_{#mu}#nu_{#mu}");    minmass=120.0;}
+      else if(!channelval[iChannel].CompareTo("nutaunutau",TString::kIgnoreCase)) {strchannel.Append("#nu_{#tau}#nu_{#tau}");  minmass=120.0;}
+      else if(!channelval[iChannel].CompareTo("VV-4e",TString::kIgnoreCase))      {strchannel.Append("VV-4e");                 minmass=2.044e-3;}
+      else if(!channelval[iChannel].CompareTo("VV-4mu",TString::kIgnoreCase))     {strchannel.Append("VV-4#mu");               minmass=0.424;}
+      else if(!channelval[iChannel].CompareTo("VV-4tau",TString::kIgnoreCase))    {strchannel.Append("VV-4#tau");              minmass=7.2;}
+      else if(!channelval[iChannel].CompareTo("branon",TString::kIgnoreCase))     {strchannel.Append("branon");                minmass=0;}
       else strchannel = "";
     }
   if(isDecay) minmass*=2;
@@ -363,6 +369,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	}
       else if(classType.CompareTo("GloryDuckTables2019Lkl")==0)
 	{
+          if(isSimulation)
+            {
+              TPMERegexp re(".txt");
+              UInt_t nfields = re.Split(inputString);
+              inputString = re[0] + Form("_%d.txt",seed) + re[1];
+              cout << "  * Modified        : " << inputString << endl;
+            }
 	  GloryDuckTables2019Lkl *tmpLkl =  new GloryDuckTables2019Lkl(inputString);
           Bool_t massAvailable = kFALSE;
           for(Int_t jmass=0;jmass<nmass;jmass++)
@@ -485,7 +498,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       // Create directory and open file for data export
       TString exportDataDir = fExportDataPath+simulationlabel+"/";
       gSystem->Exec(Form("mkdir -p %s",exportDataDir.Data()));
-      TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+      TString seedTag  = (seed<0? "" : Form("_%d",seed));
       TString dataFile = exportDataDir+label+seedTag+".txt";
       data.open(dataFile);
 
@@ -1074,14 +1087,14 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   gSystem->Exec(Form("mkdir -p %s/root",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
   
-  TString seedTag  = (seed<0? "" : Form("_%05d",seed));
+  TString seedTag  = (seed<0? "" : Form("_%d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
   if(showParabolaPlots)
     {
-      limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_2logLVsG"+seedTag+".root");
-      limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".pdf");
+      lklcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_2logLVsG"+seedTag+".root");
+      lklcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".pdf");
     }
   if(showSamplePlots) 
     for(Int_t isample=0;isample<nsamples;isample++)
