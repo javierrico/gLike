@@ -453,14 +453,17 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
       Double_t save  = glow;
       glow+=TMath::Abs(glow-gmin)/2.;
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(glow) = " << lklval << ", glow rised from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
+      if(lklval >= 1e99) break;
     }
   
   // expand the lower end
   while((lklval=MinimizeLkl(glow,kTRUE,kFALSE,kTRUE))<fgmin+fErrorDef || (centerAtZero && glow>0))
     {
-      Double_t save  = glow;      
+      Double_t save  = glow;
+      if(fGIsPositive && glow<0) break;
       glow-=(glow>0? 2*TMath::Abs(glow) : TMath::Abs(glow));
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(glow) = " << lklval << ", glow lowered from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
+      if(lklval >= 1e99) break;
     }
   
   // if only positive values set glow to zero
@@ -483,6 +486,7 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
       Double_t save  = gupp;      
       gupp-=TMath::Abs(gupp-gmin)/2.;
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", gupp lowered from " << save << " to " << gupp <<" (fLklMin = " << fgmin << ")"<< endl;
+      if(lklval >= 1e99) break;
     }
   
   // expand the upper end
@@ -491,6 +495,7 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
       Double_t save  = gupp;      
       gupp+=(gupp<0? 2*TMath::Abs(gupp) : TMath::Abs(gupp));
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", gupp rised from " << save << " to " << gupp <<" (fLklMin = " << fgmin << ")"<< endl;
+      if(lklval >= 1e99) break;
     }
   fLklMin=fgmin;
 }
@@ -560,7 +565,10 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
   SetMinuitLink();
 
   // assign value to g and fix it if requested
-  fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g+fGShift,fParDelta[gGParIndex],0,0);
+  if(fParName[gGParIndex]=="tau")
+    fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g+fGShift,fParDelta[gGParIndex],0,10);
+  else
+    fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g+fGShift,fParDelta[gGParIndex],0,0);
 
   fMinuit->Release(gGParIndex);
   FixPar(gGParIndex,kFALSE);
@@ -585,6 +593,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
   // call minimization (with requested verbosity)
   Int_t strategy = (!gIsFixed)*2; // when it's fixed, we can relax the strategy since there is no interest in errors
   Double_t lkl = CallMinimization(g,isVerbose,strategy);
+  if(lkl>8e99) return -1000.;
 
   // keep value of minimum lkl and associated g (with error)  
   for(Int_t ipar=0;ipar<fNPars;ipar++)
@@ -637,7 +646,7 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
   arglist[0] = 10000;
   iflag = -1;
   Int_t counter = 0;
-  const Int_t maxcounts = 50;
+  const Int_t maxcounts = 300;
 
   // try until convergence is achieved
   while((iflag!=0 || TMath::IsNaN(GetParErr(0))) && counter<maxcounts) // try until the fit converges
@@ -661,16 +670,23 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
 
       // try changing precision
       if(iflag!=0 || TMath::IsNaN(GetParErr(gGParIndex)))
-	fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter), 0, 0);
+        {
+          if(fParName[gGParIndex]=="tau")
+            fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter), 0, 10);
+          else
+            fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter), 0, 0);
+        }
       
       counter++;
-      if(counter==maxcounts)
+      if(iflag != 0 && counter==maxcounts)
 	cout << "Lkl::CallMinimization (" << GetName() << ") Warning: No convergence reached for g = " << g << " after " << maxcounts << " trials: check your -2logL curves for features" << endl;
+
     }
 
   delete [] arglist;
 
-  return (counter<maxcounts? GetLklVal() : 9e99);
+  if(iflag != 0) return 9e99;
+  else return (counter<=maxcounts? GetLklVal() : 9e99);
 }
 
 
@@ -840,7 +856,12 @@ void Lkl::SetParameters(const Char_t** parname, Double_t* parstart, Double_t* pa
       fParErr[ipar]     = 0;
       fIsParFixed[ipar] = kFALSE;
       if(fMinuit)
-	fMinuit->DefineParameter(ipar, fParName[ipar], fParStart[ipar], fParDelta[ipar], 0, 0);
+        {
+          if(fParName[ipar]=="tau")
+            fMinuit->DefineParameter(ipar, fParName[ipar], fParStart[ipar], fParDelta[ipar], 0, 10);
+          else
+            fMinuit->DefineParameter(ipar, fParName[ipar], fParStart[ipar], fParDelta[ipar], 0, 0);
+        }
     }
 }
 
