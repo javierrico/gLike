@@ -202,6 +202,43 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   gSystem->Exec(Form("mkdir -p %s",resultsPath.Data()));
   gSystem->Exec(Form("mkdir -p %s/root",resultsPath.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",resultsPath.Data()));
+  gSystem->Exec(Form("mkdir -p %s/txt",resultsPath.Data()));
+
+  // File to store the results in txt format
+  std::ofstream results2txt;
+  const TString results2txtPath = resultsPath + "txt/" + label + ".txt";
+  results2txt.open(results2txtPath);
+
+  // open file and get the limits for the txt file
+  TFile*   dataFile = TFile::Open(dataPath+label+"_Data_limits.root", "READ");
+  TCanvas* canvas   = (TCanvas*)dataFile->Get("limcanvas");
+  TGraph*  graph    = (TGraph*)canvas->GetPrimitive(isDecay? "grtaulim": "grsvlim");
+  // open file and get the limits
+  Char_t line[256];
+  for(Int_t ival=0;ival<graph->GetN();ival++)
+    {
+      Double_t mass = graph->GetX()[ival];
+      for(Int_t imass=0;imass<nmass;imass++)
+        if(mass==massval[imass])
+          {
+            results2txt << massval[imass] << " ";
+            break;
+          }
+    }
+  results2txt << endl;
+  for(Int_t ival=0;ival<graph->GetN();ival++)
+    {
+      Double_t mass = graph->GetX()[ival];
+      for(Int_t imass=0;imass<nmass;imass++)
+        if(mass==massval[imass])
+          {
+            Double_t lim  = graph->GetY()[ival];
+            results2txt << lim << " ";
+            break;
+          }
+    }
+  results2txt << endl;
+  delete dataFile;
 
   // Arrays for results
   Double_t sv1sigmaL[nmass];
@@ -238,6 +275,19 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       TGraph*  graph   = (TGraph*)  canvas->FindObject(isDecay? "grtaulim": "grsvlim");
 
       Char_t line[256];
+      // First write the masses of the simulation
+      for(Int_t ival=0;ival<graph->GetN();ival++)
+        {
+          Double_t mass = graph->GetX()[ival];
+          for(Int_t imass=0;imass<nmass;imass++)
+            if(mass==massval[imass])
+              {
+                results2txt << massval[imass] << " ";
+                break;
+              }
+        }
+      results2txt << endl;
+      // Then write the limits of the simulation
       for(Int_t ival=0;ival<graph->GetN();ival++)
         {
           Double_t mass = graph->GetX()[ival];
@@ -246,9 +296,11 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
               {
                 Double_t lim  = graph->GetY()[ival];
                 svLimDist[imass].push_back(lim);
+                results2txt << lim << " ";
                 break;
               }
         }
+      results2txt << endl;
       delete infile;
     }
   cout << "Could read " << nFilesRead << "/" << nSimuFiles << " of the input files." << endl << endl;
@@ -427,6 +479,9 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
 
   cout << endl << "Bands saved in file: " << outputFileName << endl;
   delete outputFile;
+
+  // Print statement that the results are saved in the txt file
+  cout << "Results saved in file: " << results2txtPath << endl;
 
   // Save results as graphs in a root file for branon
   TGraph* gbt0sigma  = NULL;
