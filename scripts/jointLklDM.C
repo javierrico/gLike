@@ -793,7 +793,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       cout << " *** Computing -2logL (parabola) vs g:" << endl;
       if(!lkl[0]->ComputeLklVsG())
         {
-          cout << " *** Skipping DM mass = " << mass << " GeV because checks were not successfull (maybe none of the samples will produce any signal event?)" << endl;
+          cout << " *** Skipping DM mass = " << mass << " GeV because checks were not successfull (maybe none of the samples will produce any signal event or the fit didn't converge in the allowed number of trials?)" << endl;
           svLimVal[imass] = 0.;
           svSenVal[imass] = 0.;
           braneTensionVal[imass] = 0.;
@@ -873,7 +873,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       //////////////////////////////////////////////////////////////
       if (exportData)
         for (Int_t isv=0; isv<=svNPoints; isv++)
-          vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]) - grLklParabola[imass]->Eval(0);
+          vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]);
 
     } // end of loop over DM masses
 
