@@ -1262,7 +1262,7 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 // and the observation time in fObsTime and tau taking randomly from a
 // gaussian of mean fTau and mean fDTau
 // seed    (default 0) = seed for random generator
-// meanG   (default 0) = mean G value
+// mcsv    (default 0) = assumed <sv> value [cm3 s-1]
 //
 // IF meanG<0, do not simulate independent ON events, use OFF sample
 // also as ON
@@ -1270,9 +1270,9 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 // Return 0 in case of success
 //        1 otherwise
 //
-Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
+Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t mcsv)
 {
-  if(meanG<0) meanG=0;
+  if(mcsv<0) mcsv=0;
   
   // Sanity checks
   if(!fHdNdEpBkg)
@@ -1280,7 +1280,7 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
       cout << endl << "Iact1dUnbinnedLkl::SimulateDataSamples Error: fHdNdEpBkg missing, cannot simulate events" << endl;
       return 1;
     }
-  if(meanG>0 && !fHdNdEpSignal)
+  if(mcsv>0 && !fHdNdEpSignal)
     {
       cout << endl << "Iact1dUnbinnedLkl::SimulateDataSamples Error: you want to simulate signal events but fHdNdEpSignal is missing, cannot simulate events" << endl;
       return 1;
@@ -1301,6 +1301,8 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
 
   if(GetRealBkgAndGoffHistos(rdm,realHdNdEpBkg,realHdNdEpSignalOff)) return 1;
 
+
+  Float_t meanG    = mcsv/GetUnitsOfG();
   Float_t meanB    = GetdNdEpBkgIntegral()*fObsTime;  
   Float_t meanBoff = realHdNdEpBkg->GetBinContent(0)*fObsTime*fTau;
   Float_t meanF    = GetdNdEpFrgIntegral()*fObsTime;
