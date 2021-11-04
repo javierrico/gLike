@@ -154,7 +154,7 @@ int main(int argc,char* argv[])
   TString  fPlotsDir         = fInputDataPath+"/"+env->GetValue("jointLklDM.plotsDir","")+"/";
   TString  provval           = env->GetValue("jointLklDM.dNdEpSignalDir","-");
   TString  fdNdEpSignalDir   = fInputDataPath+"/"+provval+"/";
-  Float_t  mcG               = env->GetValue("jointLklDM.mcG",0.);  //assumed value of <sv> for simulations
+  Float_t  mcsv              = env->GetValue("jointLklDM.mcsv",0.);  //assumed value of <sv> for simulations
   TString  massList          = env->GetValue("jointLklDM.MassList","");
   Bool_t   exportData        = env->GetValue("jointLklDM.exportData",kFALSE);
   Double_t svMin             = env->GetValue("jointLklDM.exportSvMin",0.);
@@ -252,7 +252,10 @@ int main(int argc,char* argv[])
   cout << " ** Channel check            : " << normchannel << endl;
   cout << "*** DATA/MC                  : " << simulationlabel << endl;
   if(isSimulation)
-    cout << " ** Seed                     : " << seed << endl;
+    {
+      cout << " ** Seed                     : " << seed << endl;
+      cout << " ** <sv>_MC                  : " << mcsv << " cm^3/s" << endl;
+    }
   cout << "*** G IS POSITIVE            : " << (isGpositive? "YES" : "NO") << endl;
       
   // how many and which mass values are we considering?
@@ -332,10 +335,11 @@ int main(int argc,char* argv[])
 	  // save as sample (as opposed to JointLkl)
 	  sample[nsamples++] = lkl[iLkl];
 	  	  
-	  // if it's simulation, simulate the data sample
-	  if(isSimulation)
+	  // if it's simulation of the null hypothesis, we can already simulate the data sample
+	  if(isSimulation && mcsv==0)
 	    {
-	      if(dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcG))
+	      cout << "  * Simulating observations for <sv> = " << mcsv << endl;			  
+	      if(dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
 		{
 		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
 		  exit(1);
@@ -359,10 +363,11 @@ int main(int argc,char* argv[])
 	  // configure
 	  lkl[iLkl]->SetName(Form("Iact1dBinnedLkl_%02d",iLkl));	  
 
-	  // if it's simulation, simulate the data sample
-	  if(isSimulation)
+	  // if it's simulation of the null hypothesis, we can already simulate the data sample
+	  if(isSimulation && mcsv==0)
 	    {
-	      if(dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcG))
+	      cout << "  * Simulating observations for <sv> = " << mcsv << endl;       		  
+	      if(dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
 		{
 		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
 		  exit(1);
@@ -721,6 +726,19 @@ int main(int argc,char* argv[])
 	        fullLkl->SetDMDecayUnitsForG(mass);
 	      else	      
 	        fullLkl->SetDMAnnihilationUnitsForG(mass);
+
+	      // in case simulations were requested with DM cont, do them now
+	      if(isSimulation && mcsv>0)
+		{
+		  cout << "  * Simulating observations for <sv> = " << mcsv << endl;
+		  if(fullLkl->SimulateDataSamples(seed,mcsv))
+		    {
+		      cout << " ## Oops! Cannot simulate samples for " << fullLkl->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+		      exit(1);
+		    }
+		}
+
+	      
 	      
 	      // Save the dN_signal/dE' created in the SetDMAnnihilationUnitsForG call
 	      if(ioHdNdEpSignal && saveHistosInFile)

@@ -102,7 +102,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Int_t TransformAndSavedNdEpFrg(TH1F* provHNOff,Bool_t interpolate=kTRUE,Double_t scale=0,Bool_t isDiff=kTRUE);
   Int_t ResetHdNdEpBkg() {if(fHdNdEpBkg) delete fHdNdEpBkg; fHdNdEpBkg=NULL; return 0;}
 
-  virtual Int_t SimulateDataSamples(UInt_t seed=0,Float_t meanG=0);
+  virtual Int_t SimulateDataSamples(UInt_t seed=0,Float_t mcsv=0);
 
   // print data in the overview
   virtual void PrintData(Int_t level=0);

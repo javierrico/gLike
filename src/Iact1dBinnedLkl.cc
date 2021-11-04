@@ -650,14 +650,14 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
 // Simulate list of On and Off events
-// If no background model has been provided, the use the distribution
+// If no background model has been provided, we use the distribution
 // of Off events as model
 // see also Iact1dUnbinnedLkl::SimulateDataSamples for more details
 //
 // Returns: 0 in case of success
 //          1 otherwise
 //
-Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
+Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t mcsv)
 {
   // basic check
   if(fTauEDepFluct && !fdNdEpBkgFromOff)
@@ -686,7 +686,7 @@ Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
   if(fHNOff) delete fHNOff;
   fHNOn = fHNOff = NULL;
   
-  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,meanG);
+  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,mcsv);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
