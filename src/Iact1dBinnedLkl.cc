@@ -657,7 +657,7 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 // Returns: 0 in case of success
 //          1 otherwise
 //
-Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t mcsv)
+Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
 {
   // basic check
   if(fTauEDepFluct && !fdNdEpBkgFromOff)
@@ -686,7 +686,7 @@ Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t mcsv)
   if(fHNOff) delete fHNOff;
   fHNOn = fHNOff = NULL;
   
-  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,mcsv);
+  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,meanGwithUnits);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
