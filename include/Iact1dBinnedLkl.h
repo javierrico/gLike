@@ -42,7 +42,7 @@ class Iact1dBinnedLkl : public Iact1dUnbinnedLkl, public JointLkl
   // print data in the overview
   virtual void PrintOverview(Int_t level=0)  {Lkl::PrintOverview(level);}
   virtual void PrintData(Int_t level=0);
-  virtual Int_t  SimulateDataSamples(UInt_t seed=0,Float_t mcsv=0);
+  virtual Int_t  SimulateDataSamples(UInt_t seed=0,Float_t meanGwithUnits=0);
 
  protected:
           Int_t  InterpretInputString(TString inputString);

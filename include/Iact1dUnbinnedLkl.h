@@ -102,7 +102,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Int_t TransformAndSavedNdEpFrg(TH1F* provHNOff,Bool_t interpolate=kTRUE,Double_t scale=0,Bool_t isDiff=kTRUE);
   Int_t ResetHdNdEpBkg() {if(fHdNdEpBkg) delete fHdNdEpBkg; fHdNdEpBkg=NULL; return 0;}
 
-  virtual Int_t SimulateDataSamples(UInt_t seed=0,Float_t mcsv=0);
+  virtual Int_t SimulateDataSamples(UInt_t seed=0,Float_t meanGwithUnits=0);
 
   // print data in the overview
   virtual void PrintData(Int_t level=0);
@@ -152,7 +152,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Float_t  fTau;             // Assumed normalization Noff/Non (e.g # of off regions). Equal to fDataTau except for simulations and tests
   Float_t  fDTau;            // Assumed statistical error in fTau (used for simualtions and in the likelihood). Equal to fDataDTau except for simulations and tests
   Float_t  fTrueTau;         // True value of Tau used in simulations (equal to fTau if fDTau=0, if no simulations are performed its value is 0)
-  Float_t  fObsTime;         // Assumed [s] observation time. Equal to fDataObsTime except for simulations and tests
+  Float_t  fObsTime;         // [s] assumed observation time. Equal to fDataObsTime except for simulations and tests
   Float_t  fLogJ;            // log[GeV^2 cm^-5] or log[GeV cm^2] (ann/dec respectively), log of J factor
   Bool_t   fIsOffAsOn;       // if kTRUE, use the Off event sample as Off and as On
   
