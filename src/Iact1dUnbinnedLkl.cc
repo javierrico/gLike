@@ -521,6 +521,7 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
     }
   
   // normalize unnormalized histos
+  NormalizedNdEHisto(fHdNdESignal);
   NormalizedNdEHisto(fHdNdEpSignal);
   NormalizedNdEHisto(fHdNdEpSignalOff);
   if(checkdNdEpBkg)
@@ -1261,8 +1262,9 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 // according to the total pdf described by fHdNdEpBkg and fHdNdEpSignal
 // and the observation time in fObsTime and tau taking randomly from a
 // gaussian of mean fTau and mean fDTau
-// seed           (default 0) = seed for random generator
-// meanGwithUnits (default 0) = assumed value of g (in units of fUnitsOfG)
+//
+// meanGwithUnits (default 0)    = assumed value of g (in units of fUnitsOfG)
+// rdm            (default NULL) = random generator (if NULL take gRandom)
 //
 // IF meanGwithUnits<0, do not simulate independent ON events, use OFF sample
 // also as ON
@@ -1270,7 +1272,7 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 // Return 0 in case of success
 //        1 otherwise
 //
-Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
+Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
 {
   if(meanGwithUnits<0) meanGwithUnits=0;
   
@@ -1292,7 +1294,7 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
     }
 
   // compute weights for different pdf components
-  TRandom3* rdm     = new TRandom3(seed);
+  if(!rdm) rdm = gRandom;
   TRandom*  saverdm = gRandom;
   gRandom = rdm;
 
@@ -1406,7 +1408,7 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
   
   // clean and exit
   gRandom = saverdm;
-  delete rdm;
+
   delete hBkgBinIntegrated;
   delete hRealBkgBinIntegrated;
   delete hFrgBinIntegrated;
@@ -1431,7 +1433,7 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
 // and fHdNdEpSignalOff the expected distribution of signal events in the total Off region
 // (total meaning that if tau=3 the effective area to consder is that of the three subregions)
 //
-Int_t Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
+Int_t Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
 {
   // create new histos with contents of the existing ones
   if(fHdNdEpBkg) hdNdEpBkg = new TH1F(*fHdNdEpBkg);
@@ -1466,27 +1468,29 @@ Int_t Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Plot a canvas with all material to minimize the -2logL:
+// Plot at the input canvas all material used to minimize the -2logL:
 // - Aeff
 // - Ereso and Ebias
 // - dN/dE  for signal
 // - dN/dE' for background compared to the On and Off distributions with residuals
 // - dN/dE' for signal
 // 
-// return a pointer to the canvas, in case you want to modify it
 //
-TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData() 
+void Iact1dUnbinnedLkl::PlotHistosAndData(TCanvas* canvas) 
 {
   MakeChecks();
   SetChecked(kFALSE);
   
   // create and divide canvas
-  TCanvas* canvas = new TCanvas("histosAndDataCanvas","Iact1dUnbinnedLkl histos and data used to minimize -2logL", 1000, 1500);
+  if(!canvas)
+    canvas = new TCanvas("histosAndDataCanvas","Iact1dUnbinnedLkl histos and data used to minimize -2logL", 1000, 1500);
   canvas->Divide(2,3);
 
   // draw plots
-
-  // effective area
+  
+  ///////////////////////////
+  // CD(1) EFFECTIVE AREA
+  ///////////////////////////
   canvas->cd(1);
   if(fHAeff)     fHAeff->DrawCopy();
   if(fHAeffOff)  fHAeffOff->DrawCopy("same");
@@ -1495,24 +1499,39 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
   gPad->Modified();
   gPad->Update();    
 
-  // dN/dE' background vs data
-  canvas->cd(2);  
+  ///////////////////////////
+  // CD(2)  dN/dE' background vs data
+  ///////////////////////////
+  canvas->cd(2);
+
+  // dN/dE' for bkg compared to Non and Noff distributions
+  TH1F* hdNdEpBkg = NULL;
+  if(fHdNdEpBkg)
+    {
+      hdNdEpBkg = new TH1F(*fHdNdEpBkg);
+      hdNdEpBkg->SetDirectory(0);
+    }
   TH1F* hOn  = GetHdNdEpOn();
   TH1F* hOff = GetHdNdEpOff();
   hOn->SetDirectory(0);  
   hOff->SetDirectory(0);
   hOff->Scale(1./fTau);
 
-  if(fHdNdEpBkg && fNoff>1)
-    fHdNdEpBkg->Scale(fNoff/fTau);
+  if(hdNdEpBkg && fNoff>1)
+    hdNdEpBkg->Scale(fNoff/fTau);
 
+  // Foreground contribution (if any)
+  TH1F* hdNdEpFrg = NULL;
   Float_t dNdEpFrgNorm = 1;
   if(fHdNdEpFrg)
     {
+      hdNdEpFrg = new TH1F(*fHdNdEpFrg);
+      hdNdEpFrg->SetDirectory(0);
       dNdEpFrgNorm = GetdNdEpFrgIntegral()*fObsTime;
-      fHdNdEpFrg->Scale(dNdEpFrgNorm);
+      hdNdEpFrg->Scale(dNdEpFrgNorm);
     }
 
+  // set the framework plot
   TH1I *dummya = new TH1I("dummya", "dN/dE' bkg model vs On and Off distributions",1,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
   dummya->SetStats(0);
   if(fNon>1)
@@ -1525,40 +1544,63 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
       dummya->SetMinimum(hOff->GetMinimum(0)/2.);
       dummya->SetMaximum(hOff->GetMaximum()*2);
     }
-  else if(fHdNdEpBkg)
+  else if(hdNdEpBkg)
     {
-      dummya->SetMinimum(fHdNdEpBkg->GetMinimum());
-      dummya->SetMaximum(fHdNdEpBkg->GetMaximum());
+      dummya->SetMinimum(hdNdEpBkg->GetMinimum());
+      dummya->SetMaximum(hdNdEpBkg->GetMaximum());
     }
     
- 
-  if(!fHdNdEpBkg) dummya->SetTitle("dN/dE' distributions for On and Off event samples");
+  if(!hdNdEpBkg) dummya->SetTitle("dN/dE' distributions for On and Off event samples");
   dummya->SetXTitle("log_{10}(E' [GeV])");
   dummya->SetYTitle("dN/dE' [GeV^{-1}]");
   dummya->DrawCopy();
 
-  if(fHdNdEpBkg) fHdNdEpBkg->DrawCopy("same");
-  if(fHdNdEpFrg) fHdNdEpFrg->DrawCopy("same");
+  // configure and plot the different histograms
+  if(hdNdEpBkg)
+    {
+      hdNdEpBkg->SetMarkerStyle(1);
+      hdNdEpBkg->SetLineColor(2);
+      hdNdEpBkg->DrawCopy("hist same");
+    }
+  if(hdNdEpFrg)
+    {
+      hdNdEpBkg->SetMarkerStyle(2);
+      hdNdEpBkg->SetLineColor(2);
+      hdNdEpFrg->DrawCopy("hist same");
+    }
+  hOn->SetLineColor(4);
+  hOn->SetMarkerColor(4);
+  hOn->SetMarkerStyle(8);
+  hOn->SetMarkerSize(0.5);
   hOn->DrawCopy("esame");
   hOff->SetLineColor(2);
   hOff->SetMarkerColor(2);
+  hOff->SetMarkerStyle(8);
+  hOff->SetMarkerSize(0.5);
   hOff->DrawCopy("esame");
-
+ 
   gPad->SetLogy();
   gPad->SetGrid();
 
-  TLegend* hleg = new TLegend(0.65, 0.65, 0.85, 0.85);
+  // legend
+  TLegend* hleg = new TLegend(0.6, 0.65, 0.92, 0.92);
   hleg->SetFillColor(0);
   hleg->SetMargin(0.40);
   hleg->SetBorderSize(0);
-  hleg->AddEntry(hOn,"On events","LP");
-  hleg->AddEntry(hOff,"Off events","LP");
+  hleg->AddEntry(hOn,"On events","P");
+  hleg->AddEntry(hOff,"Off events","P");
+  if(hdNdEpBkg)
+    hleg->AddEntry(hdNdEpBkg,"Background model","L");
+  if(hdNdEpFrg)
+    hleg->AddEntry(hdNdEpFrg,"Foreground model","L");    
   hleg->Draw();
 
   gPad->Modified();
   gPad->Update();    
 
-  // energy resolution and bias
+  ///////////////////////////
+  // CD(3)  energy dispersion
+  ///////////////////////////
   canvas->cd(3);
   
   if(fMigMatrix)
@@ -1593,26 +1635,38 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
   gPad->Modified();
   gPad->Update();
 
-  // residuals
+  /////////////////////////////////////////////////
+  // CD(4) On and Off residuals wrt background model
+  /////////////////////////////////////////////////
   canvas->cd(4);
-  dummya->SetMinimum(-3);
-  dummya->SetMaximum(3);
+  TH1F* hResidualsOn  = NULL;
+  TH1F* hResidualsOff = NULL;
+  if(hdNdEpBkg && hOn && hOff)
+    {
+      hResidualsOn  =  GetResidualsHisto(hdNdEpBkg,hOn);
+      hResidualsOff =  GetResidualsHisto(hdNdEpBkg,hOff);
+    }
+  
+  dummya->SetMinimum(TMath::Min(hResidualsOn->GetMinimum(),-3.));
+  dummya->SetMaximum(TMath::Max(hResidualsOn->GetMaximum(),3.));
   dummya->SetTitle("Residuals");
   dummya->SetXTitle("log_{10}(E' [GeV])");
-  if(fHdNdEpBkg)
+  if(hdNdEpBkg)
     dummya->SetYTitle("(Data-dN/dE')/ #Delta Data");
   else
     dummya->SetTitle("(On-Off)/ #Delta On");
   dummya->DrawCopy();
-  TH1F* hResidualsOn  = NULL;
-  TH1F* hResidualsOff = NULL;
-  if(fHdNdEpBkg && hOn && hOff)
+  if(hdNdEpBkg && hOn && hOff)
     {
-      hResidualsOn  =  GetResidualsHisto(fHdNdEpBkg,hOn);
+      hResidualsOn->SetLineColor(4);
+      hResidualsOn->SetMarkerColor(4);
+      hResidualsOn->SetMarkerStyle(8);
+      hResidualsOn->SetMarkerSize(0.5);  
       hResidualsOn->DrawCopy("esame");
-      hResidualsOff =  GetResidualsHisto(fHdNdEpBkg,hOff);
       hResidualsOff->SetLineColor(2);
       hResidualsOff->SetMarkerColor(2);
+      hResidualsOff->SetMarkerStyle(8);
+      hResidualsOff->SetMarkerSize(0.5);  
       hResidualsOff->DrawCopy("esame");
     }
   else if(hOff && hOn)
@@ -1624,14 +1678,10 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
   gPad->Modified();
   gPad->Update();
 
-  // put histograms back the way they were...
-  if(fHdNdEpBkg && fNoff>0)
-    fHdNdEpBkg->Scale(fTau/fNoff);
-
-  if(fHdNdEpFrg)
-    fHdNdEpFrg->Scale(1./dNdEpFrgNorm);
-
-  // dN/dE for signal
+ 
+  /////////////////////////
+  // CD(5) dN/dE for signal
+  /////////////////////////
   canvas->cd(5);
   dummya->SetMinimum(1e-7);
   dummya->SetMaximum(1e0);
@@ -1639,18 +1689,28 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
   dummya->SetXTitle("log_{10}(E [GeV])");
   dummya->SetYTitle("dN/dE [GeV^{-1}]");
   dummya->DrawCopy();
+  TH1F* hdNdESignal = NULL;
+
   if(fHdNdESignal)
-    {      
-      Double_t scale = GetdNdESignalIntegral();
-      fHdNdESignal->Scale(scale);
-      fHdNdESignal->DrawCopy("same");
-      fHdNdESignal->Scale(1./scale);      
+    {
+      hdNdESignal = new TH1F(*fHdNdESignal);
+      hdNdESignal->SetDirectory(0);
+      
+      Double_t scale = GetdNdESignalIntegral();     
+      hdNdESignal->Scale(scale);
+      hdNdESignal->SetLineWidth(1);
+      hdNdESignal->SetLineStyle(1);
+      hdNdESignal->SetLineColor(1);
+      hdNdESignal->DrawCopy("hist same");
     }
   gPad->SetGrid();
   gPad->SetLogy();
   gPad->Modified();
   gPad->Update();
-  
+
+  //////////////////////////
+  // CD(6) dN/dE' for signal
+  //////////////////////////
   canvas->cd(6);
   dummya->SetMinimum(1e2);
   dummya->SetMaximum(1e8);
@@ -1658,31 +1718,46 @@ TCanvas* Iact1dUnbinnedLkl::PlotHistosAndData()
   dummya->SetXTitle("log_{10}(E' [GeV])");
   dummya->SetYTitle("dN/dE'(#times A_{eff}) [GeV^{-1}cm^{2}]");
   dummya->DrawCopy();
+
+  TH1F* hdNdEpSignal = NULL;
   if(fHdNdEpSignal)
     {
+      hdNdEpSignal = new TH1F(*fHdNdEpSignal);
+      hdNdEpSignal->SetDirectory(0);
+
       Double_t scale = GetdNdEpSignalIntegral();
-      fHdNdEpSignal->Scale(scale);      
-      fHdNdEpSignal->DrawCopy("same");
-      fHdNdEpSignal->Scale(1./scale);
-      if(fHdNdEpSignalOff)
-	{
-	  Double_t scaleOff = GetdNdEpSignalOffIntegral();
-	  fHdNdEpSignalOff->Scale(scaleOff);
-	  fHdNdEpSignalOff->DrawCopy("same");
-	  fHdNdEpSignalOff->Scale(1./scaleOff);      
-	}
+      hdNdEpSignal->Scale(scale);      
+      hdNdEpSignal->DrawCopy("hist same");
     }
+
+  TH1F* hdNdEpSignalOff = NULL;
+  if(fHdNdEpSignalOff)
+    {
+      hdNdEpSignalOff = new TH1F(*fHdNdEpSignalOff);
+      hdNdEpSignalOff->SetDirectory(0);
+      
+      Double_t scale = GetdNdEpSignalOffIntegral();
+      hdNdEpSignalOff->Scale(scale);
+      hdNdEpSignalOff->SetLineStyle(2);
+      hdNdEpSignalOff->Draw("hist same");
+    }
+  
   gPad->SetGrid();
   gPad->SetLogy();
   gPad->Modified();
   gPad->Update();
 
+  // clean and exit
+  if(hdNdEpBkg) delete hdNdEpBkg;
+  if(hdNdEpFrg) delete hdNdEpFrg;
+  if(hdNdESignal) delete hdNdESignal;
+  if(hdNdEpSignal) delete hdNdEpSignal;
+  if(hdNdEpSignalOff) delete hdNdEpSignalOff;
   delete hOn;
   delete hOff;
   if(hResidualsOn)  delete hResidualsOn;
   if(hResidualsOff) delete hResidualsOff;
   delete dummya;
-  return canvas;
 }
 
 //////////////////////////////////////////////////////////////////
