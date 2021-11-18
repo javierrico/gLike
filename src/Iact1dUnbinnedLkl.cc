@@ -1304,7 +1304,7 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm
   if(GetRealBkgAndGoffHistos(rdm,realHdNdEpBkg,realHdNdEpSignalOff)) return 1;
 
 
-  Float_t meanG    = meanGwithUnits/GetUnitsOfG();   // remove units to copute expected number of signal events
+  Float_t meanG    = meanGwithUnits/GetUnitsOfG();   // remove units to compute expected number of signal events
   Float_t meanB    = GetdNdEpBkgIntegral()*fObsTime;  
   Float_t meanBoff = realHdNdEpBkg->GetBinContent(0)*fObsTime*fTau;
   Float_t meanF    = GetdNdEpFrgIntegral()*fObsTime;
