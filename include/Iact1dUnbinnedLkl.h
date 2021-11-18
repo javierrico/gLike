@@ -8,7 +8,7 @@
 #include "TH2.h"
 #include "TString.h"
 #include "TCanvas.h"
-#include "TRandom3.h"
+#include "TRandom.h"
 #include "TF1.h"
 #include "TMath.h"
 
@@ -102,19 +102,19 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Int_t TransformAndSavedNdEpFrg(TH1F* provHNOff,Bool_t interpolate=kTRUE,Double_t scale=0,Bool_t isDiff=kTRUE);
   Int_t ResetHdNdEpBkg() {if(fHdNdEpBkg) delete fHdNdEpBkg; fHdNdEpBkg=NULL; return 0;}
 
-  virtual Int_t SimulateDataSamples(UInt_t seed=0,Float_t meanGwithUnits=0);
+  virtual Int_t SimulateDataSamples(Float_t meanGwithUnits=0,TRandom* rdm=NULL);
 
   // print data in the overview
   virtual void PrintData(Int_t level=0);
   
   // Plots
-  TCanvas* PlotHistosAndData();
+  void PlotHistosAndData(TCanvas* canvas);
 
   Int_t    NormalizedNdEHisto(TH1F* histo);
 
  protected:
           Int_t    InterpretInputString(TString inputString);
-  virtual Int_t    GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
+  virtual Int_t    GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
   
   virtual void     SetFunctionAndPars(Double_t ginit=0);
   virtual Int_t    MakeChecks();

@@ -249,33 +249,6 @@ Int_t Iact1dBinnedLkl::MakeChecks()
       cout << "Iact1dBinnedLkl::MakeChecks (" << GetName() << ") Warning: missing information, cannot perform fit, check your code!" << endl;
       return 1;
     }
-
-  // normalize unnormalized histos
-  if(GetdNdEpSignalIntegral()<=0)
-    {
-      cout << "Iact1dBinnedLkl::MakeChecks (" << GetName() << ") Warning: fHdNdEpSignal is not normalized!" << endl;
-      return 1;
-    }
-  
-  if(GetHdNdEpSignalOff())
-    if(GetdNdEpSignalOffIntegral()<=0)
-      {
-	cout << "Iact1dBinnedLkl::MakeChecks (" << GetName() << ") Warning: fHdNdEpSignalOff is not normalized!" << endl;
-	return 1;
-      }
-  
-  if(GetdNdESignalIntegral()<=0) 
-    {
-      cout << "Iact1dBinnedLkl::MakeChecks (" << GetName() << ") Warning: fHdNdESignal is not normalized!" << endl;
-      return 1;
-    }
-
-  if(GetHdNdEpFrg())
-    if(GetdNdEpFrgIntegral()<=0) 
-      {
-	cout << "Iact1dBinnedLkl::MakeChecks (" << GetName() << ") Warning: fHdNdEpFrg is not normalized!" << endl;
-	return 1;
-      }
   
   // Check the Iact1dBinnedLkl specific part
   /////////////////////////////////////////
@@ -657,7 +630,7 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 // Returns: 0 in case of success
 //          1 otherwise
 //
-Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
+Int_t Iact1dBinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
 {
   // basic check
   if(fTauEDepFluct && !fdNdEpBkgFromOff)
@@ -686,7 +659,7 @@ Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
   if(fHNOff) delete fHNOff;
   fHNOn = fHNOff = NULL;
   
-  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,meanGwithUnits);
+  return Iact1dUnbinnedLkl::SimulateDataSamples(meanGwithUnits,rdm);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -697,7 +670,7 @@ Int_t Iact1dBinnedLkl::SimulateDataSamples(UInt_t seed,Float_t meanGwithUnits)
 // and fHdNdEpSignalOff the expected distribution of signal events in the total Off region
 // (total meaning that if tau=3 the effective area to consder is that of the three subregions)
 //
-Int_t Iact1dBinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
+Int_t Iact1dBinnedLkl::GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
 {
   // if fHdNdBkg was provided as input, use global normalization
   if(!fdNdEpBkgFromOff) return Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(rdm,hdNdEpBkg,hdNdEpSignalOff);

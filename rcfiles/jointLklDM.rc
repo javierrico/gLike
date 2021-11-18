@@ -63,12 +63,12 @@ jointLklDM.Channel: bb
 jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
 # Simulated signal data characteristics (i.e. true values assumed for simulations, no to be confused with the values assumed for the likelihood function
-# <sv> [cm^3/s], if > 0 then simulations will be produced and eventually orverride the real data
+# alpha = <sv> [cm^3/s] for ann or 1/tau [1/s] for dec
 # DM mass [GeV]
 # process ("ann" or "dec" for annhilation and decay, respectively, default is annihilation)
 # channel (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, branon or an arbitrary linear combination of them)
-jointLklDM.mcsv: 0
-jointLklDM.mcmass: 1000
+jointLklDM.mcalpha: 0
+jointLklDM.mcMass: 1000
 jointLklDM.mcProcess: ann
 jointLklDM.mcChannel: bb
 
