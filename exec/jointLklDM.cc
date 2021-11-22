@@ -905,18 +905,15 @@ int main(int argc,char* argv[])
   TString realPlotDir = fPlotsDir+simulationlabel+"/";
   gSystem->Exec(Form("mkdir -p %s/root",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
-  gSystem->Exec(Form("mkdir -p %s/jpg",realPlotDir.Data()));
   
   TString seedTag  = (seed<0? "" : Form("_%04d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
-  limcanvas->Print(realPlotDir+"jpg/" +label+"_"+simulationlabel+"_limits"+seedTag+".jpg");
   if(showParabolaPlots)
     {
       lklcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_2logLVsG"+seedTag+".root");
       lklcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".pdf");
-      lklcanvas->Print(realPlotDir+"jpg/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".jpg");
     }
   if(showSamplePlots)
     {
@@ -924,7 +921,6 @@ int main(int argc,char* argv[])
 	{	
 	  hadcanvas[isample]->Print(realPlotDir+"root/"+label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".root");
 	  hadcanvas[isample]->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".pdf");
-	  hadcanvas[isample]->Print(realPlotDir+"jpg/" +label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".jpg");
 	}
     }
     
