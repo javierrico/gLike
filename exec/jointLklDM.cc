@@ -272,7 +272,7 @@ int main(int argc,char* argv[])
   cout << " GeV" << endl;
   
   cout << "*** IRF/DATA PLOTS      : " << (showSamplePlots?   "YES" : "NO") << endl;
-  cout << "*** PARABOlA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
+  cout << "*** PARABOLA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
   cout << "*** Plot y-axis range   : " << plotmin << " to " << plotmax << Form(" %s", (isDecay? "s" : "cm^3/s")) << endl;
   cout << "*** EXPORT DATA         : " << (exportData? "YES" : "NO") << endl;
   if(exportData)
@@ -907,7 +907,7 @@ int main(int argc,char* argv[])
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/jpg",realPlotDir.Data()));
   
-  TString seedTag  = (seed<0? "" : Form("_%d",seed));
+  TString seedTag  = (seed<0? "" : Form("_%04d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
