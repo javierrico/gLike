@@ -42,11 +42,11 @@ class Iact1dBinnedLkl : public Iact1dUnbinnedLkl, public JointLkl
   // print data in the overview
   virtual void PrintOverview(Int_t level=0)  {Lkl::PrintOverview(level);}
   virtual void PrintData(Int_t level=0);
-  virtual Int_t  SimulateDataSamples(UInt_t seed=0,Float_t meanG=0);
+  virtual Int_t  SimulateDataSamples(Float_t meanGwithUnits=0,TRandom* rdm=NULL);
 
  protected:
           Int_t  InterpretInputString(TString inputString);
-  virtual Int_t  GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
+  virtual Int_t  GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
   
   virtual void  SetFunctionAndPars(Double_t ginit=0);
   virtual Int_t MakeChecks();

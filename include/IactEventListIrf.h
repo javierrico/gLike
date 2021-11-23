@@ -122,7 +122,7 @@ class IactEventListIrf : public TNamed
   TH1F*     fHdNdEpFrg   ;    //-> dN/dE'dt vs E' for foreground (gamma-events from a different source) events (normalized)
 
 
-  ClassDef(IactEventListIrf,1) // Class to hold the data and IRFs from IACTs to be used as input by Iact1dUnbinnedLkl class
+  ClassDef(IactEventListIrf,2) // Class to hold the data and IRFs from IACTs to be used as input by Iact1dUnbinnedLkl class
 };
 
 #endif

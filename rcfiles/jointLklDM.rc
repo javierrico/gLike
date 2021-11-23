@@ -51,22 +51,26 @@ jointLklDM.plotsDir: plots
 ANALYSIS CONFIGURATION
 ######################
 
-# channel to be analyzed (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, nutaunutau, numunumu, nuenue, VV-4tau, VV-4mu, VV-4e, branon or an arbitrary linear combination of them)
-# The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
-jointLklDM.Channel: bb
-
 # Process to be analyzed ("ann" or "dec" for annhilation and decay, respectively, default is annihilation
 # (remember to change consistently the list of masses and J-factor value and uncertainty)
 jointLklDM.Process: ann
 
+# channel to be analyzed (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, nutaunutau, numunumu, nuenue, VV-4tau, VV-4mu, VV-4e, branon or an arbitrary linear combination of them)
+# The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
+jointLklDM.Channel: bb
+
 # list of DM masses to be considered (in GeV)
 jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
-# Mean g (number of signal events) for simulations
-# this should be replaced in future release by <sv>
-# but the problem is that <sv> depends on the channel and mass through:
-# g = <sv>*J/(8*Pi*m^2) * integral between fEpmin and fEpmax of fHdNdEpSignal
-jointLklDM.mcG: 0
+# Simulated signal data characteristics (i.e. true values assumed for simulations, no to be confused with the values assumed for the likelihood function
+# alpha = <sv> [cm^3/s] for ann or 1/tau [1/s] for dec
+# DM mass [GeV]
+# process ("ann" or "dec" for annhilation and decay, respectively, default is annihilation)
+# channel (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, branon or an arbitrary linear combination of them)
+jointLklDM.mcalpha: 0
+jointLklDM.mcMass: 1000
+jointLklDM.mcProcess: ann
+jointLklDM.mcChannel: bb
 
 # If TRUE (FALSE) g is restricted to positive values only (i.e. Fermi prescription for lkl maximizing out of the physical region)
 jointLklDM.isGpositive: TRUE
