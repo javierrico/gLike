@@ -70,7 +70,7 @@ set(GLIKE_HEADERS
     ${PROJECT_SOURCE_DIR}/include/GloryDuckTables2019Lkl.h
     ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h
 )
-set_target_properties(gLike PROPERTIES PUBLIC_HEADER ${GLIKE_HEADERS})
+set_target_properties(gLike PROPERTIES PUBLIC_HEADER "${GLIKE_HEADERS}")
 # link gLike libraries against ROOT's ones
 target_link_libraries(gLike ${ROOT_LIBRARIES})
 # where to find the header files for the gLike libraries
