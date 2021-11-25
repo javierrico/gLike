@@ -37,7 +37,6 @@ root_generate_dictionary(
     ${PROJECT_SOURCE_DIR}/include/Iact1dUnbinnedLkl.h
     ${PROJECT_SOURCE_DIR}/include/Iact1dBinnedLkl.h
     ${PROJECT_SOURCE_DIR}/include/IactEventListIrf.h
-    ${PROJECT_SOURCE_DIR}/include/MIACTEventListIRF.h
     ${PROJECT_SOURCE_DIR}/include/FermiTables2016Lkl.h
     ${PROJECT_SOURCE_DIR}/include/GloryDuckTables2019Lkl.h
     ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h
@@ -53,7 +52,6 @@ add_library(
     ${PROJECT_SOURCE_DIR}/src/Iact1dUnbinnedLkl.cc
     ${PROJECT_SOURCE_DIR}/src/Iact1dBinnedLkl.cc
     ${PROJECT_SOURCE_DIR}/src/IactEventListIrf.cc
-    ${PROJECT_SOURCE_DIR}/src/MIACTEventListIRF.cc
     ${PROJECT_SOURCE_DIR}/src/FermiTables2016Lkl.cc
     ${PROJECT_SOURCE_DIR}/src/GloryDuckTables2019Lkl.cc
     ${PROJECT_SOURCE_DIR}/src/TemplateLkl.cc
@@ -68,7 +66,6 @@ set(GLIKE_HEADERS
     ${PROJECT_SOURCE_DIR}/include/Iact1dUnbinnedLkl.h
     ${PROJECT_SOURCE_DIR}/include/Iact1dBinnedLkl.h
     ${PROJECT_SOURCE_DIR}/include/IactEventListIrf.h
-    ${PROJECT_SOURCE_DIR}/include/MIACTEventListIRF.h
     ${PROJECT_SOURCE_DIR}/include/FermiTables2016Lkl.h
     ${PROJECT_SOURCE_DIR}/include/GloryDuckTables2019Lkl.h
     ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h
