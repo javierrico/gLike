@@ -1138,7 +1138,7 @@ void Lkl::PrintGLikeBanner()
   std::cout << "***            aa,    ,88                                                       ***" << std::endl;
   std::cout << "***             \"Y8bbdP\"                                                        ***" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***                             V0.10 Nov 2021                                   ***" << std::endl;
+  std::cout << "***                             V0.10 Nov 2021                                  ***" << std::endl;
   std::cout << "***                             J. Rico et al.                                  ***" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
