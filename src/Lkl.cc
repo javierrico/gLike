@@ -6,19 +6,6 @@
 \* ======================================================================== */
 
 //////////////////////////////////////////////////////////////////////////////
-//						
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
 //
 // Lkl
 //
@@ -1104,19 +1091,13 @@ void Lkl::PrintGLikeBanner()
   std::cout << "***            aa,    ,88                                                       ***" << std::endl;
   std::cout << "***             \"Y8bbdP\"                                                        ***" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***                             V0.4 Oct 2017                                   ***" << std::endl;
-  std::cout << "***                              J. Rico et al.                                 ***" << std::endl;
+  std::cout << "***                             V0.10 Nov 2021                                   ***" << std::endl;
+  std::cout << "***                             J. Rico et al.                                  ***" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
-  std::cout << "***  IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC        ***" << std::endl;
-  std::cout << "***  AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE            ***" << std::endl;
-  std::cout << "***  PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR                    ***" << std::endl;
-  std::cout << "***  PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE             ***" << std::endl;
-  std::cout << "***  AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico                   ***" << std::endl;
-  std::cout << "***  <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OVER THE               ***" << std::endl;
-  std::cout << "***  RESULTING PAPER                                                            ***" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***  PLEASE CITE:                                                               ***" << std::endl;
+  std::cout << "***  PLEASE CITE:        .                                                      ***" << std::endl;
+  std::cout << "***  J. Rico et al. DOI:10.5281/zenodo.3967385                                  ***" << std::endl;
   std::cout << "***  Aleksic, Rico & Martinez JCAP 10 (2012) 032                                ***" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
