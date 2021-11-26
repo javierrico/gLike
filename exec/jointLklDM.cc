@@ -171,11 +171,12 @@ int main(int argc,char* argv[])
   Double_t plotmax           = env->GetValue("jointLklDM.plotmax",0.);
   Double_t plotScale         = env->GetValue("jointLklDM.plotScale",1.);
   Double_t deltaLogLkl       = env->GetValue("jointLklDM.deltaLogLkl",2.71);
-  TString  fInputDataPath    = env->GetValue("jointLklDM.path","");
-  TString  fdNdEDir          = fInputDataPath+"/"+env->GetValue("jointLklDM.dNdEDir","")+"/";
-  TString  fPlotsDir         = fInputDataPath+"/"+env->GetValue("jointLklDM.plotsDir","")+"/";
+  TString  fPath             = env->GetValue("jointLklDM.path","");
+  TString  fdNdEDir          = fPath+"/"+env->GetValue("jointLklDM.dNdEDir","")+"/";
+  TString  fDataDir          = fPath+"/"+env->GetValue("jointLklDM.dataDir","")+"/";
+  TString  fPlotsDir         = fPath+"/"+env->GetValue("jointLklDM.plotsDir","")+"/";
   TString  provval           = env->GetValue("jointLklDM.dNdEpSignalDir","-");
-  TString  fdNdEpSignalDir   = fInputDataPath+"/"+provval+"/";
+  TString  fdNdEpSignalDir   = fPath+"/"+provval+"/";
   TString  massList          = env->GetValue("jointLklDM.MassList","");
   Float_t  mcalpha           = env->GetValue("jointLklDM.mcalpha",0.);    // value of alpha (<sv> or 1/tau) assumed for simulations
   Float_t  mcmass            = env->GetValue("jointLklDM.mcMass",0.);     // value of DM mass assumed for simulations
@@ -186,7 +187,7 @@ int main(int argc,char* argv[])
   Double_t svMax             = env->GetValue("jointLklDM.exportSvMax",0.);
   Bool_t   svLogStep         = env->GetValue("jointLklDM.exportSvLogStep",kTRUE);
   Int_t    svNPoints         = env->GetValue("jointLklDM.exportSvNPoints",0.);  
-  TString  fExportDataPath   = fInputDataPath+"/"+env->GetValue("jointLklDM.exportDataPath","")+"/";
+  TString  fExportDataPath   = fPath+"/"+env->GetValue("jointLklDM.exportDataPath","")+"/";
       
   // fill the list of masses to be studied
   UInt_t  nmass0  = re.Split(massList);
@@ -243,11 +244,17 @@ int main(int argc,char* argv[])
   const Double_t* massval      = massval0+nskippedmass;
 
   // Print-out configuration info (part 2)
-  cout << "*** I/O PATH                 : " << fInputDataPath << endl;
-  cout << "***" << endl;
   cout << "*** LABEL                    : " << label <<  endl;
   cout << "*** PROCESS                  : " << strprocess << endl;
   cout << "*** CHANNEL                  : " << channel << endl;
+  cout << "***" << endl;
+  cout << "*** I/O PATH                 : " << fPath << endl;
+  cout << "*** DATA DIRECTORY           : " << fDataDir << endl;
+  cout << "*** dNdE DIRECTORY           : " << fdNdEDir << endl;
+  if(ioHdNdEpSignal)
+    cout << "*** dNdE' DIRECTORY          : " << fdNdEpSignalDir << endl;
+  cout << "*** PLOTS DIRECTORY          : " << fPlotsDir << endl;
+  cout << "***" << endl;
   // how many and which channels are we considering?
   cout << " ** Channel check            : " << normchannel << endl;
   cout << "*** DATA/MC                  : " << simulationlabel << endl;
@@ -317,7 +324,7 @@ int main(int argc,char* argv[])
       if(nfields<2)
 	{
 	  cout << Form("jointLklDM Error: rc file entry for lklTerm%03d has %d entries (minimum of 2 is needed) <---------------- FATAL ERROR!!!",iLkl,nfields);
-    exit(1);
+	  exit(1);
 	}
       
       TString  classType   = re[0];
@@ -332,7 +339,7 @@ int main(int argc,char* argv[])
       cout << " ** Input string    : " << inputString << endl;
 
       // add path
-      inputString+=(" path="+fInputDataPath);
+      inputString+=(" path="+fDataDir);
 
       // create the proper object according to classType 
       if(classType.CompareTo("Iact1dUnbinnedLkl")==0 || classType.CompareTo("Iact1dBinnedLkl")==0)
