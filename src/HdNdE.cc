@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// H1FPdf
+// HdNdE
 //
 // Extension of the TH1F class with read methods for dNdE histograms, so that
 // all read methods can be shared by all Lkl-based classes containing dNdE-type
@@ -19,16 +19,17 @@
 
 // include Root needed classes
 #include "TH1F.h"
+#include "TFile.h"
 
 // include gLike needed classes
-#include "H1FPdf.h"
+#include "HdNdE.h"
 
-ClassImp(H1FPdf);
+ClassImp(HdNdE);
 
 using namespace std;
 
 // class name and title
-static const TString  gName   = "H1FPdf";
+static const TString  gName   = "HdNdE";
 static const TString  gTitle  = "TH1F extended with read methods for dNdE";
 
 
@@ -37,7 +38,7 @@ static const TString  gTitle  = "TH1F extended with read methods for dNdE";
 //
 // Constructor
 //
-H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, Double_t xlow, Double_t xup)
+HdNdE::HdNdE(const char *name, const char *title, Int_t nbinsx, Double_t xlow, Double_t xup)
   : TH1F(name,title,nbinsx,xlow,xup)
 {
 }
@@ -46,7 +47,7 @@ H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, Double_t xlow,
 //
 // Constructor
 //
-H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, const Double_t *xbins)
+HdNdE::HdNdE(const char *name, const char *title, Int_t nbinsx, const Double_t *xbins)
   : TH1F(name,title,nbinsx,xbins)
 {
 }
@@ -55,7 +56,7 @@ H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, const Double_t
 //
 // Constructor
 //
-H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, const Float_t *xbins)
+HdNdE::HdNdE(const char *name, const char *title, Int_t nbinsx, const Float_t *xbins)
   : TH1F(name,title,nbinsx,xbins)
 {
 }
@@ -64,7 +65,7 @@ H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, const Float_t 
 //
 // Constructor
 //
-H1FPdf::H1FPdf(const TH1F &h1f)
+HdNdE::HdNdE(const TH1F &h1f)
   : TH1F(h1f)
 {
 }
@@ -74,8 +75,7 @@ H1FPdf::H1FPdf(const TH1F &h1f)
 // Destructor
 // make sure you do not leave any memory leaks
 //
-H1FPdf::~H1FPdf()
+HdNdE::~HdNdE()
 {
-  
 }
-		
+

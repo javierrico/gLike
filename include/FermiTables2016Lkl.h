@@ -8,7 +8,7 @@
 #include "JointLkl.h"
 #include "TCanvas.h"
 #include "TMath.h"
-#include "H1FPdf.h"
+#include "HdNdE.h"
 
 class FermiTables2016Lkl :  public JointLkl
 {
@@ -22,7 +22,7 @@ class FermiTables2016Lkl :  public JointLkl
   // getters
   inline UInt_t    GetNBins()         const {return fNBins;}
   inline Double_t* GetEFluxInt()      const {return fEFluxInt;}
-  inline H1FPdf*   GetHdNdESignal()   const {return fHdNdESignal;}
+  inline HdNdE*   GetHdNdESignal()   const {return fHdNdESignal;}
   inline Double_t  GetLogJ()          const {return fLogJ;}
 
   // unable SetUnitsOfG, dPhi/dE_signal must have proper units
@@ -73,7 +73,7 @@ class FermiTables2016Lkl :  public JointLkl
   Double_t  fMass;          //   [GeV] dark matter particle mass
   Double_t  fLogJ;          //   log10 [GeV^2/cm^5] of estimated J-factor
 
-  H1FPdf*     fHdNdESignal;   //-> dN/dE
+  HdNdE*     fHdNdESignal;   //-> dN/dE
 
   ClassDef(FermiTables2016Lkl,1) // Binned flux likelihood
 };

@@ -461,12 +461,12 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
 	cout << "Iact1dUnbinnedLkl::CheckHistograms Message: will create fHdNdEpSignal from fHdNdESignal, fHAeff, fGEreso & fGEbias... " << flush;
       
       // multiply dNdESignal times Aeff
-      H1FPdf* hdNdESignalAeff = new H1FPdf("hdNdESignalAeff","Product of dN/dE for Signal and Aeff",fNFineBins,fFineLEMin,fFineLEMax);
+      TH1F* hdNdESignalAeff = new TH1F("hdNdESignalAeff","Product of dN/dE for Signal and Aeff",fNFineBins,fFineLEMin,fFineLEMax);
       hdNdESignalAeff->SetDirectory(0);      
       hdNdESignalAeff->Multiply(fHAeff,fHdNdESignal);
 
       // create fHdNdEpSignal   
-      fHdNdEpSignal         = new H1FPdf("fHdNdEpSignal","dN/dE' for Signal",fNFineBins,fFineLEMin,fFineLEMax);
+      fHdNdEpSignal         = new TH1F("fHdNdEpSignal","dN/dE' for Signal",fNFineBins,fFineLEMin,fFineLEMax);
       fHdNdEpSignal->SetDirectory(0);
 
       // smear hdNdESignalAeff
@@ -495,12 +495,12 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
 	cout << "Iact1dUnbinnedLkl::CheckHistograms Message: will create fHdNdEpSignalOff from fHdNdESignal, fHAeffOff, fGEreso & fGEbias" << endl;
       
       // multiply dNdESignal times AeffOff
-      H1FPdf* hdNdESignalAeffOff = new H1FPdf("hdNdESignalAeffOff","Product of dN/dE for Signal and AeffOff",fNFineBins,fFineLEMin,fFineLEMax);
+      TH1F* hdNdESignalAeffOff = new TH1F("hdNdESignalAeffOff","Product of dN/dE for Signal and AeffOff",fNFineBins,fFineLEMin,fFineLEMax);
       hdNdESignalAeffOff->SetDirectory(0);
       hdNdESignalAeffOff->Multiply(fHAeffOff,fHdNdESignal);
 
       // create fHdNdEpSignalOff   
-      fHdNdEpSignalOff      = new H1FPdf("fHdNdEpSignalOff","dN/dE' for Signal in Off region",fNFineBins,fFineLEMin,fFineLEMax);
+      fHdNdEpSignalOff      = new TH1F("fHdNdEpSignalOff","dN/dE' for Signal in Off region",fNFineBins,fFineLEMin,fFineLEMax);
       fHdNdEpSignalOff->SetDirectory(0);
       fHdNdEpSignalOff->SetLineColor(2);
 
@@ -627,7 +627,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignal(TH1F* hdNdESignal)
     }
    
   // transform it to the Iact1dUnbinnedLkl format
-  fHdNdESignal = new H1FPdf("fHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
+  fHdNdESignal = new HdNdE("fHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
   fHdNdESignal->SetDirectory(0);
   fHdNdESignal->SetXTitle("log_{10}(E [GeV])");
   fHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
@@ -664,7 +664,7 @@ Int_t Iact1dUnbinnedLkl::AdddNdESignal(TString filename,Float_t br)
   readAndInterpolate(hdNdESignal,fHdNdESignal_temp);
 
   for(Int_t ibin=0;ibin<fHdNdESignal->GetNbinsX();ibin++)
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(fHdNdESignal_temp->GetBinContent(ibin+1)));
+    fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(fHdNdESignal_temp->GetBinContent(ibin+1)));
 
   // clean and exit
   delete dNdESignalFile;
@@ -686,7 +686,7 @@ Int_t Iact1dUnbinnedLkl::ResetdNdESignal()
     delete fHdNdESignal; 
   
   // Create histo
-  fHdNdESignal = new H1FPdf("fHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
+  fHdNdESignal = new HdNdE("fHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
   fHdNdESignal->SetDirectory(0);
   fHdNdESignal->SetXTitle("log_{10}(E [GeV])");
   fHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
@@ -935,7 +935,7 @@ Int_t Iact1dUnbinnedLkl::ReaddNdEpSignal(TString filename)
 
   // copy histo 
   if(fHdNdEpSignal) delete fHdNdEpSignal; 
-  fHdNdEpSignal = new H1FPdf(*hNdEpSignalProv);
+  fHdNdEpSignal = new TH1F(*hNdEpSignalProv);
   fHdNdEpSignal->SetXTitle("log_{10}(E' [GeV])");
   fHdNdEpSignal->SetYTitle("cm^{2} dN/dE' [GeV^{-1}]");
   fHdNdEpSignal->SetDirectory(0);
@@ -974,7 +974,7 @@ Int_t Iact1dUnbinnedLkl::ReaddNdEpSignalOff(TString filename)
 
   // copy histo 
   if(fHdNdEpSignalOff) delete fHdNdEpSignalOff; 
-  fHdNdEpSignalOff = new H1FPdf(*hNdEpSignalOffProv);
+  fHdNdEpSignalOff = new TH1F(*hNdEpSignalOffProv);
   fHdNdEpSignalOff->SetXTitle("log_{10}(E' [GeV])");
   fHdNdEpSignalOff->SetYTitle("dN/dE' [cm^{2} GeV^{-1}]");
   fHdNdEpSignalOff->SetDirectory(0);
@@ -1008,7 +1008,7 @@ Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpBkg(TH1F* hProvdNdEBkg,Bool_t inte
   
   // transform it to the Iact1dUnbinnedLkl format
   if(fHdNdEpBkg) delete fHdNdEpBkg;
-  fHdNdEpBkg = new H1FPdf("fHdNdEpBkg","dN/dE'dt for background events",fNFineBins,fFineLEMin,fFineLEMax);
+  fHdNdEpBkg = new TH1F("fHdNdEpBkg","dN/dE'dt for background events",fNFineBins,fFineLEMin,fFineLEMax);
   fHdNdEpBkg->SetDirectory(0);
 
   if(interpolate)
@@ -1046,7 +1046,7 @@ Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpFrg(TH1F* hProvdNdEFrg,Bool_t inte
   
   // transform it to the Iact1dUnbinnedLkl format
   if(fHdNdEpFrg) delete fHdNdEpFrg;
-  fHdNdEpFrg = new H1FPdf("fHdNdEpFrg","dN/dE'dt for foreground events",fNFineBins,fFineLEMin,fFineLEMax);
+  fHdNdEpFrg = new TH1F("fHdNdEpFrg","dN/dE'dt for foreground events",fNFineBins,fFineLEMin,fFineLEMax);
   fHdNdEpFrg->SetDirectory(0);
   if(interpolate)
     readAndInterpolate(hProvdNdEFrg,fHdNdEpFrg,scale,isDiff);
@@ -1077,7 +1077,7 @@ Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpFrg(TH1F* hProvdNdEFrg,Bool_t inte
 Int_t Iact1dUnbinnedLkl::SetAeff(TH1F* hProvAeff)
 {
   if(fHAeff) delete fHAeff;
-  fHAeff = new H1FPdf("fHAeff","Effective area",fNFineBins,fFineLEMin,fFineLEMax);
+  fHAeff = new TH1F("fHAeff","Effective area",fNFineBins,fFineLEMin,fFineLEMax);
   fHAeff->SetDirectory(0);
   readAndInterpolate(hProvAeff,fHAeff);
 
@@ -1101,7 +1101,7 @@ Int_t Iact1dUnbinnedLkl::SetAeff(TH1F* hProvAeff)
 Int_t Iact1dUnbinnedLkl::SetAeffOff(TH1F* hProvAeff)
 {  
   if(fHAeffOff) delete fHAeffOff;
-  fHAeffOff = new H1FPdf("fHAeffOff","Effective area for signal events in the Off region",fNFineBins,fFineLEMin,fFineLEMax);
+  fHAeffOff = new TH1F("fHAeffOff","Effective area for signal events in the Off region",fNFineBins,fFineLEMin,fFineLEMax);
   fHAeffOff->SetDirectory(0);
   readAndInterpolate(hProvAeff,fHAeffOff);
   
@@ -1211,7 +1211,7 @@ Int_t Iact1dUnbinnedLkl::ReadCTAIRF(TString filename)
       // transform it to the Iact1dUnbinnedLkl format
       hProvAeff->Scale(1e4); // convert it to cm^2
       if(fHAeff) delete fHAeff;
-      fHAeff = new H1FPdf("fHAeff","Effective area",fNFineBins,fFineLEMin,fFineLEMax);
+      fHAeff = new TH1F("fHAeff","Effective area",fNFineBins,fFineLEMin,fFineLEMax);
       fHAeff->SetDirectory(0);
       copyBinByBin(hProvAeff,fHAeff,3);
       
@@ -1798,13 +1798,13 @@ void Iact1dUnbinnedLkl::PrintData(Int_t level)
 // The returned histogram will not be deleted by the destructor
 // of Iact1dUnbinnedLkl.
 //
-H1FPdf* Iact1dUnbinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
+TH1F* Iact1dUnbinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
 {
   // we need a positive number of bins
   if(nbins<=0) nbins = gNBins;
   
   // create histo
-  H1FPdf* h = new H1FPdf("dNdEpOn","dN/dE' for On events",nbins,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
+  TH1F* h = new TH1F("dNdEpOn","dN/dE' for On events",nbins,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
   h->SetDirectory(0);
   h->SetXTitle("log_{10}(E' [GeV])");
   h->SetYTitle("dN/dE' [GeV^{-1}]");
@@ -1839,13 +1839,13 @@ H1FPdf* Iact1dUnbinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
 // The returned histogram will not be deleted by the destructor
 // of Iact1dUnbinnedLkl.
 //
-H1FPdf* Iact1dUnbinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
+TH1F* Iact1dUnbinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 {
   // we need a positive number of bins
   if(nbins<=0) nbins = gNBins;
 
   // create histo
-  H1FPdf* h = new H1FPdf("dNdEpOff","dN/dE' for Off events",nbins,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
+  TH1F* h = new TH1F("dNdEpOff","dN/dE' for Off events",nbins,TMath::Log10(fEpmin),TMath::Log10(fEpmax));
   h->SetDirectory(0);
   h->SetXTitle("log_{10}(E' [GeV])");
   h->SetYTitle("dN/dE' [GeV^{-1}]");

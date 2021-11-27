@@ -36,8 +36,8 @@ class Iact1dBinnedLkl : public Iact1dUnbinnedLkl, public JointLkl
   inline TH1I*  GetHNOff()         const {return fHNOff;}
   inline Bool_t GetTauEDepFluct()  const {return fTauEDepFluct;}
 
-  virtual H1FPdf* GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
-  virtual H1FPdf* GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
+  virtual TH1F* GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
+  virtual TH1F* GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
 
   // print data in the overview
   virtual void PrintOverview(Int_t level=0)  {Lkl::PrintOverview(level);}
