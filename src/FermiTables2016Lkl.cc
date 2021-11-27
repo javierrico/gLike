@@ -403,7 +403,7 @@ Int_t FermiTables2016Lkl::SetdNdESignal(TH1F* hdNdESignal)
     delete fHdNdESignal; 
        
   // copy bin contents and configure histogram
-  fHdNdESignal = new TH1F(*hdNdESignal);
+  fHdNdESignal = new H1FPdf(*hdNdESignal);
   fHdNdESignal->SetDirectory(0);
   fHdNdESignal->SetName("fHdNdESignal");
   fHdNdESignal->SetTitle("dN/dE for signal events");
@@ -489,7 +489,7 @@ Int_t FermiTables2016Lkl::ReaddNdESignalFromFermi(TString filename)
   binbound[0]     = vlogE.data()[0]-(binbound[1]-vlogE.data()[0]);
   binbound[nbins] = vlogE.data()[nbins-1]+(vlogE.data()[nbins-1]-binbound[nbins-1]);
 
-  TH1F* hdNdE = new TH1F("hdNdE","",nbins,binbound);
+  H1FPdf* hdNdE = new H1FPdf("hdNdE","",nbins,binbound);
   hdNdE->SetDirectory(0);
   for(Int_t ibin=0;ibin<nbins;ibin++)
     hdNdE->SetBinContent(ibin+1,vdNdE.data()[ibin]);
@@ -520,7 +520,7 @@ Int_t FermiTables2016Lkl::ComputeEFluxIntegrals()
 
   // create the histogram E*dPhi/dE to be integrated
   Int_t nbins            = fHdNdESignal->GetNbinsX();
-  TH1F* hEdPhidE         = new TH1F(*fHdNdESignal);
+  H1FPdf* hEdPhidE       = new H1FPdf(*fHdNdESignal);
   hEdPhidE->SetDirectory(0);
   hEdPhidE->SetName("hEdPhidE");
   hEdPhidE->SetTitle("");

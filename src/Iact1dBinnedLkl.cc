@@ -528,7 +528,7 @@ Int_t Iact1dBinnedLkl::ConfigureJointLkl()
 // The returned histogram will not be deleted by the destructor
 // of Iact1dBinnedLkl.
 //
-TH1F* Iact1dBinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
+H1FPdf* Iact1dBinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
 {
   if(!fHNOn || (nbins>0 && nbins!=fNBins-fNRemovedBins))
     return Iact1dUnbinnedLkl::GetHdNdEpOn(isDifferential,nbins);
@@ -539,11 +539,11 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
     if(TMath::Abs(Float_t(fHNOn->GetBinWidth(ibin+1))-Float_t(fHNOn->GetBinWidth(ibin+2)))>1e-9)
       binWidthIsConstant = kFALSE;
 
-  TH1F* h;
+  H1FPdf* h;
   if(binWidthIsConstant)
-    h = new TH1F("dNdEpOn","dN/dE' for On events",fNBins-fNRemovedBins,fHNOn->GetXaxis()->GetXmin(),fHNOn->GetXaxis()->GetXmax());
+    h = new H1FPdf("dNdEpOn","dN/dE' for On events",fNBins-fNRemovedBins,fHNOn->GetXaxis()->GetXmin(),fHNOn->GetXaxis()->GetXmax());
   else
-    h = new TH1F("dNdEpOn","dN/dE' for On events",fNBins-fNRemovedBins,fHNOn->GetXaxis()->GetXbins()->GetArray());
+    h = new H1FPdf("dNdEpOn","dN/dE' for On events",fNBins-fNRemovedBins,fHNOn->GetXaxis()->GetXbins()->GetArray());
 
   h->SetDirectory(0);
   h->SetXTitle("log_{10}(E' [GeV])");
@@ -582,7 +582,7 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOn(Bool_t isDifferential,Int_t nbins) const
 // The returned histogram will not be deleted by the destructor
 // of Iact1dBinnedLkl.
 //
-TH1F* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
+H1FPdf* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 {
   if(!fHNOff || (nbins>0 && nbins!=fNBins-fNRemovedBins))
     return Iact1dUnbinnedLkl::GetHdNdEpOff(isDifferential,nbins);
@@ -593,11 +593,11 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
     if(TMath::Abs(Float_t(fHNOff->GetBinWidth(ibin+1))-Float_t(fHNOff->GetBinWidth(ibin+2)))>1e-9)
       binWidthIsConstant = kFALSE;
 
-  TH1F* h;
+  H1FPdf* h;
   if(binWidthIsConstant)
-    h = new TH1F("dNdEpOff","dN/dE' for Off events",fNBins-fNRemovedBins,fHNOff->GetXaxis()->GetXmin(),fHNOff->GetXaxis()->GetXmax());
+    h = new H1FPdf("dNdEpOff","dN/dE' for Off events",fNBins-fNRemovedBins,fHNOff->GetXaxis()->GetXmin(),fHNOff->GetXaxis()->GetXmax());
   else
-    h = new TH1F("dNdEpOff","dN/dE' for Off events",fNBins-fNRemovedBins,fHNOff->GetXaxis()->GetXbins()->GetArray());
+    h = new H1FPdf("dNdEpOff","dN/dE' for Off events",fNBins-fNRemovedBins,fHNOff->GetXaxis()->GetXbins()->GetArray());
   h->SetDirectory(0);
   h->SetXTitle("log_{10}(E' [GeV])");
   h->SetYTitle("dN/dE' [GeV^{-1}]");

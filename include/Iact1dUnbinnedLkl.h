@@ -13,6 +13,7 @@
 #include "TMath.h"
 
 #include "Lkl.h"
+#include "H1FPdf.h"
 
 static const Float_t  gEpmin           = 1e01;                   // [GeV] default value of minimum E_est
 static const Float_t  gEpmax           = 1e06;                   // [GeV] default value of maximum E_est
@@ -65,13 +66,13 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline Float_t  GetDataTau()          const {return fDataTau;}
   inline Float_t  GetDataDTau()         const {return fDataDTau;}
   inline Float_t  GetDataObsTime()      const {return fDataObsTime;}
-  inline TH1F*    GetHAeff()            const {return fHAeff;}
-  inline TH1F*    GetHAeffOff()         const {return fHAeffOff;}
-  inline TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
-  inline TH1F*    GetHdNdEpFrg()        const {return fHdNdEpFrg;}
-  inline TH1F*    GetHdNdEpSignal()     const {return fHdNdEpSignal;}
-  inline TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
-  inline TH1F*    GetHdNdESignal()      const {return fHdNdESignal;}
+  inline H1FPdf*  GetHAeff()            const {return fHAeff;}
+  inline H1FPdf*  GetHAeffOff()         const {return fHAeffOff;}
+  inline H1FPdf*  GetHdNdEpBkg()        const {return fHdNdEpBkg;}
+  inline H1FPdf*  GetHdNdEpFrg()        const {return fHdNdEpFrg;}
+  inline H1FPdf*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
+  inline H1FPdf*  GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
+  inline H1FPdf*  GetHdNdESignal()      const {return fHdNdESignal;}
   inline TGraph*  GetGEreso()           const {return fGEreso;} 
   inline TGraph*  GetGEbias()           const {return fGEbias;}
   inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
@@ -82,8 +83,8 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline Double_t GetdNdEpSignalIntegral()    {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
   inline Double_t GetdNdEpSignalOffIntegral() {if(!fHdNdEpSignalOff) return 0; return fHdNdEpSignalOff->GetBinContent(0);}
   inline Double_t GetdNdESignalIntegral()     {if(!fHdNdESignal) return 0;NormalizedNdEHisto(fHdNdESignal);return fHdNdESignal->GetBinContent(0);}
-  virtual TH1F*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
-  virtual TH1F*   GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
+  virtual H1FPdf*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
+  virtual H1FPdf*   GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
   
   // Read input dN/dE files and related functions
   Int_t ResetdNdESignal();
@@ -160,17 +161,17 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Double_t fFineLEMin;       // minimum log(energy[GeV]) for internal histos
   Double_t fFineLEMax;       // maximum log(energy[GeV]) for internal histos
 
-  TH1F*    fHdNdESignal ;    //-> dN/dE vs E histogram for signal events
-  TH1F*    fHAeff       ;    //-> Effective area vs E histogram for signal events
-  TH1F*    fHAeffOff    ;    //-> Effective area vs E histogram for signal events IN THE OFF REGION
+  H1FPdf*  fHdNdESignal ;    //-> dN/dE vs E histogram for signal events
+  H1FPdf*  fHAeff       ;    //-> Effective area vs E histogram for signal events
+  H1FPdf*  fHAeffOff    ;    //-> Effective area vs E histogram for signal events IN THE OFF REGION
   TGraph*  fGEreso      ;    //-> Graph with energy resolution vs energy values
   TGraph*  fGEbias      ;    //-> Graph with energy bias vs energy values
   TH2F*    fMigMatrix   ;    //-> Migration matrix (overrides fGEreso and fGEbias)
 
-  TH1F*    fHdNdEpBkg   ;    //-> dN/dE'dt vs E' for background events (normalized)
-  TH1F*    fHdNdEpFrg   ;    //-> dN/dE'   vs E' for foreground (gamma-events from a different source) events (normalized)
-  TH1F*    fHdNdEpSignal;    //-> dN/dE' vs E' histogram for signal events (normalized)
-  TH1F*    fHdNdEpSignalOff; //-> dN/dE' vs E' histogram for signal events in the off region (normalized)
+  H1FPdf*  fHdNdEpBkg   ;    //-> dN/dE'dt vs E' for background events (normalized)
+  H1FPdf*  fHdNdEpFrg   ;    //-> dN/dE'   vs E' for foreground (gamma-events from a different source) events (normalized)
+  H1FPdf*  fHdNdEpSignal;    //-> dN/dE' vs E' histogram for signal events (normalized)
+  H1FPdf*  fHdNdEpSignalOff; //-> dN/dE' vs E' histogram for signal events in the off region (normalized)
 
   // Flags internally used by the class
 

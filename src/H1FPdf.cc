@@ -37,7 +37,35 @@ static const TString  gTitle  = "TH1F extended with read methods for dNdE";
 //
 // Constructor
 //
-H1FPdf::H1FPdf(TString inputString) : TH1F()
+H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, Double_t xlow, Double_t xup)
+  : TH1F(name,title,nbinsx,xlow,xup)
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Constructor
+//
+H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, const Double_t *xbins)
+  : TH1F(name,title,nbinsx,xbins)
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Constructor
+//
+H1FPdf::H1FPdf(const char *name, const char *title, Int_t nbinsx, const Float_t *xbins)
+  : TH1F(name,title,nbinsx,xbins)
+{
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Constructor
+//
+H1FPdf::H1FPdf(const TH1F &h1f)
+  : TH1F(h1f)
 {
 }
 
