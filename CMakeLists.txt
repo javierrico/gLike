@@ -40,7 +40,8 @@ root_generate_dictionary(
     ${PROJECT_SOURCE_DIR}/include/MIACTEventListIRF.h
     ${PROJECT_SOURCE_DIR}/include/FermiTables2016Lkl.h
     ${PROJECT_SOURCE_DIR}/include/GloryDuckTables2019Lkl.h
-    ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h
+    ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h 
+    ${PROJECT_SOURCE_DIR}/include/HdNdE.h 
     LINKDEF ${PROJECT_SOURCE_DIR}/include/gLikeLinkDef.h
 )
 # create a shared library with the generated dictionary
@@ -56,7 +57,8 @@ add_library(
     ${PROJECT_SOURCE_DIR}/src/MIACTEventListIRF.cc
     ${PROJECT_SOURCE_DIR}/src/FermiTables2016Lkl.cc
     ${PROJECT_SOURCE_DIR}/src/GloryDuckTables2019Lkl.cc
-    ${PROJECT_SOURCE_DIR}/src/TemplateLkl.cc
+    ${PROJECT_SOURCE_DIR}/src/TemplateLkl.cc 
+    ${PROJECT_SOURCE_DIR}/src/HdNdE.cc 
     gLikeDict
 )
 # make gLike headers public, for usage by other codes
@@ -71,9 +73,10 @@ set(GLIKE_HEADERS
     ${PROJECT_SOURCE_DIR}/include/MIACTEventListIRF.h
     ${PROJECT_SOURCE_DIR}/include/FermiTables2016Lkl.h
     ${PROJECT_SOURCE_DIR}/include/GloryDuckTables2019Lkl.h
-    ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h
+    ${PROJECT_SOURCE_DIR}/include/TemplateLkl.h 
+    ${PROJECT_SOURCE_DIR}/include/HdNdE.h 
 )
-set_target_properties(gLike PROPERTIES PUBLIC_HEADER ${GLIKE_HEADERS})
+set_target_properties(gLike PROPERTIES PUBLIC_HEADER "${GLIKE_HEADERS}")
 # link gLike libraries against ROOT's ones
 target_link_libraries(gLike ${ROOT_LIBRARIES})
 # where to find the header files for the gLike libraries

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// Unbinned full likelihood
+// Template for new Lkl class
 //////////////////////////////////////////////////////////////////////
 
 #ifndef TEMPLATELKL
@@ -26,7 +26,7 @@ class TemplateLkl : public Lkl
   
  private:  
 
-  ClassDef(TemplateLkl,1) // Full Likelihood (unbinned)
+  ClassDef(TemplateLkl,1) // Template for new Lkl class
 };
 
 #endif
