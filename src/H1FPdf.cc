@@ -6,7 +6,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// HdNdE
+// H1FPdf
 //
 // Extension of the TH1F class with read methods for dNdE histograms, so that
 // all read methods can be shared by all Lkl-based classes containing dNdE-type
@@ -21,14 +21,14 @@
 #include "TH1F.h"
 
 // include gLike needed classes
-#include "HdNdE.h"
+#include "H1FPdf.h"
 
-ClassImp(HdNdE);
+ClassImp(H1FPdf);
 
 using namespace std;
 
 // class name and title
-static const TString  gName   = "HdNdE";
+static const TString  gName   = "H1FPdf";
 static const TString  gTitle  = "TH1F extended with read methods for dNdE";
 
 
@@ -37,7 +37,7 @@ static const TString  gTitle  = "TH1F extended with read methods for dNdE";
 //
 // Constructor
 //
-HdNdE::HdNdE(TString inputString) : TH1F()
+H1FPdf::H1FPdf(TString inputString) : TH1F()
 {
 }
 
@@ -46,7 +46,7 @@ HdNdE::HdNdE(TString inputString) : TH1F()
 // Destructor
 // make sure you do not leave any memory leaks
 //
-HdNdE::~HdNdE()
+H1FPdf::~H1FPdf()
 {
   
 }

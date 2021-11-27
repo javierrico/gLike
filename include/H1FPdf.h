@@ -5,21 +5,21 @@
 #ifndef HDNDE
 #define HDNDE
 
-class HdNdE : public TH1F
+class H1FPdf : public TH1F
 {
  public:
   
   // constructors
-  HdNdE(TString inputString="");
+  H1FPdf(TString inputString="");
   
   // destructor
-  virtual ~HdNdE();
+  virtual ~H1FPdf();
 
  protected:
   
  private:
 
-  ClassDef(HdNdE,1) // Full Likelihood (unbinned)
+  ClassDef(H1FPdf,1) // Full Likelihood (unbinned)
 };
 
 #endif
