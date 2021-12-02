@@ -91,9 +91,11 @@ class Lkl : public TNamed
     return MinimizeLkl(fParStart[gGParIndex],kFALSE,kTRUE,kTRUE);
   }
   virtual Int_t    ApplyDUnitsOfG(Int_t npoints,Double_t glow,Double_t gupp);
-  inline Bool_t    IsChecked() const            {return fIsChecked;}
-  virtual Int_t    MakeChecks()         = 0;  // NEEDS TO BE OVERRIDEN BY DAUGHTERS
   virtual void     SetMinuitLink()      = 0;  // NEEDS TO BE OVERRIDEN BY DAUGHTERS
+
+  virtual Bool_t IsChecked() const                   {return fIsChecked;}
+  virtual Int_t  MakeChecks() = 0;                   // NEEDS TO BE OVERRIDEN BY DAUGHTERS
+  virtual void   SetChecked(Bool_t status=kTRUE)     {fIsChecked=status;}
 
  protected:
   Int_t            InterpretInputString(TString inputString);
@@ -102,10 +104,9 @@ class Lkl : public TNamed
 
   void     SetParameters(const Char_t** parname, Double_t* pstart, Double_t* pdelta);
   Double_t CallMinimization(Double_t g=0,Bool_t isVerbose=kFALSE,Int_t strategy=2);
-  
-  inline void   FixPar(Int_t ipar,Bool_t fix=kTRUE) {if(ipar<fNPars) fIsParFixed[ipar] = fix;}
-  inline void   SetChecked(Bool_t status=kTRUE)     {fIsChecked=status;}
-  inline void   SetGLklVsG(TGraph* graph)           {if(fGLklVsG) delete fGLklVsG; fGLklVsG=graph;}
+    
+  inline void    FixPar(Int_t ipar,Bool_t fix=kTRUE) {if(ipar<fNPars) fIsParFixed[ipar] = fix;}
+  inline void    SetGLklVsG(TGraph* graph)           {if(fGLklVsG) delete fGLklVsG; fGLklVsG=graph;}
 
   Double_t      CenterAtZero();
   void          FixLklVsG(Double_t shiftg=0);

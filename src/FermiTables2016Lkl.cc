@@ -84,6 +84,10 @@ static const TString  gTitle           = "Flux vs E-Bin Likelihood";
 static const Int_t    gNPars            = 1;             // Number of free+nuisance parameters
 static const Char_t*  gParName[gNPars]  = {"g"};         // Name of parameters
 static const Double_t gRefsv            = 3.e-26;        // [cm^3 s^-1] (reference sv for computing dPhi/dE)
+static const Int_t    gNFineBins       = 5000;                // default number of fine bins for dNdESignal histo
+static const Double_t gFineLEMin       = TMath::Log10(0.01);  // default minimum log(energy[GeV]) for dNdESignal hist
+static const Double_t gFineLEMax       = TMath::Log10(1000);  // default maximum log(energy[GeV]) for dNdESignal histo
+
 
 // -2logL function for minuit
 void binnedFluxLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag);
@@ -105,9 +109,9 @@ static TMinuit* minuit = NULL;
 // formats should be defined and called by the user
 //
 FermiTables2016Lkl::FermiTables2016Lkl(TString inputString) :
-  Lkl(gNPars,inputString,gName,gTitle), JointLkl(inputString),
+  Lkl(gNPars,inputString,gName,gTitle), JointLkl(inputString), HdNdE("","",gNFineBins,gFineLEMin,gFineLEMax),
   fNBins(0), fBinEMin(NULL), fBinEMax(NULL), 
-  fEFluxInt(NULL), fMass(0), fLogJ(0), fHdNdESignal(NULL)
+  fEFluxInt(NULL), fMass(0), fLogJ(0)
 {
   if(InterpretInputString(inputString))
     cout << "FermiTables2016Lkl::FermiTables2016Lkl Warning: there were problems interpreting the input string" << endl;
@@ -118,6 +122,9 @@ FermiTables2016Lkl::FermiTables2016Lkl(TString inputString) :
 // The string has been passed to Lkl::InterpretInputString in constructor
 // here it is searched for the following options:
 //
+//
+// logJ=<val>:          mean value of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-3 (decay)
+// path=<val>:          path of the input file (will be appended to inputFileName)
 // inputfile=<val>:     name of the input file, which contains the lkl vs flux tables
 //
 Int_t FermiTables2016Lkl::InterpretInputString(TString inputString)
@@ -136,6 +143,8 @@ Int_t FermiTables2016Lkl::InterpretInputString(TString inputString)
     {
       fldre.Split(re[ifield]);
       TString optname = fldre[0];
+      if(optname.CompareTo("logJ",TString::kIgnoreCase)==0)
+	fLogJ=fldre[1].Atof();
       if(optname.CompareTo("inputfile",TString::kIgnoreCase)==0)
 	inputfileName=fldre[1];
       else if(optname.CompareTo("path",TString::kIgnoreCase)==0)
@@ -384,66 +393,26 @@ Int_t FermiTables2016Lkl::CreateAndAddNewParabola(Double_t emin,Double_t emax,In
 
 //////////////////////////////////////////////////////////////////
 // 
-// Set the dN/dE signal histogram
-// Replacement of existing histo is allowed
+// Recreate a fresh new version of fHdNdESignal and delete
+// all histograms that depend on it
+//
 // Return 0 in case of success
 //        1 if file is not found
 //
-Int_t FermiTables2016Lkl::SetdNdESignal(TH1F* hdNdESignal)
+Int_t FermiTables2016Lkl::ResetdNdESignal()
 {
-  // pathologies
-  if(!hdNdESignal)
-    {
-      cout << "FermiTables2016Lkl::SetdNdESignal (" << GetName() << ") Warning: input histo does not exist" << endl;
-      return 1;
-    }
+  if(HdNdE::ResetdNdESignal())
+    return 1;
 
-  // replace existing fHdNdESignal 
-  if(fHdNdESignal) 
-    delete fHdNdESignal; 
-       
-  // copy bin contents and configure histogram
-  fHdNdESignal = new HdNdE(*hdNdESignal);
-  fHdNdESignal->SetDirectory(0);
-  fHdNdESignal->SetName("fHdNdESignal");
-  fHdNdESignal->SetTitle("dN/dE for signal events");
-  fHdNdESignal->SetXTitle("log_{10}(E [GeV])");
-  fHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
-  
-  // clean and exit  
+  ResetGLklVsG();
   SetChecked(kFALSE);
-  SetGLklVsG(NULL);
+
   return 0;
 }
 
 //////////////////////////////////////////////////////////////
 // 
-// Read dN/dE signal histogram from file
-// Replacement of existing histogram is allowed
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t FermiTables2016Lkl::ReaddNdESignal(TString filename)
-{
-  // open file and look for histo
-  TFile* dNdESignalFile  = new TFile(filename);
-  TH1F*  hdNdESignal = (TH1F*) dNdESignalFile->Get("hdNdE");
-
-  // exit if it does not exist
-  if(!hdNdESignal) {delete dNdESignalFile; return 1;}
-  
-  // otherwise, copy it
-  Int_t val = SetdNdESignal(hdNdESignal);
-
-  // clean and exit
-  dNdESignalFile->Close();
-  delete dNdESignalFile;
-  return val;
-}
-
-//////////////////////////////////////////////////////////////
-// 
-// Read dN/dE signal histogram from file
+// Read dN/dE signal histogram from Fermi-internal file (mostly for tests)
 // Replacement of existing histogram is allowed
 // Return 0 in case of success
 //        1 if file is not found
@@ -489,10 +458,9 @@ Int_t FermiTables2016Lkl::ReaddNdESignalFromFermi(TString filename)
   binbound[0]     = vlogE.data()[0]-(binbound[1]-vlogE.data()[0]);
   binbound[nbins] = vlogE.data()[nbins-1]+(vlogE.data()[nbins-1]-binbound[nbins-1]);
 
-  HdNdE* hdNdE = new HdNdE("hdNdE","",nbins,binbound);
-  hdNdE->SetDirectory(0);
+  TH1F* hdNdE = new TH1F("fHdNdESignal","dN/dE for signal events",nbins,binbound);
   for(Int_t ibin=0;ibin<nbins;ibin++)
-    hdNdE->SetBinContent(ibin+1,vdNdE.data()[ibin]);
+    fHdNdESignal->SetBinContent(ibin+1,vdNdE.data()[ibin]);
 
   // set this as the dNdE histogram
   SetdNdESignal(hdNdE);

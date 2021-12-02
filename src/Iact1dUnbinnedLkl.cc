@@ -194,7 +194,6 @@ static const Double_t gCenterBin       = 0.5;                    // decide which
 // static functions (for internal processing of input data)
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TGraph* grreso,TGraph* grbias);
 static Int_t  SmearHistogram(TH1F* sp,TH1F* smsp,TH2F* mm);
-static void  readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
 static Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale=0,Bool_t isDiff=kTRUE);
 static TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData);
 static void  NormalizeMatrix(TH2F* im,TH2F* om,Double_t scale=0);
@@ -213,12 +212,11 @@ static TMinuit* minuit = NULL;
 // The string contains the elements for the constructor 
 //
 Iact1dUnbinnedLkl::Iact1dUnbinnedLkl(TString inputString) : 
-  Lkl(gNPars,inputString,gName,gTitle), fEpmin(gEpmin), fEpmax(gEpmax), 
-  fNon(0), fNoff(0), fOnSample(NULL), fOffSample(NULL),
+  Lkl(gNPars,inputString,gName,gTitle), HdNdE("","",gNFineBins,gFineLEMin,gFineLEMax),
+  fEpmin(gEpmin), fEpmax(gEpmax), fNon(0), fNoff(0), fOnSample(NULL), fOffSample(NULL),
   fDataTau(1), fDataDTau(0), fDataObsTime(0), fTau(1), fDTau(0), fTrueTau(1), fObsTime(0),
-  fLogJ(0), fIsOffAsOn(kFALSE),
-  fNFineBins(gNFineBins), fFineLEMin(gFineLEMin), fFineLEMax(gFineLEMax),
-  fHdNdESignal(NULL), fHAeff(NULL), fHAeffOff(NULL), fGEreso(NULL), fGEbias(NULL), fMigMatrix(NULL),
+  fLogJ(0), fIsOffAsOn(kFALSE),  
+  fHAeff(NULL), fHAeffOff(NULL), fGEreso(NULL), fGEbias(NULL), fMigMatrix(NULL),
   fHdNdEpBkg(NULL), fHdNdEpFrg(NULL), fHdNdEpSignal(NULL), fHdNdEpSignalOff(NULL)
 {
   if(InterpretInputString(inputString))
@@ -368,7 +366,6 @@ Iact1dUnbinnedLkl::~Iact1dUnbinnedLkl()
 {
   if(fOnSample)        delete [] fOnSample;
   if(fOffSample)       delete [] fOffSample;
-  if(fHdNdESignal)     delete fHdNdESignal;
   if(fHAeff)           delete fHAeff;
   if(fGEreso)          delete fGEreso;
   if(fGEbias)          delete fGEbias;
@@ -596,102 +593,18 @@ Int_t Iact1dUnbinnedLkl::CheckEnergyLimits() const
 
 //////////////////////////////////////////////////////////////////
 // 
-// Set directly the dN/dE histogram for signal (e.g. from Damasco)
-// Replacement of existing histo is allowed
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::SetdNdESignal(TH1F* hdNdESignal)
-{
-  // pathologies
-  if(!hdNdESignal)
-    {
-      cout << "Iact1dUnbinnedLkl::SetdNdESignal Warning: input histo does not exist" << endl;
-      return 1;
-    }
-
-  // replace existing fHdNdESignal and delete fHdNdEpSignal and fHdNdEpSignalOff
-  if(fHdNdESignal) 
-    delete fHdNdESignal; 
-    
-  if(fHdNdEpSignal)
-    {
-      delete fHdNdEpSignal;
-      fHdNdEpSignal=NULL;
-    }
-
-  if(fHdNdEpSignalOff)
-    {
-      delete fHdNdEpSignalOff;
-      fHdNdEpSignalOff=NULL;
-    }
-   
-  // transform it to the Iact1dUnbinnedLkl format
-  fHdNdESignal = new HdNdE("fHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
-  fHdNdESignal->SetDirectory(0);
-  fHdNdESignal->SetXTitle("log_{10}(E [GeV])");
-  fHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
-  readAndInterpolate(hdNdESignal,fHdNdESignal);
-  
-  // clean and exit
-  SetChecked(kFALSE);
-  return 0;
-}
-
-//////////////////////////////////////////////////////////////////
-// 
-// Add to a previously existing dN/dE histogram for signal from file
-// in the Segue Stereo input format produced by Jelena
-// No replacement of existing histo is allowed
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::AdddNdESignal(TString filename,Float_t br)
-{
-  // open file and look for histo
-  TFile* dNdESignalFile  = new TFile(filename);
-  TH1F*  hdNdESignal = (TH1F*) dNdESignalFile->Get("hdNdE");
-
-  // pathologies
-  if(!hdNdESignal)
-    {
-      cout << "Iact1dUnbinnedLkl::AdddNdESignal Warning: input histo does not exist" << endl;
-      return 1;
-    }
-
-  // transform it to the Iact1dUnbinnedLkl format
-  TH1F* fHdNdESignal_temp = new TH1F("fHdNdESignal_temp","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
-  readAndInterpolate(hdNdESignal,fHdNdESignal_temp);
-
-  for(Int_t ibin=0;ibin<fHdNdESignal->GetNbinsX();ibin++)
-    fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(fHdNdESignal_temp->GetBinContent(ibin+1)));
-
-  // clean and exit
-  delete dNdESignalFile;
-  SetChecked(kFALSE);
-  return 0;
-}
-
-//////////////////////////////////////////////////////////////////
-// 
-// Recreate a fresh new version of fHdNdESignal
+// Recreate a fresh new version of fHdNdESignal and delete
+// all histograms that depend on it
 //
 // Return 0 in case of success
 //        1 if file is not found
 //
 Int_t Iact1dUnbinnedLkl::ResetdNdESignal()
 {  
-  // Delete existing fHdNdESignal and create empty one
-  if(fHdNdESignal) 
-    delete fHdNdESignal; 
+  if(HdNdE::ResetdNdESignal())
+    return 1;
   
-  // Create histo
-  fHdNdESignal = new HdNdE("fHdNdESignal","dN/dE for signal events",fNFineBins,fFineLEMin,fFineLEMax);
-  fHdNdESignal->SetDirectory(0);
-  fHdNdESignal->SetXTitle("log_{10}(E [GeV])");
-  fHdNdESignal->SetYTitle("dN/dE [GeV^{-1}]");
-  
- // Delete existing fHdNdEpSignal and fHdNdEpSignalOff 
+  // Delete existing fHdNdEpSignal and fHdNdEpSignalOff 
   if(fHdNdEpSignal)
     {
       delete fHdNdEpSignal;
@@ -703,219 +616,12 @@ Int_t Iact1dUnbinnedLkl::ResetdNdESignal()
       delete fHdNdEpSignalOff;
       fHdNdEpSignalOff=NULL;
     }
-  SetChecked(kFALSE);
+
+  ResetGLklVsG();
+  SetChecked(kFALSE);  
   
   // exit
   return 0;
-}
-
-//////////////////////////////////////////////////////////////////
-// 
-// Create and save a dN/dE histogram for signal according to 
-// given <function> and parameters <p0>, <p1>, ...
-// (see Iact1dUnbinnedLkl::AdddNdESignalFunction for details on available
-// functions)
-//
-// If fdNdESignal exists it will be replaced
-//
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TString function,Float_t p0,Float_t p1,Float_t p2,Float_t p3,Float_t p4,Float_t p5,Float_t p6,Float_t p7,Float_t p8,Float_t p9)
-{  
-  // Delete existing fHdNdESignal and create empty one
-  ResetdNdESignal();
-
-  // call to add the function
-  AdddNdESignalFunction(function,p0,p1,p2,p3,p4,p5,p6,p7,p8,p9);
-  
-  // exit
-  return 0;
-}
-//////////////////////////////////////////////////////////////////
-// 
-// Add to a previously existing dN/dE histogram for signal according to 
-// given <function> and parameters <p0>, <p1>, ...
-//
-// If <function>=="line"
-// <p0> = E0, the energy of the line
-// <p1> = scale, i.e. the number of photons per annihilation (e.g 2 for XX->gamma gamma)
-// <p2> = br, the branching ratio
-//
-// If <function>=="box"
-// <p0> = Emin, lower border of the box
-// <p1> = Emax, upper border of the box
-// <p2> = scale, i.e. the number of photons per annihilation (e.g 4 for XX->pi0 pi0)
-// <p3> = br, the branching ratio
-//
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TString function,Float_t p0,Float_t p1,Float_t p2,Float_t p3,Float_t p4,Float_t p5,Float_t p6,Float_t p7,Float_t p8,Float_t p9)
-{    
-  // Check that fHdNdESignal exists
-  if(!fHdNdESignal)
-    {
-      cout << "Iact1dUnbinnedLkl::AdddNdESignalFunction Error: fHdNdESignal does not exist" << endl;
-      return 1;
-    }
-
-  // Check function
-  enum function_t {gLine=0,gBox};
-  Int_t functionType=-1;
-  if(function.CompareTo("line",TString::kIgnoreCase)==0)
-    functionType=gLine;
-  else if(function.CompareTo("box",TString::kIgnoreCase)==0)
-    functionType=gBox;
-  else
-    {
-      cout << "Iact1dUnbinnedLkl::AdddNdESignalFunction Error: no known function type (" << function << "), check documentation for allowed values" << endl;
-      return 1;
-    }
-    
-  // Add to the histogram according to specified function and parameters
-  if(functionType==gLine)
-    {
-      Float_t E0    = p0;
-      Float_t scale = p1;
-      Float_t br    = p2;
-      
-      Float_t log10E0 = TMath::Log10(E0);
-      
-      // check range
-      if(fFineLEMin>log10E0 || fFineLEMax<log10E0)
-	{
-	  cout << "Iact1dUnbinnedLkl::AdddNdESignal Warning: trying to set a line at an energy E0="
-	       << E0 << ", out of range (" << TMath::Power(10,fFineLEMin) << "," << TMath::Power(10,fFineLEMax) << ")" << endl;
-	  return 1;
-	}
-         
-      // fill histo
-      Int_t ibin   = fNFineBins*(log10E0-fFineLEMin)/(fFineLEMax-fFineLEMin);
-      Float_t Emin = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1));
-      Float_t Emax = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+fHdNdESignal->GetBinWidth(ibin+1));
-      Float_t dE   = Emax-Emin;
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
-    }
-  else if(functionType==gBox)
-    {
-      Float_t Emin  = p0;
-      Float_t Emax  = p1;
-      Float_t scale = p2;
-      Float_t br    = p3;
-      
-      Float_t log10Emin = TMath::Log10(Emin);
-      Float_t log10Emax = TMath::Log10(Emax);
-      
-      // check range
-      if(Emin>Emax)
-	{
-	  cout << "Iact1dUnbinnedLkl::AdddNdESignal Warning: Emin (" << Emin << ") larger than Emax (" << Emax << ")" << endl;
-	  return 1;
-	}
-         
-      // fill histo
-      Int_t ibinmin = fNFineBins*(log10Emin-fFineLEMin)/(fFineLEMax-fFineLEMin);
-      Int_t ibinmax = fNFineBins*(log10Emax-fFineLEMin)/(fFineLEMax-fFineLEMin);
-      
-      Float_t realEmin  = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibinmin+1));
-      Float_t realEmax  = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibinmax+1)+fHdNdESignal->GetBinWidth(ibinmax+1));
-      Float_t dE        = realEmax-realEmin;
-      for(Int_t ibin=ibinmin;ibin<=ibinmax;ibin++)
-	fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(scale/dE));
-    }
-  else
-    {
-      cout << "Iact1dUnbinnedLkl::AdddNdESignalFunction Warning: this should never happen... " << endl;
-      return 1;
-    }
-      
-  // exit
-  return 0;
-}
-
-//////////////////////////////////////////////////////////////////
-// 
-// Create and save a dN/dE histogram for signal according to 
-// given <function> (TF1 object, created and parameterized before
-// passing it as an argument)
-//
-// Set only values for which energy is between <emin> and <emax>
-//
-// If fdNdESignal exists it will be replaced
-//
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_t emax)
-{  
-  // Delete existing fHdNdESignal and create empty one
-  ResetdNdESignal();
-
-  // call to add the function
-  AdddNdESignalFunction(function,emin,emax,1.0);
-  
-  // exit
-  return 0;
-}
-//////////////////////////////////////////////////////////////////
-// 
-// Add to a previously existing dN/dE histogram for signal according to 
-// given <function> (TF1 defined and parameterized outside this method)
-//
-// Add only values for which energy is between <emin> and <emax>
-//
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::AdddNdESignalFunction(TF1* function,Float_t emin,Float_t emax,Float_t br)
-{
-  // Check that fHdNdESignal exists
-  if(!fHdNdESignal)
-    {
-      cout << "Iact1dUnbinnedLkl::AdddNdESignalFunction Error: fHdNdESignal does not exist" << endl;
-      return 1;
-    }
-
-  // Check function
-  if(!function)
-    {
-      cout << "Iact1dUnbinnedLkl::AdddNdESignalFunction Error: function does not exist" << endl;
-      return 1;
-    }
-  
-  for(Int_t ibin=0;ibin<fHdNdESignal->GetNbinsX();ibin++)
-    {
-      Float_t etest = TMath::Power(10,fHdNdESignal->GetBinLowEdge(ibin+1)+gCenterBin*fHdNdESignal->GetBinWidth(ibin+1));
-      if(etest>emin && etest<emax)
-      fHdNdESignal->SetBinContent(ibin+1,fHdNdESignal->GetBinContent(ibin+1)+br*(function->Eval(etest)));
-    }
-  
-  // exit
-  return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-// 
-// Read dN/dE for signal from file in the Segue Stereo input format
-// produced by Jelena
-// Replacement of existing file is allowed
-// Return 0 in case of success
-//        1 if file is not found
-//
-Int_t Iact1dUnbinnedLkl::ReaddNdESignal(TString filename)
-{
-  // open file and look for histo
-  TFile* dNdESignalFile  = new TFile(filename);
-  TH1F*  hProvdNdESignal = (TH1F*) dNdESignalFile->Get("hdNdE");
-
-  Int_t status = 0;
-  if(!hProvdNdESignal)
-    status = 1;
-  else
-    status = SetdNdESignal(hProvdNdESignal);
-  delete dNdESignalFile;
-  return status;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1012,7 +718,7 @@ Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpBkg(TH1F* hProvdNdEBkg,Bool_t inte
   fHdNdEpBkg->SetDirectory(0);
 
   if(interpolate)
-    readAndInterpolate(hProvdNdEBkg,fHdNdEpBkg,scale,isDiff);
+    HdNdE::ReadAndInterpolate(hProvdNdEBkg,fHdNdEpBkg,scale,isDiff);
   else
     {
       if(copyBinByBin(hProvdNdEBkg,fHdNdEpBkg,scale,isDiff))
@@ -1049,7 +755,7 @@ Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpFrg(TH1F* hProvdNdEFrg,Bool_t inte
   fHdNdEpFrg = new TH1F("fHdNdEpFrg","dN/dE'dt for foreground events",fNFineBins,fFineLEMin,fFineLEMax);
   fHdNdEpFrg->SetDirectory(0);
   if(interpolate)
-    readAndInterpolate(hProvdNdEFrg,fHdNdEpFrg,scale,isDiff);
+    HdNdE::ReadAndInterpolate(hProvdNdEFrg,fHdNdEpFrg,scale,isDiff);
   else
     if(copyBinByBin(hProvdNdEFrg,fHdNdEpFrg,scale,isDiff))
       {
@@ -1079,7 +785,7 @@ Int_t Iact1dUnbinnedLkl::SetAeff(TH1F* hProvAeff)
   if(fHAeff) delete fHAeff;
   fHAeff = new TH1F("fHAeff","Effective area",fNFineBins,fFineLEMin,fFineLEMax);
   fHAeff->SetDirectory(0);
-  readAndInterpolate(hProvAeff,fHAeff);
+  HdNdE::ReadAndInterpolate(hProvAeff,fHAeff);
 
   // configure
   fHAeff->SetMinimum(1e4);
@@ -1103,7 +809,7 @@ Int_t Iact1dUnbinnedLkl::SetAeffOff(TH1F* hProvAeff)
   if(fHAeffOff) delete fHAeffOff;
   fHAeffOff = new TH1F("fHAeffOff","Effective area for signal events in the Off region",fNFineBins,fFineLEMin,fFineLEMax);
   fHAeffOff->SetDirectory(0);
-  readAndInterpolate(hProvAeff,fHAeffOff);
+  HdNdE::ReadAndInterpolate(hProvAeff,fHAeffOff);
   
   // configure
   fHAeffOff->SetMinimum(1e4);
@@ -1872,132 +1578,6 @@ TH1F* Iact1dUnbinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 
 //////////////////////////////////////////////////////////////////
 //
-// Copy the contents of ih into oh by interpolating if necessary
-// the x axis of ih and oh must be in log-scale and even binning
-// the interpolation is done linearly in log(y)
-// the units of the x-axis of ih are those of oh times 10^scale
-// if isDiff=kTRUE the input histogram is differential (default)
-// if isDiff=kFALSE the input histogram is bin-integrated
-// the output histogram is ALWAYS differential
-//
-void readAndInterpolate(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
-{  
-  // input histogram binning
-  Double_t imine   = ih->GetXaxis()->GetXmin()+scale; // minimum log(E) in input histo
-  Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
-  Int_t    inbinse = ih->GetNbinsX();          
-  Double_t ide     = (imaxe-imine)/inbinse;
-
-  // output histogram binning
-  Double_t omine   = oh->GetXaxis()->GetXmin(); // minimum log(E) in output histo
-  Double_t omaxe   = oh->GetXaxis()->GetXmax(); // maximum log(E) in output histo
-  Int_t    onbinse = oh->GetNbinsX();          
-  Double_t ode     = (omaxe-omine)/onbinse;
-  
-  // interpolate values
-  Double_t x0,x1,dx0i,dx1i,y0,y1,etest,etestbin,y,rtest,ycontent0,ycontent1;
-  for(Int_t ibin=0;ibin<onbinse;ibin++)
-    {
-      etest = omine+ode*(ibin+gCenterBin); 
-
-      // log-log interpolation
-      if(etest<imine+gCenterBin*ide) // extrapolation of values below the minimum input energy
-	{
-	  // ycontent0 = ih->GetBinContent(1);
-	  // ycontent1 = ih->GetBinContent(2);
-	  
-	  // if(ycontent0<=0 || ycontent1<=0)
-	  //   {
-	  //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
-	  //     continue;
-	  //   }
-
-	  // x0 = imine+gCenterBin*ide;
-	  // x1 = imine+(1.+gCenterBin)*ide;
-
-	  // if(!isDiff)
-	  //   {
-	  //     dx0i = TMath::Power(10,imine+ide)-TMath::Power(10,imine);
-	  //     dx1i = TMath::Power(10,imine+2*ide)-TMath::Power(10,imine+ide);
-
-	  //     y0  = TMath::Log10(ycontent0/dx0i);
-	  //     y1  = TMath::Log10(ycontent1/dx1i);	  
-	  //   }
-	  // else
-	  //   {
-	  //     y0 = TMath::Log10(ycontent0);
-	  //     y1 = TMath::Log10(ycontent1);	  
-	  //   }
-	  oh->SetBinContent(ibin+1,0);
-	  continue;
-	}
-      else if(etest>imaxe-(1-gCenterBin)*ide) // extrapolation of values above the maximum input energy
-	{
-	  // ycontent0 = ih->GetBinContent(onbinse-1);
-	  // ycontent1 = ih->GetBinContent(onbinse);
-	  
-	  // if(ycontent0<=0 || ycontent1<=0)
-	  //   {
-	  //     oh->SetBinContent(ibin+1,(ycontent0+ycontent1)/2.);
-	  //     continue;
-	  //   }
-
-	  // x0 = imaxe-(2.-gCenterBin)*ide;
-	  // x1 = imaxe-(1.-gCenterBin)*ide;
-	  // if(!isDiff)
-	  //   {
-	  //     dx0i = TMath::Power(10,imine+(inbinse-1)*ide)-TMath::Power(10,imine+(inbinse-2)*ide);
-	  //     dx1i = TMath::Power(10,imine+inbinse*ide)-TMath::Power(10,imine+(inbinse-1)*ide);
-	  //     y0  = TMath::Log10(ycontent0/dx0i);
-	  //     y1  = TMath::Log10(ycontent1/dx1i);	    
-	  //   }
-	  // else
-	  //   {
-	  //     y0 = TMath::Log10(ycontent0);
-	  //     y1 = TMath::Log10(ycontent1);	    
-	  //   }
-	  oh->SetBinContent(ibin+1,0);
-	  continue;
-
-	}
-      else // interpolation of values in the range of provided energies
-	{
-	  etestbin  = Int_t((etest-imine-gCenterBin*ide)/ide); // corresponding bin in ih histo
-
-	  ycontent0 = ih->GetBinContent(etestbin+1);
-	  ycontent1 = ih->GetBinContent(etestbin+2);
-	  
-	  if(ycontent0<=0 || ycontent1<=0)
-	    {
-	      oh->SetBinContent(ibin+1,0);
-	      continue;
-	    }
-	  
-	  x0 = imine+(etestbin+gCenterBin)*ide;
-	  x1 = imine+(etestbin+1+gCenterBin)*ide;
-	  
-	  if(!isDiff)
-	    {
-	      dx0i = TMath::Power(10,imine+(etestbin+1)*ide)-TMath::Power(10,imine+etestbin*ide);
-	      dx1i = TMath::Power(10,imine+(etestbin+2)*ide)-TMath::Power(10,imine+(etestbin+1)*ide);
-	      y0 = TMath::Log10(ycontent0/dx0i);
-	      y1 = TMath::Log10(ycontent1/dx1i);	  
-	    }
-	  else
-	    {
-	      y0 = TMath::Log10(ycontent0);
-	      y1 = TMath::Log10(ycontent1);	  
-	    }
-	}
-	  
-      y     = y0+(etest-x0)*(y1-y0)/(x1-x0);
-      rtest = TMath::Power(10,y);
-      oh->SetBinContent(ibin+1,rtest);
-      // cout << ibin+1 << ": ycontent0 = " << ycontent0 << ", ycontent1 = " << ycontent1 << "y0 = " << y0 << ", y1 = " << y1 << ", x0 = " << x0 << ", x1 = " << x1 << ", rtest = " << rtest << endl;
-    }
-}
-//////////////////////////////////////////////////////////////////
-//
 // Copy the contents of ih into oh bin by bin
 // the x axis of ih and oh must be in log-scale and oh in even binning (not necessary for ih)
 // Coarse bins in ih are copied into finner bins in oh, but
@@ -2013,7 +1593,6 @@ Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
   Double_t imaxe   = ih->GetXaxis()->GetXmax()+scale; // maximum log(E) in input histo
   Int_t    inbinse = ih->GetNbinsX();          
   
-
   // output histogram binning
   Double_t omine   = oh->GetXaxis()->GetXmin(); // minimum log(E) in output histo
   Double_t omaxe   = oh->GetXaxis()->GetXmax(); // maximum log(E) in output histo
@@ -2046,7 +1625,6 @@ Int_t copyBinByBin(TH1F* ih,TH1F* oh,Double_t scale,Bool_t isDiff)
 	      Double_t leminbin = ih->GetBinLowEdge(etestbin+1)+scale;
 	      Double_t lemaxbin = ih->GetBinLowEdge(etestbin+1)+ih->GetBinWidth(etestbin+1)+scale;
 	      dE                = TMath::Power(10,lemaxbin)-TMath::Power(10,leminbin);
-
 	    }
 	  oh->SetBinContent(ibin+1,ih->GetBinContent(etestbin+1)/dE);    
 	}      

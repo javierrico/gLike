@@ -18,7 +18,7 @@
 static const Float_t  gEpmin           = 1e01;                   // [GeV] default value of minimum E_est
 static const Float_t  gEpmax           = 1e06;                   // [GeV] default value of maximum E_est
 
-class Iact1dUnbinnedLkl : public virtual Lkl
+class Iact1dUnbinnedLkl : public virtual Lkl, public HdNdE
 {
  public:
   // enumerations
@@ -72,36 +72,28 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline TH1F*    GetHdNdEpFrg()        const {return fHdNdEpFrg;}
   inline TH1F*    GetHdNdEpSignal()     const {return fHdNdEpSignal;}
   inline TH1F*    GetHdNdEpSignalOff()  const {return fHdNdEpSignalOff;}
-  inline HdNdE*  GetHdNdESignal()      const {return fHdNdESignal;}
   inline TGraph*  GetGEreso()           const {return fGEreso;} 
   inline TGraph*  GetGEbias()           const {return fGEbias;}
   inline TH2F*    GetMigMatrix()        const {return fMigMatrix;}
   inline Float_t  GetLogJ()             const {return fLogJ;}
 
+  inline  Double_t GetdNdESignalIntegral()    {if(!fHdNdESignal) return 0;NormalizedNdEHisto(fHdNdESignal);return fHdNdESignal->GetBinContent(0);}
   inline Double_t GetdNdEpBkgIntegral()       {if(!fHdNdEpBkg) return 0; NormalizedNdEHisto(fHdNdEpBkg); return fHdNdEpBkg->GetBinContent(0);}
   inline Double_t GetdNdEpFrgIntegral()       {if(!fHdNdEpFrg) return 0; NormalizedNdEHisto(fHdNdEpFrg); return fHdNdEpFrg->GetBinContent(0);}
   inline Double_t GetdNdEpSignalIntegral()    {CheckHistograms(kFALSE); if(!fHdNdEpSignal) return 0; return fHdNdEpSignal->GetBinContent(0);}
   inline Double_t GetdNdEpSignalOffIntegral() {if(!fHdNdEpSignalOff) return 0; return fHdNdEpSignalOff->GetBinContent(0);}
-  inline Double_t GetdNdESignalIntegral()     {if(!fHdNdESignal) return 0;NormalizedNdEHisto(fHdNdESignal);return fHdNdESignal->GetBinContent(0);}
+
   virtual TH1F*   GetHdNdEpOn(Bool_t isDifferential=kTRUE,Int_t nbins=0)  const;
   virtual TH1F*   GetHdNdEpOff(Bool_t isDifferential=kTRUE,Int_t nbins=0) const;
   
-  // Read input dN/dE files and related functions
-  Int_t ResetdNdESignal();
-  Int_t SetdNdESignal(TH1F* hdNdESignal);
-  Int_t AdddNdESignal(TString filename,Float_t br=1.0);
-  Int_t SetdNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
-  Int_t AdddNdESignalFunction(TString function,Float_t p0=0,Float_t p1=0,Float_t p2=0,Float_t p3=0,Float_t p4=0,Float_t p5=0,Float_t p6=0,Float_t p7=0,Float_t p8=0,Float_t p9=0);
-  Int_t SetdNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9);
-  Int_t AdddNdESignalFunction(TF1* function,Float_t emin=0,Float_t emax=1e9,Float_t br=1.0);
-  Int_t SetTrueTau(Float_t truetau) {fTrueTau=truetau; return 0;}
-  Int_t ReaddNdESignal(TString filename);
+  // Read input dN/dE files and related function
   Int_t ReaddNdEpSignal(TString filename);
   Int_t ReaddNdEpSignalOff(TString filename);
   Int_t ReadCTAIRF(TString filename);
   Int_t TransformAndSavedNdEpBkg(TH1F* provHNOff,Bool_t interpolate=kTRUE,Double_t scale=0,Bool_t isDiff=kTRUE);
   Int_t TransformAndSavedNdEpFrg(TH1F* provHNOff,Bool_t interpolate=kTRUE,Double_t scale=0,Bool_t isDiff=kTRUE);
   Int_t ResetHdNdEpBkg() {if(fHdNdEpBkg) delete fHdNdEpBkg; fHdNdEpBkg=NULL; return 0;}
+  Int_t SetTrueTau(Float_t truetau) {fTrueTau=truetau; return 0;}
 
   virtual Int_t SimulateDataSamples(Float_t meanGwithUnits=0,TRandom* rdm=NULL);
 
@@ -111,12 +103,16 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   // Plots
   void PlotHistosAndData(TCanvas* canvas);
 
-  Int_t    NormalizedNdEHisto(TH1F* histo);
+  Int_t           NormalizedNdEHisto(TH1F* histo);
+  virtual Int_t   ResetdNdESignal();
 
  protected:
           Int_t    InterpretInputString(TString inputString);
   virtual Int_t    GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
-  
+
+  virtual Bool_t   IsChecked() const                   {return Lkl::IsChecked() & HdNdE::IsHdNdESignalChecked();}
+  virtual void     SetChecked(Bool_t status=kTRUE)     {Lkl::SetChecked(status); HdNdE::SetHdNdESignalChecked(status);}
+   
   virtual void     SetFunctionAndPars(Double_t ginit=0);
   virtual Int_t    MakeChecks();
   virtual void     SetMinuitLink();
@@ -125,6 +121,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline Int_t    SetEpmax(Float_t emax) {fEpmax   = emax;  return 0;}
   inline Int_t    SetObsTime(Float_t t)  {fObsTime = t;     return 0;}  
   inline Int_t    SetLogJ(Float_t logJ)  {fLogJ    = logJ;  return 0;}
+
   
   Int_t    SetAeff(TH1F* hProvAeff);
   Int_t    SetAeffOff(TH1F* hProvAeff);
@@ -157,11 +154,6 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   Float_t  fLogJ;            // log[GeV^2 cm^-5] or log[GeV cm^2] (ann/dec respectively), log of J factor
   Bool_t   fIsOffAsOn;       // if kTRUE, use the Off event sample as Off and as On
   
-  Int_t    fNFineBins;       // number of fine bins for internal histos
-  Double_t fFineLEMin;       // minimum log(energy[GeV]) for internal histos
-  Double_t fFineLEMax;       // maximum log(energy[GeV]) for internal histos
-
-  HdNdE*  fHdNdESignal ;    //-> dN/dE vs E histogram for signal events
   TH1F*    fHAeff       ;    //-> Effective area vs E histogram for signal events
   TH1F*    fHAeffOff    ;    //-> Effective area vs E histogram for signal events IN THE OFF REGION
   TGraph*  fGEreso      ;    //-> Graph with energy resolution vs energy values
@@ -172,8 +164,6 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   TH1F*    fHdNdEpFrg   ;    //-> dN/dE'   vs E' for foreground (gamma-events from a different source) events (normalized)
   TH1F*    fHdNdEpSignal;    //-> dN/dE' vs E' histogram for signal events (normalized)
   TH1F*    fHdNdEpSignalOff; //-> dN/dE' vs E' histogram for signal events in the off region (normalized)
-
-  // Flags internally used by the class
 
   ClassDef(Iact1dUnbinnedLkl,1) // Full Likelihood (unbinned)
 };

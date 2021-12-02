@@ -92,7 +92,7 @@ void usage();
 void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval,TString& strchannel,TString& normchannel,Double_t& minmass);
 void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval);
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
-void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm);
+void builddNdESignal(HdNdE* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm);
 void readAndWritedNdEpSignal(Iact1dUnbinnedLkl* lkl,TString dNdEpDir,TString normchannel,Float_t mdm);
 TString mprecform(Double_t val);
 
@@ -380,6 +380,7 @@ int main(int argc,char* argv[])
 	      // if we are simulating signal, we need the pdf
 	      if(mcalpha>0)
 		{
+		  cout << "  ** Building signal histos for sample " << fullLkl->GetName() << ":" << endl;	      
 		  builddNdESignal(fullLkl,fdNdEDir,mcnChannels,mcchannelval,mcbrval,mcmdm);
 		  if(ioHdNdEpSignal)
 		    readAndWritedNdEpSignal(fullLkl,fdNdEpSignalDir,mcnormchannel,mcmdm);
@@ -623,7 +624,8 @@ int main(int argc,char* argv[])
 	      Iact1dUnbinnedLkl* fullLkl = NULL;
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
-	      
+
+	      cout << "  ** Building signal histos for sample " << fullLkl->GetName() << ":" << endl;	      
 	      builddNdESignal(fullLkl,fdNdEDir,nChannels,channelval,brval,mdm);
 	      if(ioHdNdEpSignal)
 		readAndWritedNdEpSignal(fullLkl,fdNdEpSignalDir,normchannel,mdm);
@@ -634,6 +636,14 @@ int main(int argc,char* argv[])
 	      else	      
 		fullLkl->SetDMAnnihilationUnitsForG(mass);	    	     	      	      
 	    } // end of case Iact1dUnbinnedLkl or Iact1dBinnedLkl
+	  else if(!strcmp(lkl[isample]->ClassName(),"FermiTables2016Lkl"))
+	    {
+	      FermiTables2016Lkl* fermiLkl =  dynamic_cast<FermiTables2016Lkl*>(lkl[isample]);
+	      cout << "  ** Building signal histos for sample " << fermiLkl->GetName() << ":" << endl;	      
+	      builddNdESignal(fermiLkl,fdNdEDir,nChannels,channelval,brval,mdm);
+
+	      fermiLkl->SetDMMass(mass);
+	    } // end of case FermiTables2016Lkl
           else if(!strcmp(lkl[isample]->ClassName(),"GloryDuckTables2019Lkl"))
             {
               GloryDuckTables2019Lkl* gdLkl = dynamic_cast<GloryDuckTables2019Lkl*>(lkl[isample]);
@@ -642,7 +652,7 @@ int main(int argc,char* argv[])
                   cout << " ## Oops! The DM mass selected (" << mass << " GeV) doesn't exist in the input file <---------------- FATAL ERROR!!!" << endl;
                   exit(1);
                 } 
-            }
+            } // end of case GloryDuckTables2019Lkl
         } // end of loop over samples
       cout << " *** End of reading dN_signal/dE and dN_signal/dE' histograms" << endl;  
 
@@ -1149,10 +1159,8 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
       }
   }
 
-void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm)
+void builddNdESignal(HdNdE* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm)
 {	      
-  cout << "  ** Building histos for sample " << lkl->GetName() << ":" << endl;	      
-
   // Delete existing fHdNdESignal and create empty one
   lkl->ResetdNdESignal();
   
@@ -1163,7 +1171,7 @@ void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TSt
 	if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase))
 	  {
 	    cout << "   * Setting dN/dE for a monochromatic line at energy " << mdm  << " GeV with BR = " << brval[iChannel] << " ... " << flush;
-	    if(lkl->AdddNdESignalFunction("line",mdm,2,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("line",brval[iChannel],mdm,2))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 		exit(1);
@@ -1178,7 +1186,7 @@ void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TSt
 	    Float_t emax =  mdm/2.*(1+TMath::Sqrt(1-mpi*mpi/(mdm*mdm)));
 	    cout << "   * Setting dN/dE for XX->pi0pi0 for mass = " << mdm  << " GeV (i.e. box between " << emin << " and " << emax << " GeV) with BR = " << brval[iChannel] << "... " << flush;
 	    
-	    if(lkl->AdddNdESignalFunction("box",emin,emax,4,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("box",brval[iChannel],emin,emax,4))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 		exit(1);
@@ -1194,12 +1202,12 @@ void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TSt
 	    Float_t emax = mdm/2.*((1+mpi*mpi/(4*mdm*mdm))+(1-mpi*mpi/(4*mdm*mdm)));
 	    cout << "   * Setting dN/dE for XX->pi0gamma for mass = " << mdm  << " GeV (i.e. a line at E0=" << e0<< ", plus a box between " << emin << " and " << emax << " GeV) with BR = " << brval[iChannel] << "... " << flush;
 	    
-	    if(lkl->AdddNdESignalFunction("line",e0,1,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("line",brval[iChannel],e0,1))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 		exit(1);
 	      }
-	    if(lkl->AdddNdESignalFunction("box",emin,emax,2,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("box",brval[iChannel],emin,emax,2))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 		exit(1);
@@ -1218,7 +1226,7 @@ void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TSt
 	//     Float_t emax = mdm*(1-TMath::Exp(1)/4.*me*me/(mdm*mdm));
 	//     cout << "   * Setting dN/dE for XX->ee for mass = " << mdm  << " GeV (Emax = " << emax << ") with BR = " << brval[iChannel] << "... " << flush;
 	
-	//     if(lkl->AdddNdESignalFunction(fee,0,emax,brval[iChannel]))
+	//     if(lkl->AdddNdESignalFunction(fee,brval[iChannel]),0,emax)
 	//       {
 	//          cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 	//          return;

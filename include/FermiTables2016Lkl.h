@@ -10,7 +10,7 @@
 #include "TMath.h"
 #include "HdNdE.h"
 
-class FermiTables2016Lkl :  public JointLkl
+class FermiTables2016Lkl :  public JointLkl, public HdNdE
 {
  public:
   // constructors
@@ -22,22 +22,19 @@ class FermiTables2016Lkl :  public JointLkl
   // getters
   inline UInt_t    GetNBins()         const {return fNBins;}
   inline Double_t* GetEFluxInt()      const {return fEFluxInt;}
-  inline HdNdE*   GetHdNdESignal()   const {return fHdNdESignal;}
   inline Double_t  GetLogJ()          const {return fLogJ;}
 
   // unable SetUnitsOfG, dPhi/dE_signal must have proper units
   virtual void SetUnitsOfG(Double_t unit);
 
   // set histogram for signal differential flux
-  Int_t SetdNdESignal(TH1F* hdNdESignal);
-  Int_t ReaddNdESignal(TString filename);
+  virtual Int_t ResetdNdESignal();
   Int_t ReaddNdESignalFromFermi(TString filename);
 
   // specify the mass and log10 of Jfactor and its 1-sigma error (nuisance parameter)
-  virtual void SetDMAnnihilationUnitsForG(Double_t mass,Double_t logJ)
+  virtual void SetDMMass(Double_t mass)
   {
     fMass  = mass; 
-    fLogJ  = logJ;
     SetChecked(kFALSE);
   }
 
@@ -48,8 +45,13 @@ class FermiTables2016Lkl :  public JointLkl
 
   // Plots
   TCanvas* PlotInputData();
-
+  
  protected:
+  // include check of the dNdE histogram
+  virtual Bool_t   IsChecked() const                   {return (Lkl::IsChecked() & HdNdE::IsHdNdESignalChecked());}
+  virtual void     SetChecked(Bool_t status=kTRUE)     {Lkl::SetChecked(status); HdNdE::SetHdNdESignalChecked(status);}
+
+  
           Int_t InterpretInputString(TString inputString);
   virtual void  SetFunctionAndPars(Double_t ginit=0);
   virtual Int_t MakeChecks();
@@ -72,8 +74,6 @@ class FermiTables2016Lkl :  public JointLkl
 
   Double_t  fMass;          //   [GeV] dark matter particle mass
   Double_t  fLogJ;          //   log10 [GeV^2/cm^5] of estimated J-factor
-
-  HdNdE*     fHdNdESignal;   //-> dN/dE
 
   ClassDef(FermiTables2016Lkl,1) // Binned flux likelihood
 };
