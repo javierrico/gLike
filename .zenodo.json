@@ -1,0 +1,35 @@
+{
+    "title": "gLike: numerical maximization of heterogeneous joint likelihood functions of a common free parameter plus nuisance parameters",
+    "description": "gLike is a general-purpose ROOT-based code framework for the numerical maximization of joint likelihood functions.\n The joint likelihood function has one free parameter (named g) and as many nuisance parameters as wanted, which will be profiled in the maximization process.",
+    "keywords": [
+      "joint likelihood",
+      "dark matter",
+      "gamma-ray astronomy"
+    ],
+    "access_right": "open",
+    "upload_type": "software",
+    "version": "v00.09.03",
+    "license": "GPL-3.0",
+    "creators": [
+      {
+        "affiliation": "IFAE",
+        "name": "Javier Rico",
+        "orcid": "0000-0003-4137-1134"
+      },
+      {
+        "affiliation": "IFAE",
+        "name": "Cosimo Nigro",
+        "orcid": "0000-0001-8375-1907"
+      },
+      {
+        "affiliation": "IFAE",
+        "name": "Daniel Kerszberg",
+        "orcid": "0000-0002-5289-1509"
+      },
+      {
+        "affiliation":"UCM",
+        "name": "Tjark Miener",
+        "orcid": "0000-0003-1821-7964"
+      }
+    ]
+  }
