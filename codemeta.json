@@ -11,7 +11,7 @@
     "name": "gLike",
     "version": "v00.09.03",
     "identifier": "10.5281/zenodo.3967385",
-    "description": "gLike is a general-purpose ROOT-based code framework for the numerical maximization of joint likelihood functions. The joint likelihood function has one free parameter (named g) and as many nuisance parameters as wanted, which will be profiled in the maximization process.",
+    "description": "gLike is a general-purpose ROOT-based code framework for the numerical maximization of joint likelihood functions.\n The joint likelihood function has one free parameter (named g) and as many nuisance parameters as wanted, which will be profiled in the maximization process.",
     "applicationCategory": "high-energy physics",
     "funding": "ESCAPE EU H2020 824064",
     "developmentStatus": "active",
@@ -38,7 +38,7 @@
         {
             "@type": "Person",
             "@id": "https://orcid.org/0000-0003-4137-1134",
-            "givenName": "Javi",
+            "givenName": "Javier",
             "familyName": "Rico",
             "email": "jrico@ifae.es",
             "affiliation": {
