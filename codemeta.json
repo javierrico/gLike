@@ -1,0 +1,83 @@
+{
+    "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+    "@type": "SoftwareSourceCode",
+    "license": "https://spdx.org/licenses/GPL-3.0",
+    "codeRepository": "https://github.com/javierrico/gLike",
+    "dateCreated": "2018-11-13",
+    "datePublished": "2020-07-30",
+    "dateModified": "2021-03-12",
+    "downloadUrl": "https://github.com/javierrico/gLike/releases/tag/v00.09.03",
+    "issueTracker": "https://github.com/javierrico/gLike/issues",
+    "name": "gLike",
+    "version": "v00.09.03",
+    "identifier": "10.5281/zenodo.3967385",
+    "description": "gLike is a general-purpose ROOT-based code framework for the numerical maximization of joint likelihood functions.\n The joint likelihood function has one free parameter (named g) and as many nuisance parameters as wanted, which will be profiled in the maximization process.",
+    "applicationCategory": "high-energy physics",
+    "funding": "ESCAPE EU H2020 824064",
+    "developmentStatus": "active",
+    "funder": {
+        "@type": "Organization",
+        "name": "IFAE"
+    },
+    "keywords": [
+        "joint likelihood",
+        "dark matter",
+        "gamma-ray astronomy"
+    ],
+    "programmingLanguage": [
+        "C++"
+    ],
+    "operatingSystem": [
+        "Linux",
+        "macOs"
+    ],
+    "softwareRequirements": [
+        "ROOT"
+    ],
+    "author": [
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0003-4137-1134",
+            "givenName": "Javier",
+            "familyName": "Rico",
+            "email": "jrico@ifae.es",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "IFAE"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0001-8375-1907",
+            "givenName": "Cosimo",
+            "familyName": "Nigro",
+            "email": "cosimo.nigro@ifae.es",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "IFAE"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0002-5289-1509",
+            "givenName": "Daniel",
+            "familyName": "Kerszberg",
+            "email": "dkerzberg@ifae.es",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "IFAE"
+            }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://orcid.org/0000-0003-1821-7964",
+            "givenName": "Tjark",
+            "familyName": "Miener",
+            "email": "tmiener@ucm.es",
+            "affiliation": {
+                "@type": "Organization",
+                "name": "UCM"
+            }
+        }
+    ]
+}

@@ -1,0 +1,47 @@
+{
+    "access_right": "open",
+    "communities": [
+        {
+            "identifier": "escape2020"
+        }
+    ],
+    "creators": [
+        {
+            "affiliation": "IFAE",
+            "name": "Rico, Javier",
+            "orcid": "0000-0003-4137-1134"
+        },
+        {
+            "affiliation": "IFAE",
+            "name": "Nigro, Cosimo",
+            "orcid": "0000-0001-8375-1907"
+        },
+        {
+            "affiliation": "IFAE",
+            "name": "Kerszberg, Daniel",
+            "orcid": "0000-0002-5289-1509"
+        },
+        {
+            "affiliation": "UCM",
+            "name": "Miener, Tjark",
+            "orcid": "0000-0003-1821-7964"
+        }
+    ],
+    "description": "gLike is a general-purpose ROOT-based code framework for the numerical maximization of joint likelihood functions.\n The joint likelihood function has one free parameter (named g) and as many nuisance parameters as wanted, which will be profiled in the maximization process.",
+    "grants": [
+        {
+            "id": "10.13039/501100000780::824064"
+        }
+    ],
+    "keywords": [
+        "joint likelihood",
+        "dark matter",
+        "gamma-ray astronomy"
+    ],
+    "language": "eng",
+    "license": "GPL-3.0",
+    "publication_date": "2020-07-30",
+    "title": "gLike",
+    "upload_type": "software",
+    "version": "v00.09.03"
+}
