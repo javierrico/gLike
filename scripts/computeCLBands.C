@@ -647,6 +647,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       limcanvas->Print(resultsPath+"root/"+label+"_bands.root");
       limcanvas->Print(resultsPath+"pdf/"+label+"_bands.pdf");
 
+
       if(!channel.CompareTo("branon",TString::kIgnoreCase))
         {
           // bands

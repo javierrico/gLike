@@ -248,7 +248,7 @@ Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Doub
       // first find where the minimum is and estimate the error
       if(isVerbose)
 	cout << "Lkl::ComputeLklVsG (" << GetName() << ") Message: Finding minimum of -2logL... " << endl;
-      if (TMath::Abs(Lkl::MinimizeLkl() + 1000.) < 1.e-6) return 0;
+      if(Lkl::MinimizeLkl() == gLklValOverflow) return 0;
       FindGLowAndGUpp(glow,gupp,centerAtZero);
     }
  
@@ -458,7 +458,8 @@ void Lkl::FindGLowAndGUpp(Double_t& glow,Double_t& gupp,Bool_t centerAtZero)
   // expand the lower end
   while((lklval=MinimizeLkl(glow,kTRUE,kFALSE,kTRUE))<fgmin+fErrorDef || (centerAtZero && glow>0))
     {
-      Double_t save  = glow;      
+      Double_t save  = glow;
+      if(fGIsPositive && glow<0) break;
       glow-=(glow>0? 2*TMath::Abs(glow) : TMath::Abs(glow));
       cout << "Lkl::FindGLowAndGUpp (" << GetName() << ") Message: -2logL(gupp) = " << lklval << ", glow lowered from " << save << " to " << glow <<" (fLklMin = " << fgmin << ")"<< endl;
     }
@@ -552,7 +553,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
   if(MakeChecks())
     {
       cout << "Lkl::MinimizeLkl (" << GetName() << ") Warning: checks were not successfull!!!!" << endl;
-      return -1000.;
+      return gLklValOverflow;
     }
      
   // initialize minuit
@@ -637,7 +638,7 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
   arglist[0] = 10000;
   iflag = -1;
   Int_t counter = 0;
-  const Int_t maxcounts = 50;
+  const Int_t maxcounts = 300;
 
   // try until convergence is achieved
   while((iflag!=0 || TMath::IsNaN(GetParErr(0))) && counter<maxcounts) // try until the fit converges
@@ -664,13 +665,14 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
 	fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter), 0, 0);
       
       counter++;
-      if(counter==maxcounts)
+      if(iflag != 0 && counter==maxcounts)
 	cout << "Lkl::CallMinimization (" << GetName() << ") Warning: No convergence reached for g = " << g << " after " << maxcounts << " trials: check your -2logL curves for features" << endl;
     }
 
   delete [] arglist;
-
-  return (counter<maxcounts? GetLklVal() : 9e99);
+  
+  if(iflag != 0) return gLklValOverflow;
+  return (counter<=maxcounts? GetLklVal() : gLklValOverflow);
 }
 
 
@@ -732,7 +734,7 @@ Int_t Lkl::ApplyDUnitsOfG(Int_t npoints,Double_t glow,Double_t gupp)
   Int_t    nout   = 0; // number of times I need a value I cannot find
   for(Int_t ivalF=0;ivalF<npoints;ivalF++)
     {
-      profileLklval[ivalF]=5e99;
+      profileLklval[ivalF]=gLklValOverflow;
       Double_t s =  gval[ivalF];
       Int_t lminval=-1;
       for(Int_t lval=0;lval<nlvals;lval++)
@@ -852,7 +854,7 @@ void Lkl::SetParameters(const Char_t** parname, Double_t* parstart, Double_t* pa
 Double_t Lkl::CenterAtZero()
 {
   // compute minimum
-  Double_t minLogL = 9e99;
+  Double_t minLogL = gLklValOverflow;
   Double_t gminLogL;
   for(Int_t ipoint=0;ipoint<fGLklVsG->GetN();ipoint++)
     if(fGLklVsG->GetY()[ipoint]<minLogL){minLogL = fGLklVsG->GetY()[ipoint];gminLogL=fGLklVsG->GetX()[ipoint];}
@@ -879,7 +881,7 @@ Double_t Lkl::CenterAtZero()
 void Lkl::FixLklVsG(Double_t shiftg)
 {
   // compute minimum
-  Double_t minLogL = 9e99;
+  Double_t minLogL = gLklValOverflow;
   Double_t gminLogL;
   for(Int_t ipoint=0;ipoint<fGLklVsG->GetN();ipoint++)
     if(fGLklVsG->GetY()[ipoint]<minLogL){minLogL = fGLklVsG->GetY()[ipoint];gminLogL=fGLklVsG->GetX()[ipoint];}

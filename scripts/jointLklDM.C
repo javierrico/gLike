@@ -794,7 +794,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       //////////////////////////////////////////////////////////////
       if (exportData)
         for (Int_t isv=0; isv<=svNPoints; isv++)
-          vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]) - grLklParabola[imass]->Eval(0);
+          vlkl2D[isv][imass] = grLklParabola[imass]->Eval(svScan[isv]);
 
     } // end of loop over DM masses
 

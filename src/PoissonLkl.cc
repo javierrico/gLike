@@ -238,7 +238,7 @@ void poissonLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t if
   
   // compute likelihood
   if(b<0 || g+b<0 || trytau<0)
-    f = 1e99;
+    f = gLklValVeryHigh;
   else
     {
       f = -2*TMath::Log(TMath::Poisson(Non,g+b+frg))-2*TMath::Log(TMath::Poisson(Noff,goff+boff));

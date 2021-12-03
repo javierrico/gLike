@@ -7,14 +7,3 @@
 .#README.md
 *_C.d
 **/my*
-**/dNdEpSignal
-exported_files
-**/*.pcm
-.vscode
-.ipynb_checkpoints
-build/
-out/
-lib/
-plots/
-results/
-htmldoc/

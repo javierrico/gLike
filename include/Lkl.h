@@ -13,6 +13,10 @@
 #include <string>
 #include <iostream>
 
+static const Double_t gLklValOverflow = 9e99; // return this value when lkl cannot be computed for any reason
+static const Double_t gLklValVeryHigh = 1e80; // return this value when lkl is very very high and precise value is not important
+
+
 class Lkl : public TNamed
 {
  public:
@@ -26,7 +30,7 @@ class Lkl : public TNamed
 
   static const Int_t gGParIndex   = 0;      // index of g parameter in fMinuit
   static const Int_t gLevelMargin = 39;     // number of blanck spaces for PrintOverview
-
+  
   // constructor
   Lkl(Int_t npars,TString inputString="",TString name="",TString title="");
   
