@@ -154,10 +154,12 @@ void parabolaLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t i
   TGraph* lklVsG = mylkl->GetLklVsG(kFALSE);
   Double_t gmin  = lklVsG->GetX()[0];
   Double_t gmax  = lklVsG->GetX()[lklVsG->GetN()-1];
-  Double_t lgmax = lklVsG->GetY()[lklVsG->GetN()-1];
+  Double_t fgmin = lklVsG->GetY()[0];
+  Double_t fgmax = lklVsG->GetY()[lklVsG->GetN()-1];
+  Double_t fmax  = TMath::Max(fgmin,fgmax);
   
   // return high value if out of bounds
-  if(g<gmin)      f = (gmin-g+1)*lgmax;
-  else if(g>gmax) f = (g-gmax+1)*lgmax;
+  if(g<gmin)      f = fgmin+(gmin-g)*fmax+(gmin-g);
+  else if(g>gmax) f = fgmax+(g-gmax)*fmax+(g-gmax);
   else            f = lklVsG->Eval(g,0,"S");
 } 
