@@ -548,7 +548,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
 	}
       else return GetLklMin();
     }
-
+  
   // configure input, TMinuit, input parameters etc, if needed
   if(MakeChecks())
     {
@@ -562,7 +562,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
 
   // assign value to g and fix it if requested
   fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g+fGShift,fParDelta[gGParIndex],0,0);
-
+  
   fMinuit->Release(gGParIndex);
   FixPar(gGParIndex,kFALSE);
   if(gIsFixed)
@@ -585,6 +585,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
 
   // call minimization (with requested verbosity)
   Int_t strategy = (!gIsFixed)*2; // when it's fixed, we can relax the strategy since there is no interest in errors
+  
   Double_t lkl = CallMinimization(g,isVerbose,strategy);
 
   // keep value of minimum lkl and associated g (with error)  
@@ -638,7 +639,7 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
   arglist[0] = 10000;
   iflag = -1;
   Int_t counter = 0;
-  const Int_t maxcounts = 300;
+  const Int_t maxcounts = 10;
 
   // try until convergence is achieved
   while((iflag!=0 || TMath::IsNaN(GetParErr(0))) && counter<maxcounts) // try until the fit converges
@@ -649,7 +650,7 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
       // Under request, display values of parameters
       if(isVerbose)
 	{
-	  cout << "Lkl::CallMinimization (" << GetName() << ") Results: Trial #" << counter+1 <<", ";
+	  cout << "Lkl::CallMinimization (" << GetName() << ") Results: Trial #" << counter+1 <<"/" << maxcounts << ", ";
 	  Double_t parval,parerr; 		
 	  for(Int_t ipar=0;ipar<fNPars;ipar++)
 	    {
@@ -660,19 +661,30 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
 	  cout << "-2logL = " << GetLklVal() << "; iflag = " << iflag << (iflag==0? " (converged)" : " (not converged)") << endl;
 	}
 
-      // try changing precision
+      // try changing precision (one order of magnitude below to one order of magnitude above the initial one
       if(iflag!=0 || TMath::IsNaN(GetParErr(gGParIndex)))
-	fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter), 0, 0);
+	{
+	  Double_t newprec = fParDelta[gGParIndex]/10.*TMath::Power(10.,2./(maxcounts-1)*counter);
+	  fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,newprec, 0, 0);
+	} 
       
       counter++;
       if(iflag != 0 && counter==maxcounts)
-	cout << "Lkl::CallMinimization (" << GetName() << ") Warning: No convergence reached for g = " << g << " after " << maxcounts << " trials: check your -2logL curves for features" << endl;
+	cout << "Lkl::CallMinimization (" << GetName() << ") Warning: No convergence reached for g = " << g << " after " << maxcounts << " trials: check your -2logL curves for features" << endl;      
+    }
+
+  // if g is positive, try if non-convergence is due to the minimum being exactly at zero
+  if(fGIsPositive && !fIsParFixed[gGParIndex])
+    {
+      cout << "Lkl::CallMinimization (" << GetName() << ") Message: since g is positive this might be caused by a minimum at g=0, we shall try that" << endl;
+      MinimizeLkl(0,kTRUE,kTRUE);
     }
 
   delete [] arglist;
   
-  if(iflag != 0) return gLklValOverflow;
-  return (counter<=maxcounts? GetLklVal() : gLklValOverflow);
+  if(fStatus != 0)
+    return gLklValOverflow;
+  return GetLklVal();
 }
 
 
