@@ -432,7 +432,7 @@ Int_t Iact1dUnbinnedLkl::MakeChecks()
       cout << "Iact1dUnbinnedLkl::MakeChecks Warning: missing information, cannot perform fit, check your code!" << endl;
       return 1;
     }
-  
+
   SetChecked();
   return 0;
 }	      
@@ -526,9 +526,8 @@ Int_t Iact1dUnbinnedLkl::CheckHistograms(Bool_t checkdNdEpBkg)
   NormalizedNdEHisto(fHdNdEpSignalOff);
   if(checkdNdEpBkg)
     NormalizedNdEHisto(fHdNdEpBkg);
-  if(fHdNdEpFrg) 
+  if(fHdNdEpFrg)
     NormalizedNdEHisto(fHdNdEpFrg);
-  
   
   // if there are the dNdE' histograms for signal and background + data we're ready to go
   if(checkdNdEpBkg)
@@ -732,6 +731,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TString function,Float_t p0,Float
   // exit
   return 0;
 }
+
 //////////////////////////////////////////////////////////////////
 // 
 // Add to a previously existing dN/dE histogram for signal according to 
@@ -858,6 +858,7 @@ Int_t Iact1dUnbinnedLkl::SetdNdESignalFunction(TF1* function,Float_t emin,Float_
   // exit
   return 0;
 }
+
 //////////////////////////////////////////////////////////////////
 // 
 // Add to a previously existing dN/dE histogram for signal according to 
@@ -1084,7 +1085,7 @@ Int_t Iact1dUnbinnedLkl::SetAeff(TH1F* hProvAeff)
   // configure
   fHAeff->SetMinimum(1e4);
   fHAeff->SetXTitle("log_{10}(E [GeV])");
-  fHAeff->SetYTitle("cm^{2}");
+  fHAeff->SetYTitle("Aeff [cm^{2}]");
   fHAeff->SetStats(0);
 
   // clean and exit
@@ -1275,7 +1276,7 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
 {
   if(meanGwithUnits<0) meanGwithUnits=0;
-  
+
   // Sanity checks
   if(!fHdNdEpBkg)
     {
@@ -1702,6 +1703,12 @@ void Iact1dUnbinnedLkl::PlotHistosAndData(TCanvas* canvas)
       hdNdESignal->SetLineStyle(1);
       hdNdESignal->SetLineColor(1);
       hdNdESignal->DrawCopy("hist same");
+      // old way
+      //Double_t scale = GetdNdESignalIntegral();
+      //cout<<"scale normalization = "<<scale<<endl;
+      //fHdNdESignal->Scale(scale);
+      //fHdNdESignal->DrawCopy("same");
+      //fHdNdESignal->Scale(1./scale);      
     }
   gPad->SetGrid();
   gPad->SetLogy();
@@ -1787,6 +1794,7 @@ void Iact1dUnbinnedLkl::PrintData(Int_t level)
   if(fHdNdEpSignalOff && fHdNdEpSignal)
     {Margin(level); cout << "            Signal in Off = " << GetdNdEpSignalOffIntegral()/GetdNdEpSignalIntegral()*100  << "% of that in On" << endl;}
 }
+
 //////////////////////////////////////////////////////////////////
 //
 // Produce the E' distribution of On events and return the 
@@ -2289,13 +2297,13 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
   hdNdEpOn->Add(hdNdEpSignal,hdNdEpBkg,g,b);
   if(hdNdEpFrg)
     hdNdEpOn->Add(hdNdEpOn,hdNdEpFrg,1,frg);
-    
+
   // normalize
   if(fnorm>0)
     hdNdEpOn->Scale(1./fnorm);
   else
     mylkl->NormalizedNdEHisto(hdNdEpOn);
-    
+
   TH1F* hdNdEpOff = new TH1F("hdNdEpOff","Off event rate vs E'", nbins,xmin,xmax);
   hdNdEpOff->Reset();
   if(hdNdEpSignalOff)
@@ -2317,7 +2325,7 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
     {
       Float_t val = hdNdEpOn->GetBinContent(hdNdEpOn->FindBin(onSample[ievent]));
       if(val>0)
-	f += -2*TMath::Log(val);
+        f += -2*TMath::Log(val);
       else
 	f += gLklValVeryHigh;
     }
@@ -2327,11 +2335,11 @@ void fullLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag
     {
       Float_t val = hdNdEpOff->GetBinContent(hdNdEpOff->FindBin(offSample[ievent]));
       if(val>0)
-	f += -2*TMath::Log(val);
+        f += -2*TMath::Log(val);
       else
 	f += gLklValVeryHigh;
     }
-  
+
   // nuisance tau
   if(dTau>0)
     f+=-2*TMath::Log(TMath::Gaus(tauest, tau, dTau, kTRUE));

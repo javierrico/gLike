@@ -60,9 +60,11 @@ jointLklDM.Process: ann
 
 # channel to be analyzed (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, nutaunutau, numunumu, nuenue, VV-4tau, VV-4mu, VV-4e, branon or an arbitrary linear combination of them)
 # The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
+#jointLklDM.Channel: gammagamma
 jointLklDM.Channel: bb
 
 # list of DM masses to be considered (in GeV)
+#jointLklDM.MassList: 200 500
 jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
 # Simulated signal data characteristics (i.e. true values assumed for simulations, no to be confused with the values assumed for the likelihood function
@@ -108,6 +110,8 @@ JOINT LIKELIHOOD CONFIGURATION
 #    jointLklDM.lklTerm<XXX>: FermiTables2016Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 # -  Likelihood parabolas (Glory Duck format):
 #    jointLklDM.lklTerm<XXX>: GloryDuckTables2019Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
+# -  Unbinned Likelihood for line search:
+#    jointLklDM.lklTerm<XXX>: LineSearchLkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 #
 # <logJ             and <DlogJ> are, respectively, the mean value and uncertainty of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-2 (decay)
 # <inputFileName>   is the name of the input file, which contain the IRFs and data 
@@ -133,3 +137,7 @@ JOINT LIKELIHOOD CONFIGURATION
 jointLklDM.lklTerm000: JointLkl -   DlogJ=0
 jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_01.root  
 jointLklDM.lklTerm002: Iact1dBinnedLkl    0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_02.root  nbins=20
+#jointLklDM.lklTerm001: LineSearchLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
+#jointLklDM.lklTerm002: LineSearchLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root
+#jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
+#jointLklDM.lklTerm002: Iact1dUnbinnedLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root

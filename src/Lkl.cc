@@ -561,7 +561,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
   SetMinuitLink();
 
   // assign value to g and fix it if requested
-  fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g+fGShift,fParDelta[gGParIndex],0,0);
+  fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g+fGShift,fParDelta[gGParIndex],0.,0.);
 
   fMinuit->Release(gGParIndex);
   FixPar(gGParIndex,kFALSE);
@@ -662,8 +662,8 @@ Double_t Lkl::CallMinimization(Double_t g,Bool_t isVerbose,Int_t strategy)
 
       // try changing precision
       if(iflag!=0 || TMath::IsNaN(GetParErr(gGParIndex)))
-	fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter), 0, 0);
-      
+        fMinuit->DefineParameter(gGParIndex,fParName[gGParIndex],g,fParDelta[gGParIndex]/10.*TMath::Power(1.8,counter),0.,0.);
+
       counter++;
       if(iflag != 0 && counter==maxcounts)
 	cout << "Lkl::CallMinimization (" << GetName() << ") Warning: No convergence reached for g = " << g << " after " << maxcounts << " trials: check your -2logL curves for features" << endl;
