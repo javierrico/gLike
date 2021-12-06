@@ -54,9 +54,6 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   // getters
   inline Float_t  GetEmin()             const {return fEpmin;} 
   inline Float_t  GetEmax()             const {return fEpmax;}
-  inline Float_t  GetNFineBins()        const {return fNFineBins;}
-  inline Float_t  GetFineLEMin()        const {return fFineLEMin;}
-  inline Float_t  GetFineLEMax()        const {return fFineLEMax;}
   inline UInt_t   GetNon()              const {return fNon;}
   inline UInt_t   GetNoff()             const {return fNoff;}
   inline Float_t* GetOnSample()         const {return fOnSample;}
@@ -81,9 +78,9 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   inline Float_t  GetLogJ()             const {return fLogJ;}
 
   // here reminder of conflict
-  inline       Float_t  GetNFineBins()        const {return fNFineBins;}
-  inline       Float_t  GetFineLEMin()        const {return fFineLEMin;}
-  inline       Float_t  GetFineLEMax()        const {return fFineLEMax;}
+  inline Float_t  GetNFineBins()        const {return fNFineBins;}
+  inline Float_t  GetFineLEMin()        const {return fFineLEMin;}
+  inline Float_t  GetFineLEMax()        const {return fFineLEMax;}
   //virtual inline TH1F*    GetHdNdEpBkg()        const {return fHdNdEpBkg;}
   //virtual inline TH1F*  GetHdNdEpSignal()     const {return fHdNdEpSignal;}
   //virtual inline TGraph*  GetGEreso()         const {return fGEreso;}
