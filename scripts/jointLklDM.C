@@ -88,8 +88,8 @@
 using namespace std;
 
 void setDefaultStyle();
-void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor);
-void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval);
+void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval);
+void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor);
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
 void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm,Bool_t isDecay,Bool_t isSimulation);
 TString mprecform(Double_t val);
