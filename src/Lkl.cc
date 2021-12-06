@@ -1005,6 +1005,30 @@ Double_t Lkl::GetLklVal() const
 
   return lklval;
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+// Print information about the lkl object and the fit results
+//
+void Lkl::PrintData(Int_t level)
+{
+  Margin(level); std::cout << "              Object Name : " << GetName() << std::endl;
+  Margin(level); std::cout << "      Error in Units of G : " << fDUnitsOfG;
+  if(fDUnitsOfG>0)
+    {
+      cout << " (with ";
+      switch(fDUofGType)
+	{
+	case none   : cout << "None";                break;
+	case lin    : cout << "Linear";              break;
+	case invlin : cout << "Inverse-linear";      break;
+	case log    : cout << "Logarithmic";         break;
+	case invlog : cout << "Inverse-logarithmic"; break;
+	default     : cout << "Undefined";           break;
+	}
+      cout << " PDF)";
+    }
+  cout << std::endl;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 

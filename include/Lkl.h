@@ -44,10 +44,7 @@ class Lkl : public TNamed
   
   // Retrieve results from fit
   virtual      void      PrintOverview(Int_t level=0);
-  virtual      void      PrintData(Int_t level=0)
-  {
-    Margin(level); std::cout << "              Object Name : " << GetName() << std::endl;
-  }
+  virtual      void      PrintData(Int_t level=0);
   inline  TMinuit*  GetMinuit()                       const {return fMinuit;}
   TGraph*           GetLklVsG(Bool_t units=kTRUE)     const; 
   inline  Double_t  GetLklMin()                       const {return fLklMin;}
