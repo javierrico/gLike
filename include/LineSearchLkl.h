@@ -25,7 +25,7 @@ class LineSearchLkl : public Iact1dUnbinnedLkl
   // getters
   inline Int_t GetEventsInEnergyWindow()             const {return fEventsInEnergyWindow;}
 
-  virtual Int_t  SimulateDataSamples(UInt_t seed=0,Float_t meanG=0);
+  virtual Int_t SimulateDataSamples(Float_t meanGwithUnits=0,TRandom* rdm=NULL);
 
  protected:
           Int_t    InterpretInputString(TString inputString);

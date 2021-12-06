@@ -466,12 +466,12 @@ TH1F* GetResidualsHisto(TH1F* hModel,TH1F* hData)
 // Returns: 0 in case of success
 //          1 otherwise
 //
-Int_t LineSearchLkl::SimulateDataSamples(UInt_t seed,Float_t meanG)
+Int_t LineSearchLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
 {
   // compute background model
   //ComputeBkgModelFromOnHisto();
 
-  return Iact1dUnbinnedLkl::SimulateDataSamples(seed,meanG);
+  return Iact1dUnbinnedLkl::SimulateDataSamples(meanGwithUnits,rdm);
 }
 
 ////////////////////////////////////////////////////////////////////////

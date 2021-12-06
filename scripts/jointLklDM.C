@@ -386,10 +386,11 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 	  // configure
 	  lkl[iLkl]->SetName(Form("LineSearchLkl_%02d",iLkl));
 
-	  // if it's simulation, simulate the data sample
-	  if(isSimulation)
+          // if it's simulation of the null hypothesis, we can already simulate the data sample
+          if(isSimulation && mcsv==0)
 	    {
-	      if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcG))
+              cout << "  * Simulating observations for <sv> = " << mcsv << endl;
+	      if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
 		{
 		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
 		  return;
