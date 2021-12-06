@@ -1162,6 +1162,7 @@ void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelv
   Iact1dUnbinnedLkl* fullLkl = NULL;
   if(!strcmp(lkl->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl);
   if(!strcmp(lkl->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl);
+  if(!strcmp(lkl->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
 
   cout << "  ** Building histos for sample " << fullLkl->GetName() << ":" << endl;
 

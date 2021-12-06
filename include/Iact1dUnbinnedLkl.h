@@ -54,6 +54,9 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   // getters
   inline Float_t  GetEmin()             const {return fEpmin;} 
   inline Float_t  GetEmax()             const {return fEpmax;}
+  inline Float_t  GetNFineBins()        const {return fNFineBins;}
+  inline Float_t  GetFineLEMin()        const {return fFineLEMin;}
+  inline Float_t  GetFineLEMax()        const {return fFineLEMax;}
   inline UInt_t   GetNon()              const {return fNon;}
   inline UInt_t   GetNoff()             const {return fNoff;}
   inline Float_t* GetOnSample()         const {return fOnSample;}
@@ -117,9 +120,8 @@ class Iact1dUnbinnedLkl : public virtual Lkl
   virtual void PrintData(Int_t level=0);
   
   // Plots
-  // old  void PlotHistosAndData(TCanvas* canvas);
-  // new
-  virtual TCanvas* PlotHistosAndData();
+  void PlotHistosAndData(TCanvas* canvas);
+  // old virtual TCanvas* PlotHistosAndData();
 
   Int_t    NormalizedNdEHisto(TH1F* histo);
 
