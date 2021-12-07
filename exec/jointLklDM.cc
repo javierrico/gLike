@@ -120,7 +120,7 @@ int main(int argc,char* argv[])
 {
   // default arguments
   TString configFileName = "$GLIKESYS/rcfiles/jointLklDM.rc";
-  Int_t seed=-1;
+  Int_t seed=0;
   // check input parameters
   for (int i = 1; i < argc; ++i) {
     TString arg = argv[i];
@@ -133,6 +133,11 @@ int main(int argc,char* argv[])
     } 
     if (arg == "--seed") {
       seed = atof(argv[i+1]);
+      if(seed<1)
+	{
+	  cout << "Seed must be a positive integer but it's: seed  = " << seed << "!!! <---------------- FATAL ERROR!!!"<< endl;
+	  exit(1);
+	}
     }
   }
   setDefaultStyle();
@@ -196,7 +201,7 @@ int main(int argc,char* argv[])
     massval0[imass] = re[imass].Atof();
 
   // Set some flags
-  Bool_t  isSimulation       = seed>=0;
+  Bool_t  isSimulation       = seed>0;
   Bool_t  ioHdNdEpSignal     = provval.CompareTo("-");
   Bool_t  isDecay            = !process.CompareTo("dec",TString::kIgnoreCase);
   Bool_t  isMCDecay          = !mcprocess.CompareTo("dec",TString::kIgnoreCase);
@@ -231,7 +236,7 @@ int main(int argc,char* argv[])
     {
       decode_channel(mccoefficients,mcnChannels,mcchannelval,mcbrval,mcstrchannel,mcnormchannel,mcminmass);
       if(isMCDecay) mcminmass*=2;
-      if(mcmass < mcminmass)
+      if(mcalpha>0 && mcmass<mcminmass)
 	{
 	  cout << " ## Oops! Asking to simulate too low mass: " << mcmass << " vs max: " << mcminmass << " <---------------- FATAL ERROR!!!"<< endl;
 	  exit(1);
@@ -365,7 +370,7 @@ int main(int argc,char* argv[])
 	  if(isSimulation)
 	    {
 	      // Pathological cases
-	      if(mcalpha<0 || mcmass<=0)
+	      if(mcalpha<0 || mcmass<0)
 		{
 		  cout << " ## Oops! Unreasonable simulation conditions (mcalpha=" << mcalpha << ", mcmass=" <<mcmass <<") <---------------- FATAL ERROR!!!"<< endl;
 		  exit(1);
@@ -411,6 +416,22 @@ int main(int argc,char* argv[])
 	}
       else if(classType.CompareTo("FermiTables2016Lkl")==0)
 	{
+	  if(isSimulation)
+	    {
+	      if(mcalpha>0)
+		{
+		  cout << " ## Oops! simulation with finite signal possible for FermiTables2016Lkl class!! <---------------- FATAL ERROR!!!"<< endl;
+		  exit(1);		
+		}
+	      else
+		inputString+=Form(" index=%d",seed);
+	    }
+	  if(isDecay)
+	    {
+	      cout << " ## Oops! FermiTables2016Lkl input files are specifically for annihilation, but decay was selected <---------------- FATAL ERROR!!!" << endl;
+	      exit(1);
+	    }
+	  
 	  lkl[iLkl] =  new FermiTables2016Lkl(inputString);
 	  lkl[iLkl]->SetName(Form("FermiTables2016Lkl_%02d",iLkl));
 	}
