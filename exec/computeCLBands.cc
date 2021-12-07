@@ -356,7 +356,9 @@ int main(int argc, char* argv[])
       // bands
       Int_t npnts = gsv0sigma->GetN();
       TGraph* band1sigma = new TGraph(2*npnts+1);
+      band1sigma->SetNameTitle("band1sigma","band1sigma");
       TGraph* band2sigma = new TGraph(2*npnts+1);
+      band2sigma->SetNameTitle("band2sigma","band2sigma");
 
       for(Int_t imass=0;imass<npnts;imass++)
         {

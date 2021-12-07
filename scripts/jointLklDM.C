@@ -77,6 +77,7 @@
 #include "TEnv.h"
 #include "TROOT.h"
 #include "TSystem.h"
+#include "TRandom3.h"
 
 #include "Iact1dUnbinnedLkl.h"
 #include "Iact1dBinnedLkl.h"
@@ -88,13 +89,31 @@
 using namespace std;
 
 void setDefaultStyle();
-void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval);
+void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval,TString& strchannel,TString& normchannel,Double_t& minmass);
 void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Double_t *brval, Double_t &translation_factor);
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm);
-void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm,Bool_t isDecay,Bool_t isSimulation);
+void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm);
+void readAndWritedNdEpSignal(Iact1dUnbinnedLkl* lkl,TString dNdEpDir,TString normchannel,Float_t mdm);
 TString mprecform(Double_t val);
 
-const Int_t nMaxLkls = 1000;
+// Constants
+const Int_t    nMaxLkls = 1000;
+const Double_t bmass=4.18;
+const Double_t cmass=1.27;
+const Double_t tmass=173;
+const Double_t taumass=1.78;
+const Double_t mumass=0.106;
+const Double_t Wmass=80.4;
+const Double_t Zmass=91.2;
+const Double_t Hmass=125;
+const Double_t gammamass=0;
+const Double_t pi0mass=0.135;
+const Double_t emass=0.511e-3;
+const Double_t int1mass=120.0;
+const Double_t int2mass=2.044e-3;
+const Double_t int3mass=0.424;
+const Double_t int4mass=7.2;
+const Double_t branonmass=0;
 
 void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t seed=-1)
 {
@@ -103,9 +122,9 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   // Look for configuration file
   gSystem->ExpandPathName(configFileName);
   TPMERegexp re("\\s+");
-  
+
   Lkl::PrintGLikeBanner();
-  
+
   // Print-out configuration info (part 1)
   cout << endl;
   cout << "***********************************************************************************" << endl;
@@ -134,22 +153,23 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   Double_t plotmax           = env->GetValue("jointLklDM.plotmax",0.);
   Double_t plotScale         = env->GetValue("jointLklDM.plotScale",1.);
   Double_t deltaLogLkl       = env->GetValue("jointLklDM.deltaLogLkl",2.71);
-  TString  fInputDataPath    = env->GetValue("jointLklDM.path","");
-  TString  fdNdEDir          = fInputDataPath+"/"+env->GetValue("jointLklDM.dNdEDir","")+"/";
-  TString  fPlotsDir         = fInputDataPath+"/"+env->GetValue("jointLklDM.plotsDir","")+"/";
+  TString  fPath             = env->GetValue("jointLklDM.path","");
+  TString  fdNdEDir          = fPath+"/"+env->GetValue("jointLklDM.dNdEDir","")+"/";
+  TString  fDataDir          = fPath+"/"+env->GetValue("jointLklDM.dataDir","")+"/";
+  TString  fPlotsDir         = fPath+"/"+env->GetValue("jointLklDM.plotsDir","")+"/";
   TString  provval           = env->GetValue("jointLklDM.dNdEpSignalDir","-");
-  TString  fdNdEpSignalDir   = fInputDataPath+"/"+provval+"/";
-  Float_t  mcsv              = env->GetValue("jointLklDM.mcsv",0.);    // value of <sv> assumed for simulations
-  Float_t  mcmass            = env->GetValue("jointLklDM.mcmass",0.);  // value of DM mass assumed for simulations
-  TString  mcChannel         = env->GetValue("jointLklDM.mcChannel","bb");
-  TString  mcProcess         = env->GetValue("jointLklDM.mcProcess","ann");
+  TString  fdNdEpSignalDir   = fPath+"/"+provval+"/";
   TString  massList          = env->GetValue("jointLklDM.MassList","");
+  Float_t  mcalpha           = env->GetValue("jointLklDM.mcalpha",0.);    // value of alpha (<sv> or 1/tau) assumed for simulations
+  Float_t  mcmass            = env->GetValue("jointLklDM.mcMass",0.);     // value of DM mass assumed for simulations
+  TString  mcchannel         = env->GetValue("jointLklDM.mcChannel","bb");
+  TString  mcprocess         = env->GetValue("jointLklDM.mcProcess","ann");
   Bool_t   exportData        = env->GetValue("jointLklDM.exportData",kFALSE);
   Double_t svMin             = env->GetValue("jointLklDM.exportSvMin",0.);
   Double_t svMax             = env->GetValue("jointLklDM.exportSvMax",0.);
   Bool_t   svLogStep         = env->GetValue("jointLklDM.exportSvLogStep",kTRUE);
   Int_t    svNPoints         = env->GetValue("jointLklDM.exportSvNPoints",0.);  
-  TString  fExportDataPath   = fInputDataPath+"/"+env->GetValue("jointLklDM.exportDataPath","")+"/";
+  TString  fExportDataPath   = fPath+"/"+env->GetValue("jointLklDM.exportDataPath","")+"/";
       
   // fill the list of masses to be studied
   UInt_t  nmass0  = re.Split(massList);
@@ -161,89 +181,75 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   Bool_t  isSimulation       = seed>=0;
   Bool_t  ioHdNdEpSignal     = provval.CompareTo("-");
   Bool_t  isDecay            = !process.CompareTo("dec",TString::kIgnoreCase);
+  Bool_t  isMCDecay          = !mcprocess.CompareTo("dec",TString::kIgnoreCase);
   
   // define some labels according to input data
   TString simulationlabel    = (isSimulation?  "MC"    : "Data");
   TString strprocess         = (isDecay?       "Decay" : "Annihilation");
+  TString mcstrprocess       = (isMCDecay?     "Decay" : "Annihilation");
   
   // Decode the channel and save the decoded channels and branching ratios in channelval and brval, respectively.
   TObjArray* coefficients = channel.Tokenize("+");
   Int_t nChannels = coefficients->GetEntries();
   TString* channelval = new TString[nChannels];
   Double_t* brval = new Double_t[nChannels];
-  // call the function that decodes the coefficients of the channel
-  decode_channel(coefficients,nChannels,channelval,brval);
-
-  // annihilation/decay channel string
   TString strchannel;
   TString normchannel;
   Double_t minmass = 0;
-  std::ostringstream buffer;
-  for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
-    {
-      if(nChannels == 1) strchannel = normchannel = "";
-      else
-          if(iChannel == 0) 
-            {
-              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
-              buffer << rounded_brval;
-              strchannel  = (TString) buffer.str().substr(0, 4) + "#upoint";
-              normchannel = (TString) buffer.str().substr(0, 4) + "*";
-            }
-          else
-            {
-              Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
-              buffer.clear();
-              buffer.str("");
-              buffer << rounded_brval;
-              strchannel.Append("#plus" + buffer.str().substr(0, 4) + "#upoint");
-              normchannel.Append("+" + buffer.str().substr(0, 4) + "*");
-            }
-      normchannel.Append(channelval[iChannel]);
-
-      if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");              minmass=5;}
-      else if(!channelval[iChannel].CompareTo("cc",TString::kIgnoreCase))         {strchannel.Append("c#bar{c}");              minmass=1.3;}
-      else if(!channelval[iChannel].CompareTo("tt",TString::kIgnoreCase))         {strchannel.Append("t#bar{t}");              minmass=173;}
-      else if(!channelval[iChannel].CompareTo("tautau",TString::kIgnoreCase))     {strchannel.Append("#tau^{+}#tau^{-}");      minmass=1.8;}
-      else if(!channelval[iChannel].CompareTo("mumu",TString::kIgnoreCase))       {strchannel.Append("#mu^{+}#mu^{-}");        minmass=0.106;}
-      else if(!channelval[iChannel].CompareTo("WW",TString::kIgnoreCase))         {strchannel.Append("W^{+}W^{-}");            minmass=80.3;}
-      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("ZZ");                    minmass=91.2;}
-      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("HH");                    minmass=125;}
-      else if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel.Append("#gamma#gamma");          minmass=0;}
-      else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");        minmass=0.135;}
-      else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");         minmass=0.135/2.;}
-      else if(!channelval[iChannel].CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");         minmass=0.135/2.;}
-      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");            minmass=0.511e-3;}
-      else if(!channelval[iChannel].CompareTo("nuenue",TString::kIgnoreCase))     {strchannel.Append("#nu_{e}#nu_{e}");        minmass=120.0;}
-      else if(!channelval[iChannel].CompareTo("numunumu",TString::kIgnoreCase))   {strchannel.Append("#nu_{#mu}#nu_{#mu}");    minmass=120.0;}
-      else if(!channelval[iChannel].CompareTo("nutaunutau",TString::kIgnoreCase)) {strchannel.Append("#nu_{#tau}#nu_{#tau}");  minmass=120.0;}
-      else if(!channelval[iChannel].CompareTo("VV-4e",TString::kIgnoreCase))      {strchannel.Append("VV-4e");                 minmass=2.044e-3;}
-      else if(!channelval[iChannel].CompareTo("VV-4mu",TString::kIgnoreCase))     {strchannel.Append("VV-4#mu");               minmass=0.424;}
-      else if(!channelval[iChannel].CompareTo("VV-4tau",TString::kIgnoreCase))    {strchannel.Append("VV-4#tau");              minmass=7.2;}
-      else if(!channelval[iChannel].CompareTo("branon",TString::kIgnoreCase))     {strchannel.Append("branon");                minmass=0;}
-      else strchannel = "";
-    }
+  // call the function that decodes the coefficients of the channel
+  decode_channel(coefficients,nChannels,channelval,brval,strchannel,normchannel,minmass);
   if(isDecay) minmass*=2;
-  
+
+  // Decode the mc channel and save the decoded channels and branching ratios in mcchannelval and mcbrval, respectively.
+  TObjArray* mccoefficients = mcchannel.Tokenize("+");
+  Int_t mcnChannels = mccoefficients->GetEntries();
+  TString* mcchannelval = new TString[mcnChannels];
+  Double_t* mcbrval = new Double_t[mcnChannels];
+  TString mcstrchannel;
+  TString mcnormchannel;
+  Double_t mcminmass = 0;
+  // call the function that decodes the coefficients of the channel
+  if(isSimulation)
+    {
+      decode_channel(mccoefficients,mcnChannels,mcchannelval,mcbrval,mcstrchannel,mcnormchannel,mcminmass);
+      if(isMCDecay) mcminmass*=2;
+      if(mcmass < mcminmass)
+        {
+          cout << " ## Oops! Asking to simulate too low mass: " << mcmass << " vs max: " << mcminmass << " <---------------- FATAL ERROR!!!"<< endl;
+          return;
+        }
+    }
+
   // Remove mass values below kinematical threshold
   Int_t           nskippedmass = GetNSkippedMasses(nmass0,massval0,minmass);
   Int_t           nmass        = nmass0-nskippedmass; 
   const Double_t* massval      = massval0+nskippedmass;
 
   // Print-out configuration info (part 2)
-  cout << "*** I/O PATH                 : " << fInputDataPath << endl;
-  cout << "***" << endl;
   cout << "*** LABEL                    : " << label <<  endl;
   cout << "*** PROCESS                  : " << strprocess << endl;
   cout << "*** CHANNEL                  : " << channel << endl;
+  cout << "***" << endl;
+  cout << "*** I/O PATH                 : " << fPath << endl;
+  cout << "*** DATA DIRECTORY           : " << fDataDir << endl;
+  cout << "*** dNdE DIRECTORY           : " << fdNdEDir << endl;
+  if(ioHdNdEpSignal)
+    cout << "*** dNdE' DIRECTORY          : " << fdNdEpSignalDir << endl;
+  cout << "*** PLOTS DIRECTORY          : " << fPlotsDir << endl;
+  cout << "***" << endl;
   // how many and which channels are we considering?
   cout << " ** Channel check            : " << normchannel << endl;
   cout << "*** DATA/MC                  : " << simulationlabel << endl;
   if(isSimulation)
     {
       cout << " ** Seed                     : " << seed << endl;
-      cout << " ** <sv>_MC                  : " << mcsv << " cm^3/s" << endl;
-      cout << " ** m_MC                     : " << mcmass << " GeV" << endl;
+      cout << " ** alpha_MC                 : " << mcalpha << " cm^3/s or 1/s" << endl;
+      if(mcalpha>0)
+        {
+          cout << " ** m_MC                     : " << mcmass << " GeV" << endl;
+          cout << " ** PROCESS MC               : " << mcstrprocess << endl;
+          cout << " ** CHANNEL MC               : " << mcchannel << endl;
+        }
     }
   cout << "*** G IS POSITIVE            : " << (isGpositive? "YES" : "NO") << endl;
       
@@ -255,7 +261,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   cout << " GeV" << endl;
   
   cout << "*** IRF/DATA PLOTS      : " << (showSamplePlots?   "YES" : "NO") << endl;
-  cout << "*** PARABOlA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
+  cout << "*** PARABOLA PLOTS      : " << (showParabolaPlots? "YES" : "NO") << endl;
   cout << "*** Plot y-axis range   : " << plotmin << " to " << plotmax << Form(" %s", (isDecay? "s" : "cm^3/s")) << endl;
   cout << "*** EXPORT DATA         : " << (exportData? "YES" : "NO") << endl;
   if(exportData)
@@ -280,12 +286,13 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   // The classes composing the joint likelihood
   Lkl** lkl    = new Lkl*[nMaxLkls];
   Lkl** sample = new Lkl*[nMaxLkls];
-  
+
   // read rc file for likelihood construction
   cout << "****************************************************************" << endl;
   cout << "*** CONFIGURING Lkl OBJECTS " << endl;
-  Int_t nLkls = 0;
+  Int_t nLkls    = 0;
   Int_t nsamples = 0;
+  TRandom3* rdm  = new TRandom3(seed);
   for(Int_t iLkl=0;iLkl<nMaxLkls;iLkl++)
     {
       // look for likelihood entries in the rc file
@@ -313,95 +320,103 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       cout << " ** Input string    : " << inputString << endl;
 
       // add path
-      inputString+=(" path="+fInputDataPath);
+      inputString+=(" path="+fDataDir);
 
-      // create the proper object according to classType 
-      if(classType.CompareTo("Iact1dUnbinnedLkl")==0)
-	{	  
-	  lkl[iLkl] =  new Iact1dUnbinnedLkl(inputString);
-	  lkl[iLkl]->SetName(Form("Iact1dUnbinnedLkl_%02d",iLkl));
+      // create the proper object according to classType
+      if(classType.CompareTo("Iact1dUnbinnedLkl")==0 || classType.CompareTo("Iact1dBinnedLkl")==0)
+        {
+          Iact1dUnbinnedLkl* fullLkl = NULL;
+          if(classType.CompareTo("Iact1dUnbinnedLkl")==0)
+            {
+              lkl[iLkl] =  new Iact1dUnbinnedLkl(inputString);
+              lkl[iLkl]->SetName(Form("Iact1dUnbinnedLkl_%02d",iLkl));
+              fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl]);
+            }
+          else if(classType.CompareTo("Iact1dBinnedLkl")==0)
+            {
+              lkl[iLkl] =  new Iact1dBinnedLkl(inputString);
+              lkl[iLkl]->SetName(Form("Iact1dBinnedLkl_%02d",iLkl));
+              fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl]);
+            }
 
-	  // save as sample (as opposed to JointLkl)
-	  sample[nsamples++] = lkl[iLkl];
+          // save as sample (as opposed to JointLkl)
+          sample[nsamples++] = fullLkl;
 
-          // if it's simulation of the null hypothesis, we can already simulate the data sample
-          if(isSimulation && mcsv==0)
-	    {
-              cout << "  * Simulating observations for <sv> = " << mcsv << endl;
-	      if(dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
-		{
-		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
-		}
-	    }
-	  else
-	    if(dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl])->GetNon()<1)
-	      {
-		  cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
-	      }	 	      
-	}
-      else if(classType.CompareTo("Iact1dBinnedLkl")==0)
-	{
-	  // read input string
-	  lkl[iLkl] =  new Iact1dBinnedLkl(inputString);
+          // if it's simulation, then simulate
+          if(isSimulation)
+            {
+              // Pathological cases
+              if(mcalpha<0 || mcmass<=0)
+                {
+                  cout << " ## Oops! Unreasonable simulation conditions (mcalpha=" << mcalpha << ", mcmass=" <<mcmass <<") <---------------- FATAL ERROR!!!"<< endl;
+                  return;
+                }
 
-	  // save as sample (as opposed to JointLkl)
-	  sample[nsamples++] = lkl[iLkl];
+              if(mcalpha>0)
+                cout << "  * Simulating observations for alpha = " << mcalpha << ", mass = " << mcmass << ", process = " << mcprocess << ", mcchannel = " << mcchannel << endl;
+              else
+                cout << "  * Simulating observations for alpha = " << mcalpha <<  endl;
+              Float_t mcmdm  = (isMCDecay? mcmass/2. : mcmass);
 
-	  // configure
-	  lkl[iLkl]->SetName(Form("Iact1dBinnedLkl_%02d",iLkl));	  
+              // if we are simulating signal, we need the pdf
+              if(mcalpha>0)
+                {
+                  builddNdESignal(fullLkl,fdNdEDir,mcnChannels,mcchannelval,mcbrval,mcmdm);
+                  if(ioHdNdEpSignal)
+                    readAndWritedNdEpSignal(fullLkl,fdNdEpSignalDir,mcnormchannel,mcmdm);
 
-          // if it's simulation of the null hypothesis, we can already simulate the data sample
-          if(isSimulation && mcsv==0)
-	    {
-              cout << "  * Simulating observations for <sv> = " << mcsv << endl;
-	      if(dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
-		{
-		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
-		}
-	    }
-	  else
-	    if(dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl])->GetNon()<1)
-	      {
-		cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		return;
-	      }	 
-	}
+                  // Set the units of g so that the value of <sv> or 1/<tau> can be converted into g
+                  if(isMCDecay)
+                    fullLkl->SetDMDecayUnitsForG(mcmass);
+                  else
+                    fullLkl->SetDMAnnihilationUnitsForG(mcmass);
+                }
+              //call the actual simulations
+              if(fullLkl->SimulateDataSamples(mcalpha,rdm))
+                {
+                  cout << " ## Oops! Cannot simulate samples for " << fullLkl->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+                  return;
+                }
+            }
+          else if(fullLkl->GetNon()<1)
+            {
+              cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+              return;
+            }
+        }
       else if(classType.CompareTo("LineSearchLkl")==0)
-	{
-	  if(channel.CompareTo("gammagamma",TString::kIgnoreCase))
+        {
+          if(channel.CompareTo("gammagamma",TString::kIgnoreCase))
             {
               cout << " ## Oops! The LineSearchLkl class can only be used for the channel gammagamma and cannot be used for the channel " << channel << " <---------------- FATAL ERROR!!!"<< endl;
               return;
             }
 
-	  // read input string
-	  lkl[iLkl] =  new LineSearchLkl(inputString);
+          // read input string
+          lkl[iLkl] =  new LineSearchLkl(inputString);
 
-	  // save as sample (as opposed to JointLkl)
-	  sample[nsamples++] = lkl[iLkl];
+          // save as sample (as opposed to JointLkl)
+          sample[nsamples++] = lkl[iLkl];
 
-	  // configure
-	  lkl[iLkl]->SetName(Form("LineSearchLkl_%02d",iLkl));
+          // configure
+          lkl[iLkl]->SetName(Form("LineSearchLkl_%02d",iLkl));
 
           // if it's simulation of the null hypothesis, we can already simulate the data sample
           if(isSimulation && mcsv==0)
-	    {
+            {
               cout << "  * Simulating observations for <sv> = " << mcsv << endl;
-	      if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
-		{
-		  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		  return;
-		}
-	    }
-	  else
-	    if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->GetNon()<1)
-	      {
-		cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		return;
-	      }	 
+              if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
+                {
+                  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+                  return;
+                }
+            }
+          else
+            if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->GetNon()<1)
+              {
+                cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+                return;
+              }
         }
       else if(classType.CompareTo("JointLkl")==0)
 	{	  
@@ -514,6 +529,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       else if(parLkl>=0)
 	dynamic_cast<JointLkl*>(lkl[parLkl])->AddSample(lkl[iLkl]);
     } // end of loop over likelihood terms in the rc file
+  delete rdm;
 
   if(nLkls<2)
     {
@@ -617,19 +633,20 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 
       // Loop over samples to read the dN/dE and dN/dE' histos for signal from files
       ///////////////////////////////////////////////////////////////////////////////////////////////
-      Bool_t saveHistosInFile=kFALSE;
       cout << " *** Read or compute dN/dE and dN/dE' histos for each samples:" << endl;
       for(Int_t isample=0;isample<nLkls;isample++)
         {
 	  if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl") || !strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl") || !strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
 	    {
-	      builddNdESignal(lkl[isample],fdNdEDir,nChannels,channelval,brval,mdm,isDecay,isSimulation);
-
-	      // Read or create dN/dE' for signal
+              // casted pointer (for less messy code)
 	      Iact1dUnbinnedLkl* fullLkl = NULL;
-	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
-	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
-	      if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
+              if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
+              if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
+              if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
+
+              builddNdESignal(fullLkl,fdNdEDir,nChannels,channelval,brval,mdm);
+              if(ioHdNdEpSignal)
+                readAndWritedNdEpSignal(fullLkl,fdNdEpSignalDir,normchannel,mdm);
 
               // implementation of sliding window technique
               if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
@@ -654,60 +671,12 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
                   cout << "  * New settings are Emin = " << fullLkl->GetEmin() << " and Emax = " << fullLkl->GetEmax() << endl;
                 }
 
-	      TString dNdEpSignalFileName;
-	      if(ioHdNdEpSignal)
-		{
-		  TString dNdEpSignalFileNameForm = fdNdEpSignalDir+"dNdEpSignal_"+fullLkl->GetName()+"_"+normchannel+Form("_m%s",mprecform(mdm).Data())+".root";
-		  dNdEpSignalFileName = Form(dNdEpSignalFileNameForm,mdm);
-		  cout << "   * Reading dN/dE' for signal from file " << dNdEpSignalFileName << "... " << flush;
-		  
-		  
-		  // if file does not exist, create dNdEpSignal histo (it will be saved in file later)
-		  if(fullLkl->ReaddNdEpSignal(dNdEpSignalFileName))
-		    {
-		      cout << endl << "     Not found! dNdEpSignal histo will be calculated and saved in file " << dNdEpSignalFileName << endl;
-		      saveHistosInFile=kTRUE;
-		    }
-		  // if file exists, read histo and use it
-		  else
-		    cout << "Ok!" << endl;	   	      
-	        }
-	      
-	      // Set the units of g for the different samples (this also creates the fHdNdEpSignal histo
+              // Set the units of g for the different samples (this also creates the fHdNdEpSignal histo)
 	      if(isDecay)
-	        fullLkl->SetDMDecayUnitsForG(mass);
+                fullLkl->SetDMDecayUnitsForG(mass);
 	      else	      
-	        fullLkl->SetDMAnnihilationUnitsForG(mass);
-
-              // in case simulations were requested with DM cont, do them now
-	      if(isSimulation && mcsv>0 && mcmass>0)
-		{
-		  cout << "  * Simulating observations for <sv> = " << mcsv << " and m_DM = " << mcmass << endl;
-
-		  if(fullLkl->SimulateDataSamples(seed,mcsv))
-		    {
-		      cout << " ## Oops! Cannot simulate samples for " << fullLkl->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
-		      exit(1);
-		    }
-		}
-
-	      // Save the dN_signal/dE' created in the SetDMAnnihilationUnitsForG call
-	      if(ioHdNdEpSignal && saveHistosInFile)
-	        {
-		  // saving fHdNdEpSignal histo
-		  gSystem->Exec(Form("mkdir -p %s",fdNdEpSignalDir.Data()));
-		  
-		  TFile* dNdEpSignalFile = new TFile(dNdEpSignalFileName,"RECREATE");
-		  TH1F*  hdNdEpSignal    = new TH1F(*fullLkl->GetHdNdEpSignal());
-		  hdNdEpSignal->SetDirectory(0);
-		  cout << "     Saving dN/dE' signal histo to " << dNdEpSignalFileName << "... " << flush;
-		  hdNdEpSignal->Write();
-		  dNdEpSignalFile->Close();
-		  delete dNdEpSignalFile;
-		  delete hdNdEpSignal;
-		  cout << "Ok!" << endl;
-	        } 
-	    }
+                fullLkl->SetDMAnnihilationUnitsForG(mass);
+	    } // end of case Iact1dUnbinnedLkl or Iact1dBinnedLkl
           else if(!strcmp(lkl[isample]->ClassName(),"GloryDuckTables2019Lkl"))
             {
               GloryDuckTables2019Lkl* gdLkl = dynamic_cast<GloryDuckTables2019Lkl*>(lkl[isample]);
@@ -722,17 +691,17 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 
       // Plot IRF and data
       /////////////////////
+
       if(showSamplePlots)
-	// loop over samples
 	for(Int_t isample=0;isample<nsamples;isample++)
 	  {
 	    Iact1dUnbinnedLkl* fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(sample[isample]);
- 
+
 	    if(!Init_canvas_samples)
 	      {
-		hadcanvas[isample] = fullLkl->PlotHistosAndData();
-		hadcanvas[isample]->SetName(Form("hadcanvas_%d",isample));
-		hadcanvas[isample]->SetTitle(Form("IRFs and data for sample %d",isample));
+		hadcanvas[isample] = new TCanvas(Form("hadcanvas_%d",isample),Form("IRFs and data for sample %d",isample), 1000, 1500);
+		fullLkl->PlotHistosAndData(hadcanvas[isample]);
+
 		hadcanvas[isample]->cd(5);
 		TLatex* ltchannel;
 		if(nChannels == 1) ltchannel = new TLatex(0.8,0.8,strchannel);
@@ -740,36 +709,37 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
 		ltchannel->SetTextSize(0.055);
 		ltchannel->SetNDC();
 		ltchannel->Draw();
-	        if (!Init_canvas_samples && isample==nsamples-1) Init_canvas_samples = kTRUE;
+		if (!Init_canvas_samples && isample==nsamples-1) Init_canvas_samples = kTRUE;
 	      }
 	    else
 	      {
 		hadcanvas[isample]->cd(5);
 		TH1F* hdNdESignal = new TH1F(*fullLkl->GetHdNdESignal());
+		hdNdESignal->Scale(hdNdESignal->GetBinContent(0));
 		hdNdESignal->SetLineStyle((imass+1)%8);
-		hdNdESignal->DrawCopy("same");
+		hdNdESignal->DrawCopy("hist same");
 		delete hdNdESignal;
 
 		hadcanvas[isample]->cd(6);
 		TH1F* hdNdEpSignal = new TH1F(*fullLkl->GetHdNdEpSignal());
+		hdNdEpSignal->Scale(hdNdEpSignal->GetBinContent(0));
 		hdNdEpSignal->SetLineStyle((imass+1)%8);
-		hdNdEpSignal->Scale(hdNdEpSignal->GetBinContent(0));				
-		hdNdEpSignal->DrawCopy("same");
+		hdNdEpSignal->DrawCopy("hist same");
 		delete hdNdEpSignal;
 
 		if(fullLkl->GetHdNdEpSignalOff())
 		  {
 		    TH1F* hdNdEpSignalOff = new TH1F(*fullLkl->GetHdNdEpSignalOff());
 		    hdNdEpSignalOff->SetLineStyle((imass+1)%8);
-		    hdNdEpSignalOff->Scale(hdNdEpSignalOff->GetBinContent(0));				
-		    hdNdEpSignalOff->DrawCopy("same");
+		    hdNdEpSignalOff->Scale(hdNdEpSignalOff->GetBinContent(0));
+		    hdNdEpSignalOff->DrawCopy("hist same");
 		    delete hdNdEpSignalOff;
 		  }
 	      }	    
 	    gPad->Modified();
 	    gPad->Update();
 	  } // end of loop over samples
-      
+
       // compute -2logLkl vs g for precise limit computation
       cout << " *** Computing -2logL (parabola) vs g:" << endl;
       if(!lkl[0]->ComputeLklVsG())
@@ -939,7 +909,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
         }
       cout << "};" << endl;
     }
- 
+
   cout << endl;
   cout << "**********************************" << endl;
   cout << "Joint likelihood results " << endl;
@@ -1066,7 +1036,7 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   gSystem->Exec(Form("mkdir -p %s/root",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
   
-  TString seedTag  = (seed<0? "" : Form("_%d",seed));
+  TString seedTag  = (seed<0? "" : Form("_%04d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");
@@ -1075,12 +1045,14 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
       lklcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_2logLVsG"+seedTag+".root");
       lklcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_2logLVsG"+seedTag+".pdf");
     }
-  if(showSamplePlots) 
-    for(Int_t isample=0;isample<nsamples;isample++)
-      {	
-	hadcanvas[isample]->Print(realPlotDir+"root/"+label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".root");
-	hadcanvas[isample]->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".pdf");
-      }
+  if(showSamplePlots)
+    {
+      for(Int_t isample=0;isample<nsamples;isample++)
+        {
+          hadcanvas[isample]->Print(realPlotDir+"root/"+label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".root");
+          hadcanvas[isample]->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+Form("_histos_sample%02d",isample)+seedTag+".pdf");
+        }
+    }
 
   // save branon plots
   if(!channel.CompareTo("branon",TString::kIgnoreCase))
@@ -1096,6 +1068,8 @@ void jointLklDM(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int_t s
   // Clean up and close 
   /////////////////////
   delete [] lkl;
+  if(showSamplePlots)
+    delete [] hadcanvas;
 }
 
 Int_t GetNSkippedMasses(Int_t nm,const Double_t* vm,Double_t minm)
@@ -1148,7 +1122,7 @@ void setDefaultStyle()
 }
 
 // Decode the channel and save the decoded channels and branching ratios in channelval and brval, respectively.
-void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval)
+void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval,TString& strchannel,TString& normchannel,Double_t& minmass)
 {
   Float_t sumBR = 0.0;
   TString factorstring, coefficientstring;
@@ -1207,6 +1181,55 @@ void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelv
   // Normalize the branching ratios if they differ from 1.0 (100%)
   if (sumBR != 1.0)
       for (Int_t iChannel = 0; iChannel < nChannels; iChannel++) brval[iChannel] /= sumBR;
+
+  // annihilation/decay channel string and minimum mass
+  std::ostringstream buffer;
+  for (Int_t iChannel = 0; iChannel < nChannels; iChannel++)
+    {
+      if(nChannels == 1) strchannel = normchannel = "";
+      else
+	if(iChannel == 0)
+	  {
+	    Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
+	    buffer << rounded_brval;
+	    strchannel  = (TString) buffer.str().substr(0, 4) + "#upoint";
+	    normchannel = (TString) buffer.str().substr(0, 4) + "*";
+	  }
+	else
+	  {
+	    Float_t rounded_brval = ((Int_t)(brval[iChannel] * 100 + .5) / 100.0);
+	    buffer.clear();
+	    buffer.str("");
+	    buffer << rounded_brval;
+	    strchannel.Append("#plus" + buffer.str().substr(0, 4) + "#upoint");
+	    normchannel.Append("+" + buffer.str().substr(0, 4) + "*");
+	  }
+      normchannel.Append(channelval[iChannel]);
+      minmass=0;
+
+      if     (!channelval[iChannel].CompareTo("bb",TString::kIgnoreCase))         {strchannel.Append("b#bar{b}");              minmass=TMath::Max(minmass,bmass);}
+      else if(!channelval[iChannel].CompareTo("cc",TString::kIgnoreCase))         {strchannel.Append("c#bar{c}");              minmass=TMath::Max(minmass,cmass);}
+      else if(!channelval[iChannel].CompareTo("tt",TString::kIgnoreCase))         {strchannel.Append("t#bar{t}");              minmass=TMath::Max(minmass,tmass);}
+      else if(!channelval[iChannel].CompareTo("tautau",TString::kIgnoreCase))     {strchannel.Append("#tau^{+}#tau^{-}");      minmass=TMath::Max(minmass,taumass);}
+      else if(!channelval[iChannel].CompareTo("mumu",TString::kIgnoreCase))       {strchannel.Append("#mu^{+}#mu^{-}");        minmass=TMath::Max(minmass,mumass);}
+      else if(!channelval[iChannel].CompareTo("WW",TString::kIgnoreCase))         {strchannel.Append("W^{+}W^{-}");            minmass=TMath::Max(minmass,Wmass);}
+      else if(!channelval[iChannel].CompareTo("ZZ",TString::kIgnoreCase))         {strchannel.Append("ZZ");                    minmass=TMath::Max(minmass,Zmass);}
+      else if(!channelval[iChannel].CompareTo("hh",TString::kIgnoreCase))         {strchannel.Append("HH");                    minmass=TMath::Max(minmass,Hmass);}
+      else if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase)) {strchannel.Append("#gamma#gamma");          minmass=TMath::Max(minmass,gammamass);}
+      else if(!channelval[iChannel].CompareTo("pi0pi0",TString::kIgnoreCase))     {strchannel.Append("#pi^{0}#pi^{0}");        minmass=TMath::Max(minmass,pi0mass);}
+      else if(!channelval[iChannel].CompareTo("gammapi0",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");         minmass=TMath::Max(minmass,pi0mass/2.);}
+      else if(!channelval[iChannel].CompareTo("pi0gamma",TString::kIgnoreCase))   {strchannel.Append("#pi^{0}#gamma");         minmass=TMath::Max(minmass,pi0mass/2.);}
+      else if(!channelval[iChannel].CompareTo("ee",TString::kIgnoreCase))         {strchannel.Append("e^{+}e^{-}");            minmass=TMath::Max(minmass,emass);}
+      else if(!channelval[iChannel].CompareTo("nuenue",TString::kIgnoreCase))     {strchannel.Append("#nu_{e}#nu_{e}");        minmass=TMath::Max(minmass,int1mass);}
+      else if(!channelval[iChannel].CompareTo("numunumu",TString::kIgnoreCase))   {strchannel.Append("#nu_{#mu}#nu_{#mu}");    minmass=TMath::Max(minmass,int1mass);}
+      else if(!channelval[iChannel].CompareTo("nutaunutau",TString::kIgnoreCase)) {strchannel.Append("#nu_{#tau}#nu_{#tau}");  minmass=TMath::Max(minmass,int1mass);}
+      else if(!channelval[iChannel].CompareTo("VV-4e",TString::kIgnoreCase))      {strchannel.Append("VV-4e");                 minmass=TMath::Max(minmass,int2mass);}
+      else if(!channelval[iChannel].CompareTo("VV-4mu",TString::kIgnoreCase))     {strchannel.Append("VV-4#mu");               minmass=TMath::Max(minmass,int3mass);}
+      else if(!channelval[iChannel].CompareTo("VV-4tau",TString::kIgnoreCase))    {strchannel.Append("VV-4#tau");              minmass=TMath::Max(minmass,int4mass);}
+      else if(!channelval[iChannel].CompareTo("branon",TString::kIgnoreCase))     {strchannel.Append("branon");                minmass=TMath::Max(minmass,branonmass);}
+      else strchannel = "";
+    }
+
 }
 
 // Compute the branching ratios for the branon model for each DM mass and save the channels and branching ratios in channelval and brval, respectively.
@@ -1215,7 +1238,7 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
     // The included annihilation channels for the branon model
     TString particle_type[9]        = {"bb","cc","tt","ee","mumu","tautau","WW","ZZ","hh"};
     // The corresponding masses in GeV
-    Float_t particle_mass[9]        = {4.18,1.28,173.1,0.511e-3,0.106,1.7768,80.39,91.19,125.0};
+    Double_t particle_mass[9]        = {bmass,cmass,tmass,emass,mumass,taumass,Wmass,Zmass,Hmass};
     // Classification of the elementary particles
     TString dirac_fermions          = "cc_tt_bb_ee_mumu_tautau";
     TString gauge_bosons            = "WW_ZZ";
@@ -1255,18 +1278,12 @@ void compute_branonBR(Float_t &mass, Int_t &nChannels, TString *channelval, Doub
     translation_factor = total_ann_crosssection;
   }
 
-void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm,Bool_t isDecay,Bool_t isSimulation)
+void builddNdESignal(Iact1dUnbinnedLkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelval,Double_t* brval,Float_t mdm)
 {
-  // casted pointer (for less messy code)
-  Iact1dUnbinnedLkl* fullLkl = NULL;
-  if(!strcmp(lkl->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl);
-  if(!strcmp(lkl->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl);
-  if(!strcmp(lkl->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[isample]);
-
-  cout << "  ** Building histos for sample " << fullLkl->GetName() << ":" << endl;
+  cout << "  ** Building histos for sample " << lkl->GetName() << ":" << endl;
 
   // Delete existing fHdNdESignal and create empty one
-  fullLkl->ResetdNdESignal();
+  lkl->ResetdNdESignal();
 
   for(Int_t iChannel=0;iChannel<nChannels;iChannel++)
     if(brval[iChannel] != 0.0)
@@ -1275,10 +1292,11 @@ void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelv
 	if(!channelval[iChannel].CompareTo("gammagamma",TString::kIgnoreCase))
 	  {
 	    cout << "   * Setting dN/dE for a monochromatic line at energy " << mdm  << " GeV with BR = " << brval[iChannel] << " ... " << flush;
-	    if(fullLkl->AdddNdESignalFunction("line",mdm,2,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("line",mdm,2,brval[iChannel]))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		exit(1);
+		//exit(1);
+		return;
 	      }
 	    else
 	      cout << "Ok!" << endl;
@@ -1290,10 +1308,11 @@ void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelv
 	    Float_t emax =  mdm/2.*(1+TMath::Sqrt(1-mpi*mpi/(mdm*mdm)));
 	    cout << "   * Setting dN/dE for XX->pi0pi0 for mass = " << mdm  << " GeV (i.e. box between " << emin << " and " << emax << " GeV) with BR = " << brval[iChannel] << "... " << flush;
 
-	    if(fullLkl->AdddNdESignalFunction("box",emin,emax,4,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("box",emin,emax,4,brval[iChannel]))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		exit(1);
+		//exit(1);
+		return;
 	      }
 	    else
 	      cout << "Ok!" << endl;
@@ -1306,15 +1325,17 @@ void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelv
 	    Float_t emax = mdm/2.*((1+mpi*mpi/(4*mdm*mdm))+(1-mpi*mpi/(4*mdm*mdm)));
 	    cout << "   * Setting dN/dE for XX->pi0gamma for mass = " << mdm  << " GeV (i.e. a line at E0=" << e0<< ", plus a box between " << emin << " and " << emax << " GeV) with BR = " << brval[iChannel] << "... " << flush;
 
-	    if(fullLkl->AdddNdESignalFunction("line",e0,1,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("line",e0,1,brval[iChannel]))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		exit(1);
+		//exit(1);
+		return;
 	      }
-	    if(fullLkl->AdddNdESignalFunction("box",emin,emax,2,brval[iChannel]))
+	    if(lkl->AdddNdESignalFunction("box",emin,emax,2,brval[iChannel]))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		exit(1);
+		//exit(1);
+		return;
 	      }
 	    else
 	      cout << "Ok!" << endl;
@@ -1330,7 +1351,7 @@ void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelv
 	//     Float_t emax = mdm*(1-TMath::Exp(1)/4.*me*me/(mdm*mdm));
 	//     cout << "   * Setting dN/dE for XX->ee for mass = " << mdm  << " GeV (Emax = " << emax << ") with BR = " << brval[iChannel] << "... " << flush;
 
-	//     if(fullLkl->AdddNdESignalFunction(fee,0,emax,brval[iChannel]))
+	//     if(lkl->AdddNdESignalFunction(fee,0,emax,brval[iChannel]))
 	//       {
 	//          cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
 	//          return;
@@ -1346,15 +1367,55 @@ void builddNdESignal(Lkl* lkl,TString dNdEDir, Int_t nChannels,TString* channelv
 	    cout << "   * Reading dN/dE for signal from file " << dNdESignalFileName  << " with BR = " << brval[iChannel] << "... " << flush;
 
 	    // Try to read dNdE from existing file
-	    if(fullLkl->AdddNdESignal(dNdESignalFileName,brval[iChannel]))
+	    if(lkl->AdddNdESignal(dNdESignalFileName,brval[iChannel]))
 	      {
 		cout << "Failed! <---------------- FATAL ERROR!!!" << endl;
-		exit(1);
+		//exit(1);
+		return;
 	      }
 	    else
 	      cout << "Ok!" << endl;
 	  }
       } // end of loop over channels
+}
+
+// Read [and write] dN/dE' for signal
+void readAndWritedNdEpSignal(Iact1dUnbinnedLkl* lkl,TString dNdEpDir,TString normchannel,Float_t mdm)
+{
+  // build file name
+  TString dNdEpSignalFileNameForm = dNdEpDir+"dNdEpSignal_"+lkl->GetName()+"_"+normchannel+Form("_m%s",mprecform(mdm).Data())+".root";
+  TString dNdEpSignalFileName = Form(dNdEpSignalFileNameForm,mdm);
+
+  cout << "   * Reading dN/dE' for signal from file " << dNdEpSignalFileName << "... " << flush;
+
+  // if file does not exist, create dNdEpSignal histo (it will be saved in file later)
+  Bool_t saveHistosInFile=kFALSE;
+  if(lkl->ReaddNdEpSignal(dNdEpSignalFileName))
+    {
+      cout << endl << "     Not found! dNdEpSignal histo will be calculated and saved in file " << dNdEpSignalFileName << endl;
+      lkl->GetdNdEpSignalIntegral(); // this calls for construction of fHdNdEpSignal out of fHdNdESignal and the energy migration matrix
+      saveHistosInFile=kTRUE;
+    }
+  // if file exists, read histo and use it
+  else
+    cout << "Ok!" << endl;
+
+  // Save the dN_signal/dE' created in the SetDMAnnihilationUnitsForG call
+  if(saveHistosInFile)
+    {
+      // saving fHdNdEpSignal histo
+      gSystem->Exec(Form("mkdir -p %s",dNdEpDir.Data()));
+
+      TFile* dNdEpSignalFile = new TFile(dNdEpSignalFileName,"RECREATE");
+      TH1F*  hdNdEpSignal    = new TH1F(*lkl->GetHdNdEpSignal());
+      hdNdEpSignal->SetDirectory(0);
+      cout << "     Saving dN/dE' signal histo to " << dNdEpSignalFileName << "... " << flush;
+      hdNdEpSignal->Write();
+      dNdEpSignalFile->Close();
+      delete dNdEpSignalFile;
+      delete hdNdEpSignal;
+      cout << "Ok!" << endl;
+    }
 }
 
 TString mprecform(Double_t val)
