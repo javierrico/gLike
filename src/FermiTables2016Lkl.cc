@@ -81,12 +81,13 @@ using namespace std;
 // static constants
 static const TString  gName            = "FermiTables2016Lkl";
 static const TString  gTitle           = "Flux vs E-Bin Likelihood";
-static const Int_t    gNPars            = 1;             // Number of free+nuisance parameters
-static const Char_t*  gParName[gNPars]  = {"g"};         // Name of parameters
-static const Double_t gRefsv            = 3.e-26;        // [cm^3 s^-1] (reference sv for computing dPhi/dE)
+static const Int_t    gNPars           = 1;                   // Number of free+nuisance parameters
+static const Char_t*  gParName[gNPars] = {"g"};               // Name of parameters
+static const Double_t gRefsv           = 3.e-26;              // [cm^3 s^-1] (reference sv for computing dPhi/dE)
 static const Int_t    gNFineBins       = 5000;                // default number of fine bins for dNdESignal histo
 static const Double_t gFineLEMin       = TMath::Log10(0.01);  // default minimum log(energy[GeV]) for dNdESignal hist
 static const Double_t gFineLEMax       = TMath::Log10(1000);  // default maximum log(energy[GeV]) for dNdESignal histo
+static const Int_t    gNMaxIndex       = 300;                 // number of empty-field-of-view files (for null-hypothesis pdf evaluation)
 
 
 // -2logL function for minuit
@@ -126,12 +127,14 @@ FermiTables2016Lkl::FermiTables2016Lkl(TString inputString) :
 // logJ=<val>:          mean value of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-3 (decay)
 // path=<val>:          path of the input file (will be appended to inputFileName)
 // inputfile=<val>:     name of the input file, which contains the lkl vs flux tables
+// index=<val>:         number (-1, modulo gNMaxIndex) used to construct the input file for the case of empty fields of view (for null-hypothesis pdf evaluation)
 //
 Int_t FermiTables2016Lkl::InterpretInputString(TString inputString)
 {
   // file name and path default values
   TString inputfileName = " (No file has been specified) ";
   TString path          = "";
+  Int_t   index         = 0; // index for empty-field of view data file (for null-hypothesis pdf evaluation)
 
   // Prepeare to interpret inputString
   TPMERegexp re("\\s+");
@@ -147,10 +150,15 @@ Int_t FermiTables2016Lkl::InterpretInputString(TString inputString)
 	fLogJ=fldre[1].Atof();
       if(optname.CompareTo("inputfile",TString::kIgnoreCase)==0)
 	inputfileName=fldre[1];
+      if(optname.CompareTo("index",TString::kIgnoreCase)==0)
+	index=fldre[1].Atoi();
       else if(optname.CompareTo("path",TString::kIgnoreCase)==0)
 	path=fldre[1];    
     }
 
+  if(index>0)
+    inputfileName.ReplaceAll(".txt",Form("_%05d.txt",(index-1)%gNMaxIndex));
+  
   // open and read input file
   return ReadFermiInputData(path+"/"+inputfileName);
 }
