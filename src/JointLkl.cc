@@ -156,7 +156,7 @@ Int_t JointLkl::MakeChecks()
     if(!sample->IsChecked())
 	sample->MakeChecks();
   delete iter;
-
+  
   // units of g are those of the reference sample
   SetUnitsOfG(GetReferenceSample()->GetUnitsOfG());
 
@@ -175,7 +175,7 @@ Double_t  JointLkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glo
   if(fSampleArray->GetEntries()<=0)
     {
       cout << "JointLkl::ComputeLklVsG Error: object " << GetName() << " is of type JointLkl, but no other object depend on it" << endl;
-      return 0;
+      return 1;
     }
 
   return Lkl::ComputeLklVsG(centerAtZero,npoints,glow,gupp,isVerbose);
@@ -188,6 +188,7 @@ Double_t  JointLkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glo
 void  JointLkl::SetFunctionAndPars(Double_t ginit)
 {
   fMinuit->SetFCN(jointLkl);
+
   fMinuit->SetName(Form("%s_Minuit",GetName()));
 
   // Initialize minuit for added objects
@@ -207,7 +208,7 @@ void  JointLkl::SetFunctionAndPars(Double_t ginit)
   Double_t      pStart[gNPars]  = {ginit};   
   Double_t      pDelta[gNPars]  = {GetReferenceSample()->GetParDelta()[0]};   
 
-  SetParameters(parName,pStart,pDelta);
+  SetParameters(parName,pStart,pDelta);  
 }  
 	
 ////////////////////////////////////////////////////////////////
@@ -246,7 +247,7 @@ Int_t JointLkl::ReorderSamples()
       if(++nchecks>=nmaxchecks)
 	{
 	  cout << "JointLkl::ReorderSamples (" << GetName() << ") Warning: none of the samples will produce any signal event" << endl;
-	  return 1;
+	  break;
 	}
     }
   fSampleArray->Compress();
@@ -269,6 +270,8 @@ void JointLkl::ResetGLklVsG()
   while((sample=(Lkl*)iter->Next()))
     sample->ResetGLklVsG();
   delete iter;
+
+  SetChecked(kFALSE);
 }
 
 
