@@ -1,4 +1,3 @@
-
 //######################################################################
 //##
 //## computeCLBands.C
@@ -113,7 +112,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
   
   // define some labels according to input data
   TString strprocess         = (isDecay?       "Decay" : "Annihilation");
-  
+
   // Decode the channel and save the decoded channels and branching ratios in channelval and brval, respectively.
   TObjArray* coefficients = channel.Tokenize("+");
   Int_t nChannels = coefficients->GetEntries();
@@ -521,7 +520,6 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       delete btoutputFile;
     }
 
-
   // PLOTS
   if(makePlots)
     {
@@ -612,6 +610,7 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
       const Int_t nThermalRelicSv = 22;
       Double_t thermalRelicMass[nThermalRelicSv] = {1.00e-01, 1.78e-01, 3.16e-01, 5.62e-01, 1.00e+00, 1.78e+00, 3.16e+00, 5.62e+00, 1.00e+01, 1.78e+01, 3.16e+01, 5.62e+01, 1.00e+02, 1.78e+02, 3.16e+02, 5.62e+02, 1.00e+03, 1.78e+03,3.16e+03, 5.62e+03, 1.00e+04, 1.00e+05};
       Double_t thermalRelicSigmav[nThermalRelicSv] = {4.8e-26, 4.9e-26, 5.1e-26, 5.0e-26, 4.7e-26, 4.5e-26, 3.9e-26, 2.8e-26, 2.5e-26, 2.3e-26, 2.2e-26, 2.2e-26, 2.2e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26, 2.3e-26,2.4e-26, 2.4e-26};
+
       if(!channel.CompareTo("gammagamma",TString::kIgnoreCase))
         {
           Double_t alpha = 0.0072973525664; //fine-structure constant
@@ -648,7 +647,6 @@ void computeCLBands(TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc",Int
 
       limcanvas->Print(resultsPath+"root/"+label+"_bands.root");
       limcanvas->Print(resultsPath+"pdf/"+label+"_bands.pdf");
-
 
       if(!channel.CompareTo("branon",TString::kIgnoreCase))
         {
@@ -785,7 +783,6 @@ void setDefaultStyle()
   gStyle->SetLegendBorderSize(4);
   gStyle->SetGridColor(13);
 }
-
 
 // Decode the channel and save the decoded channels and branching ratios in channelval and brval, respectively.
 void decode_channel(TObjArray* coefficients, Int_t &nChannels, TString *channelval, Double_t *brval)
