@@ -13,12 +13,9 @@
 // and computes likelihood for a given spectrum (fHdNdESignal).
 // The spectrum has to be specified fully (i.e. with the correct units)
 // and therefore SetUnitsOfG is deactivated for this class.
-// If SetDMAnnihilationUnitsForG is called, fHdNdESignal is considered 
-// the average gamma-ray spectrum per annihilation process and the
-// arguments used to compute the spectrum in the correct units.
 // 
-// Usage example:
-// --------------
+// Usage example (for a complete example check exec/jointLklDM.cc):
+// ----------------------------------------------------------------
 //
 // FermiTables2016Lkl** bfLkl = new FermiTables2016Lkl*[nsample];
 // JointLkl*       jLkl = new JointLkl;
@@ -27,11 +24,12 @@
 // for(Int_t isample=0;isample<nsample;isample++)
 //   {
 //      // Configure the samples
-//      bfLkl[isample] = new FermiTables2016Lkl(fermifile);
+//      bfLkl[isample] = new FermiTables2016Lkl(inputString[isample]);
 //      bfLkl[isample]->ReaddNdESignal(dNdESignalFileName);
+//fermiLkl->SetDMMass(mass);
 //
 //      // Set units for DM interpretation of results
-//      bfLkl[isample]->SetDMAnnihilationUnitsForG(mass,log10J[isample]);
+//      bfLkl[isample]->SetDMMass(mass)
 //      bfLkl[isample]->SetDUnitsOfG(Dlog10_J[isample],Lkl::invlog);    // if we know the error of log10(J)
 //
 //      // add the sample to the JointLkl object
@@ -86,15 +84,7 @@ static TMinuit* minuit = NULL;
 
 ////////////////////////////////////////////////////////////////
 // 
-// Default constructor
-// inputfilename is the name of a file with the input data
-// (i.e. logL vs flux for several E bins)
-// this is the format of the Fermi results published in
-// Phys. Rev. D 89, 042001 (2014)
-// available at http://www-glast.stanford.edu/pub_data/713/
-// If other formats are required, the constructor should probably
-// get no arguments and several methods for reading the different
-// formats should be defined and called by the user
+// Default constructor (see InterpretInputString for details)
 //
 FermiTables2016Lkl::FermiTables2016Lkl(TString inputString) :
   Lkl(gNPars,inputString,gName,gTitle), JointLkl(inputString), HdNdE("","",gNFineBins,gFineLEMin,gFineLEMax),
@@ -110,10 +100,12 @@ FermiTables2016Lkl::FermiTables2016Lkl(TString inputString) :
 // The string has been passed to Lkl::InterpretInputString in constructor
 // here it is searched for the following options:
 //
-//
 // logJ=<val>:          mean value of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-3 (decay)
 // path=<val>:          path of the input file (will be appended to inputFileName)
-// inputfile=<val>:     name of the input file, which contains the lkl vs flux tables
+// inputfile=<val>:     name of the input file, which contains the lkl vs flux tables in E bins
+//                      in the format of the Fermi results published in
+//                      Phys. Rev. D 89, 042001 (2014)
+//                      available at http://www-glast.stanford.edu/pub_data/713/
 // index=<val>:         number (-1, modulo gNMaxIndex) used to construct the input file for the case of empty fields of view (for null-hypothesis pdf evaluation)
 //
 Int_t FermiTables2016Lkl::InterpretInputString(TString inputString)
@@ -175,6 +167,7 @@ void FermiTables2016Lkl::SetMinuitLink()
 //
 // Pass the -2logL function to fMinuit,
 // initialize the parameters (free+nuisance),
+// ginit = initial value of g in the fit
 //
 void  FermiTables2016Lkl::SetFunctionAndPars(Double_t ginit)
 {
@@ -199,7 +192,7 @@ void  FermiTables2016Lkl::SetFunctionAndPars(Double_t ginit)
 
 ////////////////////////////////////////////////////////////////
 //
-// Check that everything is correct
+// Check that everything is correct before calling the minimization
 //
 // Return 0 in case of success, 1 otherwise
 //
@@ -273,11 +266,11 @@ void FermiTables2016Lkl::SpreadFixLklVsG(Double_t g)
 //
 // Disable SetUnitsOfG, since units are used internally by the 
 // class and should not be changed.
-// SetDMAnnihilationUnitsForG or similar must be called instead!
+// SetDMMass must be called instead!
 //
 void FermiTables2016Lkl::SetUnitsOfG(Double_t units)
 {
-  cout<< "FermiTables2016Lkl::SetUnitsOfG (" << GetName() << ") Warning: cannot set units for FermiTables2016Lkl. Use SetDMAnnihilationUnitsForG instead" << endl;
+  cout<< "FermiTables2016Lkl::SetUnitsOfG (" << GetName() << ") Warning: cannot set units for FermiTables2016Lkl. Use SetDMMass instead" << endl;
 }
 
 ////////////////////////////////////////////////////////////////
