@@ -30,7 +30,7 @@
 // or Li & Ma (ApJ 272 (1983) 317) for computing statistical significance
 // of observed excess events (fixed tau).
 //
-// To combine several bins into a joint likelihood use class 
+// To combine several E'-bins into a joint likelihood use class 
 // Iact1dBinnedLkl.
 //
 //////////////////////////////////////////////////////////////////////////////
