@@ -1006,7 +1006,7 @@ Double_t Lkl::GetLklVal() const
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Print information about the lkl object and the fit results
+// Print information about the lkl object configuration
 //
 void Lkl::PrintData(Int_t level)
 {

@@ -148,6 +148,8 @@ Int_t JointLkl::MakeChecks()
 // Check that the object has some daughter objects before
 // calling the computation of Lkl vs G
 //
+// Check Lkl::ComputeLklVsG for explanation about the arguments
+//
 Double_t  JointLkl::ComputeLklVsG(Double_t gInitWithUnits,Bool_t centerAtZero,Int_t npoints,Double_t glow,Double_t gupp,Bool_t isVerbose)
 {
   if(fSampleArray->GetEntries()<=0)
@@ -201,10 +203,12 @@ void JointLkl::SetMinuitLink()
 
 ////////////////////////////////////////////////////////////////
 //
-// If needed, reorder samples so that the first one has non-zero
-// predicted signal events
+// If needed, reorder samples so that the first (or "reference")
+// one has non-zero predicted signal events
 //
-// Return 0 in case of success, 1 otherwise
+// Return 0 even if no sample produce signal because this could be ok
+// if this JointLkl is in turn part of another JointLkl list in which
+// there are classes producing a signal
 //
 Int_t JointLkl::ReorderSamples()
 {
@@ -360,7 +364,7 @@ Double_t JointLkl::GetExpansionCoefficient() const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Print information about all added samples
+// Print information about all added samples and their fit results
 //
 void JointLkl::PrintOverview(Int_t level) 
 {
@@ -381,7 +385,7 @@ void JointLkl::PrintOverview(Int_t level)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Print information about all added samples
+// Print information about all added samples configuration
 //
 void JointLkl::PrintData(Int_t level) 
 {
