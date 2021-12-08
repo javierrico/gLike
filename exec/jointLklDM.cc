@@ -413,26 +413,54 @@ int main(int argc,char* argv[])
           // read input string
           lkl[iLkl] =  new LineSearchLkl(inputString);
 
-          // save as sample (as opposed to JointLkl)
-          sample[nsamples++] = lkl[iLkl];
-
           // configure
           lkl[iLkl]->SetName(Form("LineSearchLkl_%02d",iLkl));
 
-          // if it's simulation of the null hypothesis, we can already simulate the data sample
-          if(isSimulation && mcsv==0)
+          Iact1dUnbinnedLkl* fullLkl = dynamic_cast<LineSearchLkl*>(lkl[iLkl]);
+
+          // save as sample (as opposed to JointLkl)
+          sample[nsamples++] = fullLkl;
+
+          // if it's simulation, then simulate
+          if(isSimulation)
             {
-              cout << "  * Simulating observations for <sv> = " << mcsv << endl;
-              if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->SimulateDataSamples(seed,mcsv))
+              // Pathological cases
+              if(mcalpha<0 || mcmass<=0)
                 {
-                  cout << " ## Oops! Cannot simulate samples for " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+                  cout << " ## Oops! Unreasonable simulation conditions (mcalpha=" << mcalpha << ", mcmass=" <<mcmass <<") <---------------- FATAL ERROR!!!"<< endl;
+                  return;
+                }
+
+              if(mcalpha>0)
+                cout << "  * Simulating observations for alpha = " << mcalpha << ", mass = " << mcmass << ", process = " << mcprocess << ", mcchannel = " << mcchannel << endl;
+              else
+                cout << "  * Simulating observations for alpha = " << mcalpha <<  endl;
+              Float_t mcmdm  = (isMCDecay? mcmass/2. : mcmass);
+
+              // if we are simulating signal, we need the pdf
+              if(mcalpha>0)
+                {
+                  builddNdESignal(fullLkl,fdNdEDir,mcnChannels,mcchannelval,mcbrval,mcmdm);
+                  if(ioHdNdEpSignal)
+                    readAndWritedNdEpSignal(fullLkl,fdNdEpSignalDir,mcnormchannel,mcmdm);
+
+                  // Set the units of g so that the value of <sv> or 1/<tau> can be converted into g
+                  if(isMCDecay)
+                    fullLkl->SetDMDecayUnitsForG(mcmass);
+                  else
+                    fullLkl->SetDMAnnihilationUnitsForG(mcmass);
+                }
+              //call the actual simulations
+              if(fullLkl->SimulateDataSamples(mcalpha,rdm))
+                {
+                  cout << " ## Oops! Cannot simulate samples for " << fullLkl->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
                   return;
                 }
             }
           else
-            if(dynamic_cast<LineSearchLkl*>(lkl[iLkl])->GetNon()<1)
+            if(fullLkl->GetNon()<1)
               {
-                cout << " ## Oops! No data (from input or simulated) associated to " << lkl[iLkl]->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
+                cout << " ## Oops! No data (from input or simulated) associated to " << fullLkl->GetName() << " <---------------- FATAL ERROR!!!"<< endl;
                 return;
               }
         }
@@ -505,6 +533,7 @@ int main(int argc,char* argv[])
 	      Iact1dUnbinnedLkl* fullLkl = NULL;
 	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl]);
 	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl]);
+	      if(!strcmp(lkl[iLkl]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[iLkl]);
               logJ = fullLkl->GetLogJ(); //initializing the logJ value with the first one found
 
               if (lkl[iLkl]->GetDUnitsOfG() > 1e-5)
@@ -519,6 +548,7 @@ int main(int argc,char* argv[])
 	      Iact1dUnbinnedLkl* fullLkl = NULL;
 	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[iLkl]);
 	      if(!strcmp(lkl[iLkl]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[iLkl]);
+	      if(!strcmp(lkl[iLkl]->ClassName(),"LineSearchLkl"))     fullLkl = dynamic_cast<LineSearchLkl*>(lkl[iLkl]);
 
               if(TMath::Abs(fullLkl->GetLogJ()-logJ) > 1e-5)
                 {
@@ -670,23 +700,22 @@ int main(int argc,char* argv[])
               if(!strcmp(lkl[isample]->ClassName(),"LineSearchLkl"))
                 {
                   cout << "  ** Applying sliding window technique for sample " << fullLkl->GetName() << ":" << endl;
-                  cout << "  * Previous settings were Emin = " << fullLkl->GetEmin() << " and Emax = " << fullLkl->GetEmax() << endl;
+                  cout << "  * Previous settings were Emin = " << dynamic_cast<LineSearchLkl*>(lkl[isample])->GetEminWindow() << " and Emax = " << dynamic_cast<LineSearchLkl*>(lkl[isample])->GetEmaxWindow() << endl;
 
                   // define energy window width, hardcoded for now
-                  Double_t energyWindowWidth = 2;
+                  Double_t energyWindowWidth = dynamic_cast<LineSearchLkl*>(lkl[isample])->GetEwindowWidth();
 
                   // define low threshold, hardcoded for now
-                  Double_t windowLowThreshold = 100.0;
+                  Double_t windowLowThreshold = dynamic_cast<LineSearchLkl*>(lkl[isample])->GetEwindowThreshold();
 
                   Double_t energyWindowLowEdge = mass * (1. - energyWindowWidth * fullLkl->GetGEreso()->Eval(TMath::Log10(mass)));
                   Double_t energyWindowHighEdge = mass * (1. + energyWindowWidth * fullLkl->GetGEreso()->Eval(TMath::Log10(mass)));
                   if(energyWindowLowEdge<windowLowThreshold) energyWindowLowEdge = windowLowThreshold;
 
-                  fullLkl->SetEpmin(energyWindowLowEdge);
-                  fullLkl->SetEpmax(energyWindowHighEdge);
-                  fullLkl->SetChecked(kFALSE);
+                  dynamic_cast<LineSearchLkl*>(lkl[isample])->SetEpminWindow(energyWindowLowEdge);
+                  dynamic_cast<LineSearchLkl*>(lkl[isample])->SetEpmaxWindow(energyWindowHighEdge);
 
-                  cout << "  * New settings are Emin = " << fullLkl->GetEmin() << " and Emax = " << fullLkl->GetEmax() << endl;
+                  cout << "  * New settings are Emin = " << dynamic_cast<LineSearchLkl*>(lkl[isample])->GetEminWindow() << " and Emax = " << dynamic_cast<LineSearchLkl*>(lkl[isample])->GetEmaxWindow() << endl;
                 }
 
               // Set the units of g for the different samples (this also creates the fHdNdEpSignal histo)
