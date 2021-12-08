@@ -38,7 +38,7 @@ class Lkl : public TNamed
   virtual ~Lkl();
 
   // call minimization of the  Likelihood function
-  virtual Double_t ComputeLklVsG(Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
+  virtual Double_t ComputeLklVsG(Double_t gInitWithUnits=0,Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
 
   static void PrintGLikeBanner();
   

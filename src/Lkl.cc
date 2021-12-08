@@ -235,20 +235,22 @@ Lkl::~Lkl()
 //
 // Return the lkl minimum 
 //
-Double_t Lkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Double_t gupp,Bool_t isVerbose)
+Double_t Lkl::ComputeLklVsG(Double_t gInitWithUnits,Bool_t centerAtZero,Int_t npoints,Double_t glow,Double_t gupp,Bool_t isVerbose)
 {
   // delete previously existing curve
   ResetGLklVsG();
-  
+
   Bool_t definedRange = ((glow!=0 || gupp!=0) && gupp>glow);
   Bool_t applyDUofG   = (fDUnitsOfG>0 && fDUofGType!=none);
   Double_t expCoeff   = 1;
+  Double_t ginit = gInitWithUnits/fUnitsOfG;
+  
   if(!definedRange)
     {
       // first find where the minimum is and estimate the error
       if(isVerbose)
 	cout << "Lkl::ComputeLklVsG (" << GetName() << ") Message: Finding minimum of -2logL... " << endl;
-      if(Lkl::MinimizeLkl() == gLklValOverflow) return 0;
+      if(Lkl::MinimizeLkl(ginit) == gLklValOverflow) return 0;
       FindGLowAndGUpp(glow,gupp,centerAtZero);
     }
  
@@ -535,6 +537,13 @@ void Lkl::ExpandGLowAndGUpp(Double_t& glow,Double_t& gupp,Double_t stretch)
 //
 Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t force)
 {
+  // Check g makes sense
+  if(TMath::IsNaN(g) || g==TMath::Infinity())
+    {
+      cout << "Lkl::MinimizeLkl (" << GetName() << ") Fatal Error: function called for g = " << g << endl;
+      exit(1);
+    }
+    
   // if parabola has already been computed, give back requested lkl value
   if(IsChecked() && fGLklVsG && !force) 
     {
@@ -557,7 +566,7 @@ Double_t Lkl::MinimizeLkl(Double_t g,Bool_t gIsFixed,Bool_t isVerbose,Bool_t for
     }
      
   // initialize minuit
-  InitMinuit();
+  InitMinuit(g);
   SetMinuitLink();
 
   // assign value to g and fix it if requested

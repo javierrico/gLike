@@ -730,7 +730,7 @@ int main(int argc,char* argv[])
 
       // compute -2logLkl vs g for precise limit computation
       cout << " *** Computing -2logL (parabola) vs g:" << endl;
-      if(!lkl[0]->ComputeLklVsG())
+      if(!lkl[0]->ComputeLklVsG(mcalpha))
         {
           cout << " *** Skipping DM mass = " << mass << " GeV because checks were not successfull (maybe none of the samples will produce any signal event?)" << endl;
           svLimVal[imass] = 0.;

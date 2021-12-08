@@ -170,7 +170,7 @@ Int_t JointLkl::MakeChecks()
 // Check that the object has some daughter objects before
 // calling the computation of Lkl vs G
 //
-Double_t  JointLkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glow,Double_t gupp,Bool_t isVerbose)
+Double_t  JointLkl::ComputeLklVsG(Double_t gInitWithUnits,Bool_t centerAtZero,Int_t npoints,Double_t glow,Double_t gupp,Bool_t isVerbose)
 {
   if(fSampleArray->GetEntries()<=0)
     {
@@ -178,7 +178,7 @@ Double_t  JointLkl::ComputeLklVsG(Bool_t centerAtZero,Int_t npoints,Double_t glo
       return 1;
     }
 
-  return Lkl::ComputeLklVsG(centerAtZero,npoints,glow,gupp,isVerbose);
+  return Lkl::ComputeLklVsG(gInitWithUnits,centerAtZero,npoints,glow,gupp,isVerbose);
 }
 ////////////////////////////////////////////////////////////////
 //
@@ -324,7 +324,7 @@ Int_t JointLkl::PrepareForLklScan(Bool_t centerAtZero,Int_t npoints,Double_t glo
     {
       Double_t   w = sample->GetUnitsOfG(); 
       if(w>0)
-	sample->ComputeLklVsG(centerAtZero,npoints,glow*w0/w,gupp*w0/w,isVerbose);
+	sample->ComputeLklVsG(0.5*(glow+gupp)*w,centerAtZero,npoints,glow*w0/w,gupp*w0/w,isVerbose);
     }
 
   delete iter;

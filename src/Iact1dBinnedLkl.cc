@@ -327,7 +327,7 @@ Int_t Iact1dBinnedLkl::PrepareForLklScan(Bool_t centerAtZero,Int_t npoints,Doubl
 	{
 	  Double_t   w = sample->GetUnitsOfG(); 
 	  if(w>0)
-	    sample->ComputeLklVsG(centerAtZero,npoints,glow*w,gupp*w,isVerbose*0);
+	    sample->ComputeLklVsG(0.5*(glow+gupp)*w*w,centerAtZero,npoints,glow*w,gupp*w,isVerbose*0);
 	}
       delete iter;
     }

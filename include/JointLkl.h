@@ -37,7 +37,7 @@ class JointLkl : public virtual Lkl
   virtual void      ResetGLklVsG();
   virtual void      SetMinuitLink();
   
-  virtual Double_t  ComputeLklVsG(Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
+  virtual Double_t  ComputeLklVsG(Double_t ginit,Bool_t centerAtZero=kFALSE,Int_t npoints=200,Double_t glow=0,Double_t gupp=0,Bool_t isVerbose=kTRUE);
   
  protected:
   virtual void     SetFunctionAndPars(Double_t ginit=0);
