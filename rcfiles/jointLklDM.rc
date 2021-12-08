@@ -39,7 +39,7 @@ jointLklDM.path: ./
 jointLklDM.dNdEDir: DM/dNdE/Cirelli/
 
 # Directory with data files
-jointLklDM.dataDir: data/root/
+jointLklDM.dataDir: line_data/
 
 # Directory for output plots
 jointLklDM.plotsDir: plots/
@@ -60,12 +60,12 @@ jointLklDM.Process: ann
 
 # channel to be analyzed (bb, cc, tt, tautau, mumu, WW, ZZ, hh, gammagamma, pi0pi0, pi0gamma, ee, nutaunutau, numunumu, nuenue, VV-4tau, VV-4mu, VV-4e, branon or an arbitrary linear combination of them)
 # The linear combination must be written this form:'br_1*channel_1+...+br_n*channel_n'!
-#jointLklDM.Channel: gammagamma
-jointLklDM.Channel: bb
+jointLklDM.Channel: gammagamma
+#jointLklDM.Channel: bb
 
 # list of DM masses to be considered (in GeV)
-#jointLklDM.MassList: 200 500
-jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
+jointLklDM.MassList: 1200 1500
+#jointLklDM.MassList: 100 200 500 1000 2000 5000 10000 20000 50000 100000
 
 # Simulated signal data characteristics (i.e. true values assumed for simulations, no to be confused with the values assumed for the likelihood function
 # alpha = <sv> [cm^3/s] for ann or 1/tau [1/s] for dec
@@ -111,7 +111,7 @@ JOINT LIKELIHOOD CONFIGURATION
 # -  Likelihood parabolas (Glory Duck format):
 #    jointLklDM.lklTerm<XXX>: GloryDuckTables2019Lkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
 # -  Unbinned Likelihood for line search:
-#    jointLklDM.lklTerm<XXX>: LineSearchLkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName>
+#    jointLklDM.lklTerm<XXX>: LineSearchLkl <parentTerm> logJ=<logJ_value> DlogJ=<DlogJ_value> inputFileName=<inputFileName> EwindowWidth=<EwindowWidth>  EwindowThreshold=<EwindowThreshold>
 #
 # <logJ             and <DlogJ> are, respectively, the mean value and uncertainty of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-2 (decay)
 # <inputFileName>   is the name of the input file, which contain the IRFs and data 
@@ -126,6 +126,9 @@ JOINT LIKELIHOOD CONFIGURATION
 # <dndepbkgfromoff> can be TRUE or FALSE (default). If true, the background distribution (fHdNdEpBkg, for simulations) will be constructed from Off data distribution
 # <knownBackground> can be TRUE or FALSE (default). If true, b_i (i=1,...,Nbins) are fixed parameters (as opposed to nuisance). This option is for tests mainly
 # <isoffason>       can be TRUE or FALSE (default). If true,  use the Off sample (data or simulatiosn) as if it was the On (for tests). This option is for tests mainly
+# <EwindowWidth>    [sigma of the energy resolution] width of the window, ie the signal region, around the mass for which a line is searched
+# <EwindowThreshold> [GeV] minimum energy of the window (used to avoid thresold effect at low energy)
+
 #
 # NOTES:
 # - The object for which the minimization is called is lklTerm000, all the other terms should be directly or indirectly associated to lklTerm000 by
@@ -135,8 +138,9 @@ JOINT LIKELIHOOD CONFIGURATION
 #   DlogJ indicates that the uncertainty in the units of a particular lkl term is an *independent* random variable.
 #
 jointLklDM.lklTerm000: JointLkl -   DlogJ=0
-jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_01.root  
-jointLklDM.lklTerm002: Iact1dBinnedLkl    0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_02.root  nbins=20
+#jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_01.root
+#jointLklDM.lklTerm002: Iact1dBinnedLkl    0   logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_02.root  nbins=20
+jointLklDM.lklTerm001: LineSearchLkl  0   logJ=22.  DlogJ=0  inputfile=Output_glike_ST0307_wobble04_new_format.root  EwindowWidth=2.  EwindowThreshold=700.
 #jointLklDM.lklTerm001: LineSearchLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  
 #jointLklDM.lklTerm002: LineSearchLkl      0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_02.root
 #jointLklDM.lklTerm001: Iact1dUnbinnedLkl  0   logJ=19.  DlogJ=0  inputfile=data/genericIact_dataIRF_01.root  

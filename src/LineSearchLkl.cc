@@ -17,8 +17,9 @@
 
 // include Root needed classes
 #include "TMath.h"
-#include "TLegend.h"
 #include "TFile.h"
+#include "TLegend.h"
+#include "TPRegexp.h"
 
 // include gLike needed classes
 #include "LineSearchLkl.h"
@@ -56,7 +57,7 @@ static TMinuit* minuit = NULL;
 //
 LineSearchLkl::LineSearchLkl(TString inputString) :
   Lkl(gNPars,inputString,gName,gTitle), Iact1dUnbinnedLkl(inputString),
- fEventsInEnergyWindow(0)
+ fEventsInEnergyWindow(0), fEpmin_window(0.), fEpmax_window(0.), fEwindowWidth(0.), fEwindowThreshold(0.)
 {
   if(InterpretInputString(inputString))
     cout << "LineSearchLkl::LineSearchLkl Warning: there were problems interpreting the input string" << endl;      
@@ -72,7 +73,21 @@ LineSearchLkl::LineSearchLkl(TString inputString) :
 //
 Int_t LineSearchLkl::InterpretInputString(TString inputString)
 {
-  // decode your inputString and configure the class accordingly
+  // Prepeare to interpret inputString
+  TPMERegexp re("\\s+");
+  TPMERegexp fldre("=");
+
+  // split the inputString into the different fields, and check the option and values specified in each of them
+  UInt_t nfields = re.Split(inputString);
+  for(UInt_t ifield=0;ifield<nfields;ifield++)
+    {
+      fldre.Split(re[ifield]);
+      TString optname = fldre[0];
+      if(optname.CompareTo("EwindowWidth",TString::kIgnoreCase)==0)
+        fEwindowWidth=fldre[1].Atof();
+      else if(optname.CompareTo("EwindowThreshold",TString::kIgnoreCase)==0)
+        fEwindowThreshold=fldre[1].Atof();
+    }
 
   return 0;
 }
@@ -501,8 +516,8 @@ void lineSearchLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int_t
   const Double_t   xmax            = hdNdEpBkg->GetXaxis()->GetXmax();
   
   //get energy window size
-  Float_t lowE = mylkl->GetEmin();
-  Float_t highE = mylkl->GetEmax();
+  Float_t lowE = mylkl->GetEminWindow();
+  Float_t highE = mylkl->GetEmaxWindow();
  
   Float_t tau = mylkl->GetTau();
   Float_t dTau = mylkl->GetDTau();
