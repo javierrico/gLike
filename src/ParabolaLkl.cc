@@ -10,7 +10,7 @@
 //
 // This is the simplest form of a Lkl daughter class: it stores the
 // value of -2logL vs g, which has been computed elsewhere, and 
-// return its value when queried. Used by FermiTables2016Lkl.
+// return its value when queried. Used e.g. by FermiTables2016Lkl.
 //
 //////////////////////////////////////////////////////////////////////////////
 
