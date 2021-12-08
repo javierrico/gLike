@@ -32,10 +32,10 @@
 //
 // In addition, fUnitsOfG is used internally by JointLkl to relate
 // the values of g for each of the added Lkl objects (see JointLkl
-// documentation) and therefore MUST be defined for all those Lkl
+// documentation) and therefore MUST be defined for all added Lkl
 // objects. In addition, g_i*fUnitsOfG_i MUST be equal for all
-// added Lkl objects, i.e. proportional to a physical parameter
-// common to all added samples.
+// added Lkl objects, i.e. a physical parameter common to all
+// added samples.
 //
 // The uncertainty on fUnitsOfG (fDUnitsOfG) can be set using
 // SetDUnitsOfG(arg1,arg2), for which several types of pdf are
@@ -49,7 +49,7 @@
 //
 // If several Lkl objects share a common uncertainty in units of G,
 // do NOT set fDUnitsOfG for each of them, instead, add them all to a
-// JointLkl, for which you set the common value of fDUnitsOfG.
+// common JointLkl, for which you set the common value of fDUnitsOfG.
 // 
 // Lkl daughter classes may define methods to compute fUnitsOfG for
 // different physical processes of interest, see e.g.
@@ -72,9 +72,11 @@
 //                  profiles properly profiled.
 //
 // Any daughter class inheriting from Lkl MUST construct its
-// Lkl part with Lkl(npars), where npars is the total number of 
-// free+nuisance parameters.
-// Also, it MUST override the following methods:
+// Lkl part with Lkl(npars,inputString,gName,gTitle), where npars is the
+// total number of free+nuisance parameters, inputString an input string
+// used for the class configuration (see InterpretInputString) and gName,
+// and gTitle the ROOT class name and title.
+// Also, all daughter classes MUST override the following methods:
 // - MakeChecks: performes the checks needed before the minimization is
 //               called. If successful, it should return 0, 1 otherwise.
 //               Any method changing some of the material to be checked
@@ -111,8 +113,7 @@ static const Double_t gNSigma       = 2;      // number of sigmas to be covered 
 
 ////////////////////////////////////////////////////////////////
 //
-// Default constructor, all daughter classes MUST call it with 
-// the relevant number of parameter (free+nuisance)
+// Default constructor, all daughter classes MUST call it 
 //
 Lkl::Lkl(Int_t npars,TString inputString,TString name,TString title) :
   TNamed(name,title), fMinuit(NULL), fNPars(npars),
@@ -219,6 +220,8 @@ Lkl::~Lkl()
 // minimum in such a way that the value at gmin is 0
 //
 // if centerAtZero=kTRUE (default kFALSE) the curve minimum is set for g=0
+//
+// gInitWithUnits is the initial value of g (with units) used in the fit
 //
 // Return the lkl minimum 
 //
@@ -930,7 +933,7 @@ void Lkl::SetGLklVsG(Int_t npoints,Double_t* x,Double_t* y)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
 // Return the value of g for which the -2logL is the minimum (0) plus
-// lkl Normally there are two (or more) solutions, take the larger one
+// lkl. Normally there are two (or more) solutions, take the larger one
 // within the computed range.
 // If units==kTRUE, return g*fUnitsOfG, g otherwise
 // 
