@@ -42,7 +42,7 @@ jointLklDM.dNdEDir: DM/dNdE/Cirelli/
 jointLklDM.dataDir: data/root/
 
 # Directory for output plots
-jointLklDM.plotsDir: ~/gLike/plots/
+jointLklDM.plotsDir: ../plots/
 
 # Directory with files with histograms of convolution of dN/dE*Aeff with energy estimator pdf
 # Comment out if you don't want to save or read the histograms but create them on the fly
