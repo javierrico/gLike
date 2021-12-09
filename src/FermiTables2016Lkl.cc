@@ -9,7 +9,9 @@
 // FermiTables2016Lkl
 //
 // This class takes as input a list of values of -2logL vs Flux in
-// different bins of energy (in particular, those produced by Fermi)
+// different bins of energy as produced by the Fermi-LAT Collaboration
+// (published in Ackermann, M. et al. Phys. Rev. Lett., 115 (2015) 231301
+// and available at http://www-glast.stanford.edu/pub_data/1048/)
 // and computes likelihood for a given spectrum (fHdNdESignal).
 // The spectrum has to be specified fully (i.e. with the correct units)
 // and therefore SetUnitsOfG is deactivated for this class.
@@ -104,8 +106,8 @@ FermiTables2016Lkl::FermiTables2016Lkl(TString inputString) :
 // path=<val>:          path of the input file (will be appended to inputFileName)
 // inputfile=<val>:     name of the input file, which contains the lkl vs flux tables in E bins
 //                      in the format of the Fermi results published in
-//                      Phys. Rev. D 89, 042001 (2014)
-//                      available at http://www-glast.stanford.edu/pub_data/713/
+//                      Ackermann, M. et al. Phys. Rev. Lett., 115 (2015) 231301
+//                      available at http://www-glast.stanford.edu/pub_data/1048/
 // index=<val>:         number (-1, modulo gNMaxIndex) used to construct the input file for the case of empty fields of view (for null-hypothesis pdf evaluation)
 //
 Int_t FermiTables2016Lkl::InterpretInputString(TString inputString)

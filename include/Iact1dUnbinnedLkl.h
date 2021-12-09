@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// Unbinned full likelihood
+// Unbinned IACT spectral likelihood
 //////////////////////////////////////////////////////////////////////
 
 #ifndef FULLLKL
@@ -165,7 +165,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl, public HdNdE
   TH1F*    fHdNdEpSignal;    //-> dN/dE' vs E' histogram for signal events (normalized)
   TH1F*    fHdNdEpSignalOff; //-> dN/dE' vs E' histogram for signal events in the off region (normalized)
 
-  ClassDef(Iact1dUnbinnedLkl,1) // Full Likelihood (unbinned)
+  ClassDef(Iact1dUnbinnedLkl,1) // Unbinned IACT spectral likelihood
 };
 
 #endif
