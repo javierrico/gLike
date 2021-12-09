@@ -9,7 +9,7 @@ I/O CONFIGURATION
 #################
 
 # Label to indentify this analysis (for naming plots and output files)
-jointLklDM.Label: GenericIACT_Annihilation_bb_Unbinned_GisPositive_JisFixed
+jointLklDM.Label: GenericIACT_Annihilation_bb_GisPositive_JisFixed
 
 # Configuration for plots
 jointLklDM.showSamplePlots:   TRUE
@@ -42,7 +42,7 @@ jointLklDM.dNdEDir: DM/dNdE/Cirelli/
 jointLklDM.dataDir: data/root/
 
 # Directory for output plots
-jointLklDM.plotsDir: plots/
+jointLklDM.plotsDir: ~/gLike/plots/
 
 # Directory with files with histograms of convolution of dN/dE*Aeff with energy estimator pdf
 # Comment out if you don't want to save or read the histograms but create them on the fly
