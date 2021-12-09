@@ -9,6 +9,13 @@
 //
 // Lkl
 //
+// Cite this code as:
+// J. Rico et al. "gLike: numerical maximization of heterogeneous joint
+// likelihood functions of a common free parameter plus nuisance parameters"
+// [indicate the version]
+// Zenodo. https://doi.org/10.5281/zenodo.4601451
+// where you can access its latest version
+//
 // This is an abstract class (i.e. must be inherited by others to be
 // used) to perform a profile likelihood maximization (in reality a
 // profile -2logL minimization; the expressions "likelihood", "profile
@@ -1141,17 +1148,27 @@ void Lkl::PrintGLikeBanner()
   std::cout << "***            aa,    ,88                                                       ***" << std::endl;
   std::cout << "***             \"Y8bbdP\"                                                        ***" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***                             V0.10 Nov 2021                                  ***" << std::endl;
+  std::cout << "***                             V0.10 Dec 2021                                  ***" << std::endl;
   std::cout << "***                             J. Rico et al.                                  ***" << std::endl;
+  std::cout << "***                                                                             ***" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***  PLEASE CITE:        .                                                      ***" << std::endl;
-  std::cout << "***  J. Rico et al. DOI:10.5281/zenodo.3967385                                  ***" << std::endl;
-  std::cout << "***  Aleksic, Rico & Martinez JCAP 10 (2012) 032                                ***" << std::endl;
+  std::cout << "***  Cite this code as:                                                         ***" << std::endl;
+  std::cout << "***  J. Rico et al.                                                             ***" << std::endl;
+  std::cout << "***  \"gLike: numerical maximization of heterogeneous joint likelihood           ***" << std::endl;
+  std::cout << "***   functions of a common free parameter plus nuisance parameters\"            ***" << std::endl;
+  std::cout << "***  [indicate the version]                                                     ***" << std::endl;
+  std::cout << "***  Zenodo. https://doi.org/10.5281/zenodo.4601451                             ***" << std::endl;
+  std::cout << "***  where you can also access the latest release                               ***" << std::endl;
+  std::cout << "***                                                                             ***" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
 }
+// Cite this code as:
+// J. Rico et al. 
+// 
+// where you can access its latest version
 
 ////////////////////////////////////////////////////////////////
 //
