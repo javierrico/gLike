@@ -1,22 +1,22 @@
 //######################################################################
 //##
-//## computeCLBands.C
+//## computeCLBands
 //##
 //## Compute confidence level (CL) bands to Dark Matter annihilation
 //## cross-section (<sv>) or decay lifetime (tau) using files obtained
-//## with the jointLklDM.C script.
+//## with jointLklDM.
 //##
 //## You can specify two arguments:
 //## 1. Name of the rc file (a TString): it should be the same as the 
-//##    one used for jointLklDM.C
+//##    one used for jointLklDM
 //## 2. The total number of simulation files (a Int_t) you computed 
-//##    using jointLklDM.C. If you ran X simulations, it will assume
+//##    using jointLklDM. If you ran X simulations, it will assume
 //##    that the files have seeds in the range [1,X]
 //##
-//## The script will automaticaaly stop if more than 5% of the simualtion
+//## The program will automaticaaly stop if more than 5% of the simualtion
 //## files are not found.
 //##
-//## The script produces (and saves) two files:
+//## The program produces (and saves) two files:
 //## - One .root file containing the median curve, the right anf left 
 //##   limits of the 68% CL intervall and the right and left limits of 
 //##   the 95% CL intervall.
@@ -24,9 +24,6 @@
 //##   the considered DM channel, range of masses and data. Overlaid on 
 //##   this limit will be the 68% anf 95% CL bands as well as the median
 //##   of the simulations.
-//##
-//## You need to run the compiled version of the script
-//## by typing ".x computeCLBands.C+" in the ROOT command interpreter.
 //##
 //######################################################################
 

@@ -6,21 +6,15 @@
 \* ======================================================================== */
 
 //////////////////////////////////////////////////////////////////////////////
-//						
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
 //
 // Lkl
+//
+// Cite this code as:
+// J. Rico et al. "gLike: numerical maximization of heterogeneous joint
+// likelihood functions of a common free parameter plus nuisance parameters"
+// [indicate the version]
+// Zenodo. https://doi.org/10.5281/zenodo.4601451
+// where you can access its latest version
 //
 // This is an abstract class (i.e. must be inherited by others to be
 // used) to perform a profile likelihood maximization (in reality a
@@ -45,10 +39,10 @@
 //
 // In addition, fUnitsOfG is used internally by JointLkl to relate
 // the values of g for each of the added Lkl objects (see JointLkl
-// documentation) and therefore MUST be defined for all those Lkl
+// documentation) and therefore MUST be defined for all added Lkl
 // objects. In addition, g_i*fUnitsOfG_i MUST be equal for all
-// added Lkl objects, i.e. proportional to a physical parameter
-// common to all added samples.
+// added Lkl objects, i.e. a physical parameter common to all
+// added samples.
 //
 // The uncertainty on fUnitsOfG (fDUnitsOfG) can be set using
 // SetDUnitsOfG(arg1,arg2), for which several types of pdf are
@@ -62,7 +56,7 @@
 //
 // If several Lkl objects share a common uncertainty in units of G,
 // do NOT set fDUnitsOfG for each of them, instead, add them all to a
-// JointLkl, for which you set the common value of fDUnitsOfG.
+// common JointLkl, for which you set the common value of fDUnitsOfG.
 // 
 // Lkl daughter classes may define methods to compute fUnitsOfG for
 // different physical processes of interest, see e.g.
@@ -85,9 +79,11 @@
 //                  profiles properly profiled.
 //
 // Any daughter class inheriting from Lkl MUST construct its
-// Lkl part with Lkl(npars), where npars is the total number of 
-// free+nuisance parameters.
-// Also, it MUST override the following methods:
+// Lkl part with Lkl(npars,inputString,gName,gTitle), where npars is the
+// total number of free+nuisance parameters, inputString an input string
+// used for the class configuration (see InterpretInputString) and gName,
+// and gTitle the ROOT class name and title.
+// Also, all daughter classes MUST override the following methods:
 // - MakeChecks: performes the checks needed before the minimization is
 //               called. If successful, it should return 0, 1 otherwise.
 //               Any method changing some of the material to be checked
@@ -124,8 +120,7 @@ static const Double_t gNSigma       = 2;      // number of sigmas to be covered 
 
 ////////////////////////////////////////////////////////////////
 //
-// Default constructor, all daughter classes MUST call it with 
-// the relevant number of parameter (free+nuisance)
+// Default constructor, all daughter classes MUST call it 
 //
 Lkl::Lkl(Int_t npars,TString inputString,TString name,TString title) :
   TNamed(name,title), fMinuit(NULL), fNPars(npars),
@@ -232,6 +227,8 @@ Lkl::~Lkl()
 // minimum in such a way that the value at gmin is 0
 //
 // if centerAtZero=kTRUE (default kFALSE) the curve minimum is set for g=0
+//
+// gInitWithUnits is the initial value of g (with units) used in the fit
 //
 // Return the lkl minimum 
 //
@@ -943,7 +940,7 @@ void Lkl::SetGLklVsG(Int_t npoints,Double_t* x,Double_t* y)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
 // Return the value of g for which the -2logL is the minimum (0) plus
-// lkl Normally there are two (or more) solutions, take the larger one
+// lkl. Normally there are two (or more) solutions, take the larger one
 // within the computed range.
 // If units==kTRUE, return g*fUnitsOfG, g otherwise
 // 
@@ -1016,7 +1013,7 @@ Double_t Lkl::GetLklVal() const
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Print information about the lkl object and the fit results
+// Print information about the lkl object configuration
 //
 void Lkl::PrintData(Int_t level)
 {
@@ -1151,23 +1148,27 @@ void Lkl::PrintGLikeBanner()
   std::cout << "***            aa,    ,88                                                       ***" << std::endl;
   std::cout << "***             \"Y8bbdP\"                                                        ***" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***                             V0.4 Oct 2017                                   ***" << std::endl;
-  std::cout << "***                              J. Rico et al.                                 ***" << std::endl;
-  std::cout << "***********************************************************************************" << std::endl;
-  std::cout << "***********************************************************************************" << std::endl;
-  std::cout << "***  IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC        ***" << std::endl;
-  std::cout << "***  AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE            ***" << std::endl;
-  std::cout << "***  PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR                    ***" << std::endl;
-  std::cout << "***  PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE             ***" << std::endl;
-  std::cout << "***  AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico                   ***" << std::endl;
-  std::cout << "***  <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OVER THE               ***" << std::endl;
-  std::cout << "***  RESULTING PAPER                                                            ***" << std::endl;
+  std::cout << "***                             V0.10 Dec 2021                                  ***" << std::endl;
+  std::cout << "***                             J. Rico et al.                                  ***" << std::endl;
   std::cout << "***                                                                             ***" << std::endl;
-  std::cout << "***  PLEASE CITE:                                                               ***" << std::endl;
-  std::cout << "***  Aleksic, Rico & Martinez JCAP 10 (2012) 032                                ***" << std::endl;
+  std::cout << "***********************************************************************************" << std::endl;
+  std::cout << "***********************************************************************************" << std::endl;
+  std::cout << "***                                                                             ***" << std::endl;
+  std::cout << "***  Cite this code as:                                                         ***" << std::endl;
+  std::cout << "***  J. Rico et al.                                                             ***" << std::endl;
+  std::cout << "***  \"gLike: numerical maximization of heterogeneous joint likelihood           ***" << std::endl;
+  std::cout << "***   functions of a common free parameter plus nuisance parameters\"            ***" << std::endl;
+  std::cout << "***  [indicate the version]                                                     ***" << std::endl;
+  std::cout << "***  Zenodo. https://doi.org/10.5281/zenodo.4601451                             ***" << std::endl;
+  std::cout << "***  where you can also access the latest release                               ***" << std::endl;
+  std::cout << "***                                                                             ***" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
   std::cout << "***********************************************************************************" << std::endl;
 }
+// Cite this code as:
+// J. Rico et al. 
+// 
+// where you can access its latest version
 
 ////////////////////////////////////////////////////////////////
 //

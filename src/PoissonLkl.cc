@@ -6,19 +6,6 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
-//
 // PoissonLkl
 // 
 // Defines a double-Poisson joint likelihood for observed number of events
@@ -43,7 +30,7 @@
 // or Li & Ma (ApJ 272 (1983) 317) for computing statistical significance
 // of observed excess events (fixed tau).
 //
-// To combine several bins into a joint likelihood use class 
+// To combine several E'-bins into a joint likelihood use class 
 // Iact1dBinnedLkl.
 //
 //////////////////////////////////////////////////////////////////////////////

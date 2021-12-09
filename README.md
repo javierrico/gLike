@@ -34,18 +34,9 @@ If you build `gLike` using an older ROOT version, the interface to FITS data for
 
 2. At user level you are recommended to download, compile and run the latest stable release. Once you become an expert you will want to develop your own classes, for which you will need to check out the master (for new developments) or release (for bug fixes) branches. Check the [release wiki entry](https://github.com/javierrico/gLike/wiki/Branch-releases-log) for more information about the gLike repository branch and release structure.
 
-3. There are two available installation modes, the first with an already provided `Makefile`, the second with `cmake`.    
-**Note**: the installation with the `Makefile` will be deprecated in the next `gLike` release
+3. Since release 0.10, the sole installation method is using `cmake`. For  `Makefile`-based installation please refer to release 0.9 or earlier 
 
-4. `Makefile` installation
-    - Define the environment variable GLIKESYS pointing to your main gLike directory, e.g., for bash:    
-    `export GLIKESYS="/Users/rico/gLike/"`    
-    and include it in the library path, eg. for Mac:    
-    `export DYLD_LIBRARY_PATH="${GLIKESYS}:${DYLD_LIBRARY_PATH}"`;
-    - Create the gLike library by typing `make` in the main gLike directory;
-    -  [Optional] Create the gLike online documentation with `make doc`. 
-
-5. `cmake` installation
+4. `cmake` installation
     - Define the environment variable `GLIKESYS` pointing to the directory _where you want to build_ gLike,    
       you can create the build directory within the original `gLike` repository itself    
       `cd gLike`   

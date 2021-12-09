@@ -6,38 +6,13 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
-//
 // Iact1dBinnedLkl
 //
-// Class to perform BINNED likelihood maximization (minimization of -2logL)
-// to estimate the presence of signal events following a certain spectral 
-// shape (no physics origin is assumed and the class can be used as long as 
-// one has an a priori knowledge of the signal spectral shape).
+// Binned version of Iact1dUnbinnedLkl
 //
-// The free parameter g is the total number of signal events in the On
-// region. The Off/On normalization (tau, needs to be set when calling
-// ReadDataSamplesSegueStereo or any other method to read the input
-// data) is a nuisance parameter, and it's common to all bins. You can
-// fix tau by making Dtau<=0. In each bin, the number of background
-// events in the On region (b) is also a nuisance parameter internally
-// by the class.
-//
-// Upon object creation, we specify the maximum and minimum E' of the
-// events to be considered, and the number of bins that we want to use
-// in the likelihood. If fMinBinContent>0 (default is 0), the On and Off
-// histograms will be rebinned in such a
+// Upon object construction, we specify in the input string the number of bins
+// that we want to use in the likelihood. If fMinBinContent>0 (default is 0),
+// the On and Off histograms will be rebinned in such a
 // way that every bin of both histograms have at least fMinBinContent
 // events (can be set with SetMinBinContent). Bins for which the On or
 // On histograms have less events are merged to subsequent bins until
@@ -54,33 +29,9 @@
 // bin. Those objects are associated to the Iact1dBinnedLkl through its
 // JointLkl inheritance.
 //
-//
-// Usage example:
-// --------------
-// (for a fully working example see macro jointLkl.C)
-//
-// Iact1dBinnedLkl* bLkl = new Iact1dBinnedLkl(Emin,Emax,nbins);
-// bLkl->SetErrorDef(2.7);  // for 1-sided 95% CL
-// bLkl->ReadAeffSegueStereo(aEffFileName);
-// bLkl->ReadEResoAndBiasSegueStereo(energyRFileName);
-// bLkl->ReaddNdEpBkgSegueStereo(bkgModFileName);
-// bLkl->ReadDataSamplesSegueStereo(evtFileName,tau,dtau);
-// bLkl->ReaddNdESignalSegueStereo(dNdESignalFileName);
-//
-// // Set units for DM interpretation of results
-// bLkl->SetDMAnnihilationUnitsForG(Teff,mass,log10_J);
-//
-// // Compute the profile -2logL curve
-// bLkl->ComputeLklVsG();
-// 
-// // Get the results
-// Double_t gminval     = bLkl->GetGLklMin();    // value of g minimzing -2logL
-// Double_t gminvalErr  = bLkl->GetGLklMinErr(); // 1-sided 95% CL error bar from Migrad
-// Double_t glimval     = bLkl->GetGForLkl(2.7); // value of g for which -2logL = minimum+2.7
-// Double_t gminvalErr2 = glimval-gminval;       // better determination of 95% CL error 
-//
-// // Plot the -2logL curve
-// bLkl->GetLklVsG()->Draw("al");                // draw -2logL vs g 
+// See Iact1dUnbinnedLkl.c for an usage example (replace Iact1dUnbinnedLkl
+// by Iact1dBinnedLkl and use e.g.
+// TString inputString = "logJ=19.  DlogJ=0  inputfile=genericIact_dataIRF_02.root nbins=2"
 //
 //////////////////////////////////////////////////////////////////////////////
 #include <iostream>
@@ -113,7 +64,7 @@ void GetRebinning(TH1F*hOn,TH1F*hOff,UInt_t minNInBin,UInt_t& inewbin,Double_t* 
 ////////////////////////////////////////////////////////////////
 // 
 // String constructor
-//
+// (see InterpretInputString for details)
 //
 Iact1dBinnedLkl::Iact1dBinnedLkl(TString inputString) :
   Lkl(gNPars,inputString,gName,gTitle), Iact1dUnbinnedLkl(inputString), JointLkl(inputString),
@@ -199,6 +150,7 @@ void Iact1dBinnedLkl::SetMinuitLink()
 //
 // Pass the -2logL function to fMinuit,
 // initialize the parameters (free+nuisance),
+// ginit = initial value of g for the fit
 //
 void  Iact1dBinnedLkl::SetFunctionAndPars(Double_t ginit)
 {

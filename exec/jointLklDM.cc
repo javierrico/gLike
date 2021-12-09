@@ -1,59 +1,41 @@
 //######################################################################
 //##
-//##                         jointLklDM.C
+//##                         jointLklDM.cc
 //##
 //##              AUTHOR: Javier Rico (jrico@ifae.es)
 //##                        29/03/2017
 //##
-//##
-//## IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-//## AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-//## PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-//## PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-//## AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-//## <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-//## RESULTING PAPER.
-//##
-//## PLEASE CITE:
-//## Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//##
-//## jointLklDM.C
+//## Cite this code as:
+//## J. Rico et al. "gLike: numerical maximization of heterogeneous joint
+//## likelihood functions of a common free parameter plus nuisance parameters"
+//## [indicate the version]
+//## Zenodo. https://doi.org/10.5281/zenodo.4601451
+//## where you can access its latest version
 //##
 //## Compute limits to Dark Matter annihilation cross-section (<sv>) or
-//## decay lifetime (tau) using the full-likelihood approach as described
-//## in Aleksic, Rico & Martinez JCAP 10 (2012) 032 and implemented in
-//## gLike.
+//## decay lifetime (tau) using an arbitrarily complex joint likelihood function
+//## defined in a simple way in the input datacard (rc file)
 //##
 //## You can specify two arguments:
 //## 1. Name of the rc file (a TString)
-//## 2. A random seed (a Int_t). If the seed is non-negative it is used 
-//##    for the geenerator that simulates event energies according to the 
+//## 2. A random seed (a Int_t). If the seed is positive (>0) it is used 
+//##    for the generator that simulates event energies according to the 
 //##    background and signal pdf's, the observation time, signal 
-//##    intensity, tau, dTau...
+//##    intensity, tau, dTau..., or to get the corresponding empty field
+//##    of view from Fermi-LAT observations
 //##
-//## The -2logLkl vs g0 curve is evaluated close to
+//## The -2logLkl vs alpha (<sv> or 1/tau) curve is evaluated close to
 //## its minimum and the limits are obtained from the point where the
 //## curve crosses the minimum value plus deltaLogLkl (configurable).
 //##
-//## The macro produces (and saves) three different sets of plots:
-//## - For each sample, a canvas (hadcanvas[isample]) containing the
+//## The program produces (and saves) three different sets of plots:
+//## - For each Iact1dUnbinned sample, a canvas (hadcanvas[isample]) containing the
 //##   IRFs, dN_signal/dE and dN_signal/dE' and data plots. To obtain
 //##   these plots set showSamplePlots==kTRUE.
 //## - A canvas (lklcanvas) with one plot per considered
-//##   mass value, where -2logLkl is plotted vs <sv> near the minimum.
+//##   mass value, where -2logLkl is plotted vs alpha near the minimum.
 //## - A canvas limcanvas with the limits on <sv> or tau vs mass for
 //##   the considered DM channel, range of masses and data.
-//##
-//## You need to run the compiled version of the macro
-//## by typing ".x jointLklDM.C+" in the ROOT command interpreter.
-//##
-//## Input files for MAGIC Stereo Segue observations can be downloaded
-//## from 
-//## https://dl.dropboxusercontent.com/u/14145932/MAGICStereoSegueIRFandData.tgz
-//## and for CTA simulations from
-//## http://www.mpi-hd.mpg.de/hfm/CTA/MC/performance-20deg/
-//## BE AWARE THESE ARE MAGIC AND CTA INTERNAL FILES, RESPECTIVELY,
-//## YOU CANNOT PUBLISH ON YOUR OWN IF YOU USE THEM!!
 //##
 //######################################################################
 
@@ -152,7 +134,7 @@ int main(int argc,char* argv[])
   cout << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***********************************************************************************" << endl;
-  cout << "***                            RUNNING jointLklDM.C                             ***" << endl;
+  cout << "***                            RUNNING jointLklDM                               ***" << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***********************************************************************************" << endl;
   cout << "***" << endl;
@@ -646,6 +628,7 @@ int main(int argc,char* argv[])
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
 
+	      // Building the dN/dE histogram and, if requested, read the corresponding dN/dE' histogram
 	      cout << "  ** Building signal histos for sample " << fullLkl->GetName() << ":" << endl;	      
 	      builddNdESignal(fullLkl,fdNdEDir,nChannels,channelval,brval,mdm);
 	      if(ioHdNdEpSignal)
@@ -660,7 +643,9 @@ int main(int argc,char* argv[])
 	  else if(!strcmp(lkl[isample]->ClassName(),"FermiTables2016Lkl"))
 	    {
 	      FermiTables2016Lkl* fermiLkl =  dynamic_cast<FermiTables2016Lkl*>(lkl[isample]);
-	      cout << "  ** Building signal histos for sample " << fermiLkl->GetName() << ":" << endl;	      
+	      cout << "  ** Building signal histos for sample " << fermiLkl->GetName() << ":" << endl;
+
+	      // Building the dN/dE histogram
 	      builddNdESignal(fermiLkl,fdNdEDir,nChannels,channelval,brval,mdm);
 
 	      fermiLkl->SetDMMass(mass);
@@ -944,7 +929,7 @@ int main(int argc,char* argv[])
   gSystem->Exec(Form("mkdir -p %s/root",realPlotDir.Data()));
   gSystem->Exec(Form("mkdir -p %s/pdf",realPlotDir.Data()));
   
-  TString seedTag  = (seed<0? "" : Form("_%04d",seed));
+  TString seedTag  = (seed<1? "" : Form("_%04d",seed));
   
   limcanvas->Print(realPlotDir+"root/"+label+"_"+simulationlabel+"_limits"+seedTag+".root");
   limcanvas->Print(realPlotDir+"pdf/" +label+"_"+simulationlabel+"_limits"+seedTag+".pdf");

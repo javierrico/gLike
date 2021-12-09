@@ -6,24 +6,11 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
-//
 // ParabolaLkl
 //
 // This is the simplest form of a Lkl daughter class: it stores the
 // value of -2logL vs g, which has been computed elsewhere, and 
-// return its value when queried. Used by FermiTables2016Lkl.
+// return its value when queried. Used e.g. by FermiTables2016Lkl.
 //
 //////////////////////////////////////////////////////////////////////////////
 

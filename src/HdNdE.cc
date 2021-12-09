@@ -10,7 +10,14 @@
 //
 // Abstract class to be inherited by all the Lkl classes that use a dNdE-type
 // histogram, in such a way that the methods do not need to be implemented
-// individually for each of such Lkl-based classes
+// individually for each of such Lkl-based classes.
+//
+// The main data member is:
+// fHdNdESignal = histogram with dN/dE vs logE for signal events
+//                provided through any of the read/set/add methods
+//                (to be implemented for different input formats). 
+//                The histogram is normalized and the integral stored in bin #0, which 
+//                can be accessed through function GetdNdESignalIntegral. 
 //
 //////////////////////////////////////////////////////////////////////////////
 

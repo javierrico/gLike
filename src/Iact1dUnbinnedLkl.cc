@@ -8,22 +8,10 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //						
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
-//
 // Iact1dUnbinnedLkl
 //
 // Class to perform full likelihood maximization (minimization of -2logL)
+// for Cherenkov telescopes
 // to estimate the presence of signal events following a certain spectral 
 // shape. No physics origin is assumed and the class can be used as long as 
 // one has an a priori knowledge of the signal spectral shape.
@@ -99,11 +87,8 @@
 //                    fGEreso and fGEbias or fMigMatrix.
 //                    The histogram is normalized and the integral stored in bin #0, which can 
 //                    be accessed through function GetdNdEpSignalOffIntegral.
-// fHdNdESignal = histogram with dN/dE vs logE for signal events
-//                provided through ReaddNdESignalSegueStereo or similar functions 
-//                (to be implemented for different input formats). 
-//                The histogram is normalized and the integral stored in bin #0, which can 
-//                be accessed through function GetdNdESignalIntegral. 
+//
+// The fHdNdESignal histogram is part of the mother class HdNdE
 // 
 // The previous histograms are used as functions (likelihood is
 // unbinned). Therefore a large number of bins is needed. The number
@@ -136,18 +121,15 @@
 //
 // Usage example:
 // --------------
-// (for a fully working example see macro jointLkl.C)
+// (for a fully working example see exec/jointLklDM.cc)
 //
-// Iact1dUnbinnedLkl* fLkl = new Iact1dUnbinnedLkl(Emin,Emax);
+// TString inputString = "logJ=19.04  DlogJ=0.29  inputfile=data/SegueStereo2014paper/dataIRF/C6_W1_dataIRF.root"
+// Iact1dUnbinnedLkl* fLkl = new Iact1dUnbinnedLkl(inputString);
 // fLkl->SetErrorDef(2.7);  // for 1-sided 95% CL
-// fLkl->ReadAeffSegueStereo(aEffFileName);
-// fLkl->ReadEResoAndBiasSegueStereo(energyRFileName);
-// fLkl->ReaddNdEpBkgSegueStereo(bkgModFileName);
-// fLkl->ReadDataSamplesSegueStereo(evtFileName,tau,dtau);
-// fLkl->ReaddNdESignalSegueStereo(dNdESignalFileName);
+// fLkl->ReaddNdESignal(dNdESignalFileName);
 //
 // // Set units for DM interpretation of results
-// fLkl->SetDMAnnihilationUnitsForG(Teff,mass,log10_J);
+// fLkl->SetDMAnnihilationUnitsForG(mass);
 //
 // // Compute the profile -2logL curve
 // fLkl->ComputeLklVsG();
@@ -209,7 +191,8 @@ static TMinuit* minuit = NULL;
 //////////////////////////////////////////////////////////////////////////////
 //
 // String constructor
-// The string contains the elements for the constructor 
+// The string contains the elements for the constructor
+// See InterpretInputString for more details
 //
 Iact1dUnbinnedLkl::Iact1dUnbinnedLkl(TString inputString) : 
   Lkl(gNPars,inputString,gName,gTitle), HdNdE("","",gNFineBins,gFineLEMin,gFineLEMax),
@@ -231,7 +214,7 @@ Iact1dUnbinnedLkl::Iact1dUnbinnedLkl(TString inputString) :
 //
 // logJ=<val>:          mean value of the log10 of the J factor, in units of GeV^2 cm^-5 (annihilation) or GeV cm^-3 (decay)
 // path=<val>:          path of the input file (will be appended to inputFileName)
-// inputfile=<val>:     name of the input file, which contain the IRFs and/or data, which is subsequently interpreted
+// inputfile=<val>:     name of the input file, which contains the IRFs and/or data, which is subsequently interpreted
 // obsTime=<val>:       assumed observation time, in units of hour. Be aware observation time is stored in the data input file,
 //                      but it can be useful to override it for tests and simulations
 // tau=<val>            assumed tau value.  Be aware tau value is stored in the data input file,
@@ -626,8 +609,7 @@ Int_t Iact1dUnbinnedLkl::ResetdNdESignal()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Read dN/dE' for signal from file in the Segue Stereo input format
-// produced by Jelena
+// Read dN/dE' for signal from file
 // Replacement of existing file is allowed
 // Return 0 in case of success
 //        1 if file is not found
@@ -665,8 +647,7 @@ Int_t Iact1dUnbinnedLkl::ReaddNdEpSignal(TString filename)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Read dN/dE' for signal in the off region from file in the Segue Stereo input format
-// produced by Jelena
+// Read dN/dE' for signal in the off region from file 
 // Replacement of existing file is allowed
 // Return 0 in case of success
 //        1 if file is not found
@@ -708,6 +689,11 @@ Int_t Iact1dUnbinnedLkl::ReaddNdEpSignalOff(TString filename)
 // Return 0 in case of success
 //        1 otherwise
 //
+// hProvdNdEBkg = input histogram with dNdEBkg
+// interpolate  = if kTRUE (default value) then call HdNdE::ReadAndInterpolate
+//                otherwise call copyBinByBin
+// (see documentation of HdNdE::ReadAndInterpolate for the meaning of scale and isDiff)
+//
 Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpBkg(TH1F* hProvdNdEBkg,Bool_t interpolate,Double_t scale,Bool_t isDiff)
 {
   if(!hProvdNdEBkg) return 1;
@@ -742,7 +728,7 @@ Int_t Iact1dUnbinnedLkl::TransformAndSavedNdEpBkg(TH1F* hProvdNdEBkg,Bool_t inte
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Save dNdHpFrg histogram in gLike format
+// Save dNdHpFrg histogram in gLike format (see TransformAndSavedNdEpBkg for more details)
 // Return 0 in case of success
 //        1 otherwise
 //

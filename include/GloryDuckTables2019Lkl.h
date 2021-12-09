@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// Binned flux likelihood
+// Likelihood vs <sv> in the Glory Duck format
 //////////////////////////////////////////////////////////////////////
 
 #ifndef GLORYDUCKLKL
@@ -61,7 +61,7 @@ class GloryDuckTables2019Lkl : public Lkl
   UInt_t      fNsvVals;       //   Number of <sv> values
   Double_t    fLogJ;          //   Value of logJ
 
-  ClassDef(GloryDuckTables2019Lkl,1) // Likelihood vs <sv>
+  ClassDef(GloryDuckTables2019Lkl,1) // Likelihood vs <sv> in the Glory Duck format
 };
 
 #endif

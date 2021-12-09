@@ -7,19 +7,6 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// IMPORTANT NOTE: THE USE OF THIS CODE TO PRODUCE PAPERS OF THE MAGIC
-// AND/OR CTA COLLABORATIONS IS ALLOWED FOLLOWING THEIR RESPECTIVE
-// PUBLICATION POLICIES FOR FULL-COLLABORATION PAPERS. FOR
-// PUBLICATIONS OUTSIDE THOSE FRAMEWORKS PLEASE CONTACT FIRST THE
-// AUTHORS (Jelena Aleksic <jelena@ifae.es> AND Javier Rico
-// <mailto:jrico@ifae.es>), WHO COULD CLAIM AUTHORSHIP OF THE
-// RESULTING PAPER.
-//
-// WHEN USING Iact1dUnbinnedLkl CLASS, A REFERENCE SHOULD BE MADE TO THE 
-// FOLLOWING PUBLICATION:
-// Aleksic, Rico & Martinez JCAP 10 (2012) 032
-//
-//
 // JointLkl
 //
 // This class performs a joint likelihood maximization (minimization
@@ -29,21 +16,20 @@
 // The only free parameter is g_0, i.e. g for the *reference* sample
 // (normally the first sample added to the JointLkl object, but not
 // always, see note below).  The value of g in subsequent samples
-// (g_1,..., g_n-1) depend on g_0 (see jointLkl for details). Each
+// (g_1,..., g_n-1) depend on g_0. Each
 // Lkl object can contain different nuisance parameters. Nuisance
 // parameters from different Lkl instances will be considered
 // independent from each other. If several Lkl objects share a common
 // uncertainty in units of G, do NOT set fDUnitsOfG for each of them,
 // since in such a case they will be considered as independent
-// nuisance parameters. Instead, add them all to a JointLkl, for
+// nuisance parameters. Instead, add them all to a JointLkl instance, for
 // which you set the common value of fDUnitsOfG.
 //
 // VERY IMPORTANT: You need to define fUnitsOfG (with SetUnitsOfG) for 
 // every Lkl object added to a given JointLKl object. This is so, because
 // fUnitsOfG is used to compute the values of g_1,...,g_n given a free
-// parameter g_00. fUnitsOfG must be such that for all added objects
-// g_i*fUnitsOfG_i has the same value, i.e. proportional to a common
-// physical quantity.
+// parameter g_0. fUnitsOfG must be such that for all added objects
+// g_i*fUnitsOfG_i has the same value, i.e. a common physical quantity.
 //
 // IMPORTANT: the reference sample (that which g_0 refers to) may not
 // necessarily be the one added first to the JointLkl object.
@@ -55,34 +41,26 @@
 //
 // Usage example:
 // --------------
-// (for a fully working example see macro jointLkl.C)
+// (for a fully working example see exec/jointLkl.cc)
 //
 // Iact1dUnbinnedLkl** fLkl = new Iact1dUnbinnedLkl*[nsample];
-// JointLkl* jLkl = new JointLkl;
+// JointLkl* jLkl = new JointLkl(jointInputString);
 // 
 // // Configure each Iact1dUnbinnedLkl sample
 // for(Int_t isample=0;isample<nsample;isample++)
 //   {
 //      // Configure the samples
-//      fLkl[isample] = new Iact1dUnbinnedLkl(Emin[isample],Emax[isample]);
-//      fLkl[isample]->ReadAeffSegueStereo(aEffFileName[isample]);
-//      fLkl[isample]->ReadEResoAndBiasSegueStereo(energyRFileName[isample]);
-//      fLkl[isample]->ReaddNdEpBkgSegueStereo(bkgModFileName[isample]);
-//      fLkl[isample]->ReaddNdESignalSegueStereo(dNdESignalFileName);
-//      fLkl[isample]->ReaddNdEpSignalSegueStereo(dNdEpSignalFileName[isample]);
-//      fLkl[isample]->ReadDataSamplesSegueStereo(evtFileName[isample],tau[isample],dtau[isample]);
-//
-//      // Set units for DM interpretation of results
-//      fLkl[isample]->SetDMAnnihilationUnitsForG(Teff[isample],mass,log10_J);
+//      fLkl[isample] = new Iact1dUnbinnedLkl(inputString[isample]);
+//      fLkl[isample]->AdddNdESignal(dNdESignalFileName);
+//      fLkl[isample]->SetDMAnnihilationUnitsForG(mass);	
 //
 //      // add the sample to the JointLkl object
 //      jLkl->AddSample(fLkl[isample]);
 //   }
 //
 // // Configure the Joint Likelihood
-// jLkl->SetErrorDef(deltaLogLkl); // set the error correponding to the required CL
-// jLkl->SetDUnitsOfG(DLog10_J,Lkl::invlog);    // if we know the error of log10(J)
-// jLkl->SetGIsPositive();                       // only G values are considered (Fermi prescription)
+// jLkl->SetErrorDef(deltaLogLkl);              // set the error correponding to the required CL
+// jLkl->SetGIsPositive();                      // only G values are considered (Fermi prescription)
 //
 // // Compute and profile -2logL curve
 // jLkl->ComputeLklVsG();                        // compute joint -2logL vs g around minimum
@@ -170,6 +148,8 @@ Int_t JointLkl::MakeChecks()
 // Check that the object has some daughter objects before
 // calling the computation of Lkl vs G
 //
+// Check Lkl::ComputeLklVsG for explanation about the arguments
+//
 Double_t  JointLkl::ComputeLklVsG(Double_t gInitWithUnits,Bool_t centerAtZero,Int_t npoints,Double_t glow,Double_t gupp,Bool_t isVerbose)
 {
   if(fSampleArray->GetEntries()<=0)
@@ -223,10 +203,12 @@ void JointLkl::SetMinuitLink()
 
 ////////////////////////////////////////////////////////////////
 //
-// If needed, reorder samples so that the first one has non-zero
-// predicted signal events
+// If needed, reorder samples so that the first (or "reference")
+// one has non-zero predicted signal events
 //
-// Return 0 in case of success, 1 otherwise
+// Return 0 even if no sample produce signal because this could be ok
+// if this JointLkl is in turn part of another JointLkl list in which
+// there are classes producing a signal
 //
 Int_t JointLkl::ReorderSamples()
 {
@@ -382,7 +364,7 @@ Double_t JointLkl::GetExpansionCoefficient() const
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Print information about all added samples
+// Print information about all added samples and their fit results
 //
 void JointLkl::PrintOverview(Int_t level) 
 {
@@ -403,7 +385,7 @@ void JointLkl::PrintOverview(Int_t level)
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 // 
-// Print information about all added samples
+// Print information about all added samples configuration
 //
 void JointLkl::PrintData(Int_t level) 
 {

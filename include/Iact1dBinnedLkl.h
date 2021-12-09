@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// Binned full likelihood
+// Binned IACT spectral likelihood
 //////////////////////////////////////////////////////////////////////
 
 #ifndef BINNEDFULLLKL
@@ -12,7 +12,7 @@ class Iact1dBinnedLkl : public Iact1dUnbinnedLkl, public JointLkl
 {
  public:
   // enumerations
-  enum parIndex_t {gGIndex,gTauIndex};                    // Indeces of parameters
+  enum parIndex_t {gGIndex,gTauIndex}; // Indeces of parameters
 
   // constants
   static const UInt_t  gDefNBins = 10;          // default number of bins
@@ -70,7 +70,7 @@ class Iact1dBinnedLkl : public Iact1dUnbinnedLkl, public JointLkl
   TH1I* fHNOn;           //-> histogram for On  events vs E'
   TH1I* fHNOff;          //-> histogram for Off events vs E'
 
-  ClassDef(Iact1dBinnedLkl,1) // Binned full likelihood
+  ClassDef(Iact1dBinnedLkl,1) // Binned IACT spectral likelihood
 };
 
 #endif

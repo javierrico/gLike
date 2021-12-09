@@ -1,5 +1,7 @@
 //////////////////////////////////////////////////////////////////////
-// Binned flux likelihood
+// Likelihood vs <sv> in E-bins from Fermi from their publication
+// Ackermann, M. et al. Phys. Rev. Lett., 115 (2015) 231301
+// and available at http://www-glast.stanford.edu/pub_data/1048/
 //////////////////////////////////////////////////////////////////////
 
 #ifndef BINNEDFLUXLKL
@@ -75,7 +77,7 @@ class FermiTables2016Lkl :  public JointLkl, public HdNdE
   Double_t  fMass;          //   [GeV] dark matter particle mass
   Double_t  fLogJ;          //   log10 [GeV^2/cm^5] of estimated J-factor
 
-  ClassDef(FermiTables2016Lkl,1) // Binned flux likelihood
+  ClassDef(FermiTables2016Lkl,1) // Likelihood vs <sv> in E-bins from Fermi 2015 paper
 };
 
 #endif
