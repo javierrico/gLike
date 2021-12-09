@@ -628,6 +628,7 @@ int main(int argc,char* argv[])
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dUnbinnedLkl")) fullLkl = dynamic_cast<Iact1dUnbinnedLkl*>(lkl[isample]);
 	      if(!strcmp(lkl[isample]->ClassName(),"Iact1dBinnedLkl"))   fullLkl = dynamic_cast<Iact1dBinnedLkl*>(lkl[isample]);
 
+	      // Building the dN/dE histogram and, if requested, read the corresponding dN/dE' histogram
 	      cout << "  ** Building signal histos for sample " << fullLkl->GetName() << ":" << endl;	      
 	      builddNdESignal(fullLkl,fdNdEDir,nChannels,channelval,brval,mdm);
 	      if(ioHdNdEpSignal)
@@ -642,7 +643,9 @@ int main(int argc,char* argv[])
 	  else if(!strcmp(lkl[isample]->ClassName(),"FermiTables2016Lkl"))
 	    {
 	      FermiTables2016Lkl* fermiLkl =  dynamic_cast<FermiTables2016Lkl*>(lkl[isample]);
-	      cout << "  ** Building signal histos for sample " << fermiLkl->GetName() << ":" << endl;	      
+	      cout << "  ** Building signal histos for sample " << fermiLkl->GetName() << ":" << endl;
+
+	      // Building the dN/dE histogram
 	      builddNdESignal(fermiLkl,fdNdEDir,nChannels,channelval,brval,mdm);
 
 	      fermiLkl->SetDMMass(mass);
