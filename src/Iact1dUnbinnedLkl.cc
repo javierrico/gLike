@@ -1338,9 +1338,16 @@ void Iact1dUnbinnedLkl::PlotHistosAndData(TCanvas* canvas)
       hResidualsOn  =  GetResidualsHisto(hdNdEpBkg,hOn);
       hResidualsOff =  GetResidualsHisto(hdNdEpBkg,hOff);
     }
-  
-  dummya->SetMinimum(TMath::Min(hResidualsOn->GetMinimum(),-3.));
-  dummya->SetMaximum(TMath::Max(hResidualsOn->GetMaximum(),3.));
+  else if(hOff && hOn)
+    hResidualsOn  =  GetResidualsHisto(hOff,hOn);
+  else
+    cout << "Iact1dUnbinnedLkl::PlotHistosAndData Warning: there is some problem computing residuals, missing information!" << endl;
+
+  if(hResidualsOn)
+    {
+      dummya->SetMinimum(TMath::Min(hResidualsOn->GetMinimum(),-3.));
+      dummya->SetMaximum(TMath::Max(hResidualsOn->GetMaximum(),3.));
+    }
   dummya->SetTitle("Residuals");
   dummya->SetXTitle("log_{10}(E' [GeV])");
   if(hdNdEpBkg)
@@ -1362,10 +1369,8 @@ void Iact1dUnbinnedLkl::PlotHistosAndData(TCanvas* canvas)
       hResidualsOff->DrawCopy("esame");
     }
   else if(hOff && hOn)
-    {
-      hResidualsOn  =  GetResidualsHisto(hOff,hOn);
-      hResidualsOn->DrawCopy("esame");
-    }
+    hResidualsOn->DrawCopy("esame");
+  
   gPad->SetGrid();
   gPad->Modified();
   gPad->Update();
