@@ -750,31 +750,35 @@ void iact1dBinnedLkl(Int_t &fpar, Double_t *gin, Double_t &f, Double_t *par, Int
   fpar*=1;
   iflag*=1;
   f = 0;
-
-  // get internal object
-  Iact1dBinnedLkl* mylkl          = dynamic_cast<Iact1dBinnedLkl*>(minuit->GetObjectFit());
-  Bool_t          tauIsFixed    = mylkl->IsParFixed(Iact1dBinnedLkl::gTauIndex);
-  Float_t         tau           = mylkl->GetTau();
-  Float_t         dTau          = mylkl->GetDTau();
-  
-  // total g is the sum of g for all bins
   Double_t       g       = par[0];
   Double_t       trytau  = par[1];
-  TObjArrayIter* iter    = (TObjArrayIter*) mylkl->GetSampleArray()->MakeIterator();
-  PoissonLkl* sample;
-  
-  while((sample=dynamic_cast<PoissonLkl*>(iter->Next())))
+  if(trytau<=0)
+    f=gLklValVeryHigh;
+  else
     {
-      sample->SetTau(trytau);
-
-      Double_t   w_i = sample->GetUnitsOfG();
-      Double_t   g_i = g*w_i;
-     
-      if(w_i>0)
-	f+=sample->MinimizeLkl(g_i,kTRUE,kFALSE);
+      // get internal object
+      Iact1dBinnedLkl* mylkl          = dynamic_cast<Iact1dBinnedLkl*>(minuit->GetObjectFit());
+      Bool_t          tauIsFixed    = mylkl->IsParFixed(Iact1dBinnedLkl::gTauIndex);
+      Float_t         tau           = mylkl->GetTau();
+      Float_t         dTau          = mylkl->GetDTau();
+      
+      // total g is the sum of g for all bins
+      TObjArrayIter* iter    = (TObjArrayIter*) mylkl->GetSampleArray()->MakeIterator();
+      PoissonLkl* sample;
+      
+      while((sample=dynamic_cast<PoissonLkl*>(iter->Next())))
+	{
+	  sample->SetTau(trytau);
+	  
+	  Double_t   w_i = sample->GetUnitsOfG();
+	  Double_t   g_i = g*w_i;
+	  
+	  if(w_i>0)
+	    f+=sample->MinimizeLkl(g_i,kTRUE,kFALSE);
+	}
+      if(!tauIsFixed)
+	f+= -2*TMath::Log(TMath::Gaus(trytau, tau, dTau, kTRUE));
+      
+      delete iter;
     }
-  if(!tauIsFixed)
-    f+= -2*TMath::Log(TMath::Gaus(trytau, tau, dTau, kTRUE));
-  
-  delete iter;
 }
