@@ -20,7 +20,7 @@
 #include "TLegend.h"
 #include "TFile.h"
 #include "TROOT.h"
-#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
+#if ROOT_VERSION_CODE > ROOT_VERSION(8,20,04)
 #include "TFITS.h"
 #endif
 #include "IactEventListIrf.h"
@@ -33,7 +33,7 @@ static const Double_t gEpmin = 1e00; // [GeV] default value of minimum E_est
 static const Double_t gEpmax = 1e06; // [GeV] default value of maximum E_est
 static const Int_t   gBuffSize = 512000; // buffer size for Ntuples
 
-#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
+#if ROOT_VERSION_CODE > ROOT_VERSION(8,20,04)
 // static functions, helpers to load data from the FITS Header Data Units (HDUs)
 static TH1F* GetHAeffFromHDU(TFITSHDU* hdu);
 static TH2F* GetMigMatrixFromHDU(TFITSHDU* hduMatrix, TFITSHDU* hduEbounds);
@@ -265,7 +265,7 @@ void IactEventListIrf::PlotOverview(Bool_t logY)
 // 
 void IactEventListIrf::LoadFITSFile(TString inputFileName)
 {
-  #if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
+  #if ROOT_VERSION_CODE > ROOT_VERSION(8,20,04)
   Info("LoadFITS", "loading the dataset in: %s", inputFileName.Data());
   
   // open all the Header Data Units (HDUs)
@@ -308,7 +308,7 @@ void IactEventListIrf::LoadFITSFile(TString inputFileName)
   #endif
 }
 
-#if ROOT_VERSION_CODE > ROOT_VERSION(6,20,04)
+#if ROOT_VERSION_CODE > ROOT_VERSION(8,20,04)
 ////////////////////////////////////////////////////////////////
 // 
 // get the effective area from the Header Data Unit of the FITS
