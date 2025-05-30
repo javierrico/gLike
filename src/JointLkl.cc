@@ -229,7 +229,7 @@ Int_t JointLkl::ReorderSamples()
       if(++nchecks>=nmaxchecks)
 	{
 	  cout << "JointLkl::ReorderSamples (" << GetName() << ") Warning: none of the samples will produce any signal event" << endl;
-	  break;
+	  return 1;
 	}
     }
   fSampleArray->Compress();

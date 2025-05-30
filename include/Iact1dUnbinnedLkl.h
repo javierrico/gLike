@@ -8,7 +8,7 @@
 #include "TH2.h"
 #include "TString.h"
 #include "TCanvas.h"
-#include "TRandom.h"
+#include "TRandom3.h"
 #include "TF1.h"
 #include "TMath.h"
 
@@ -95,7 +95,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl, public HdNdE
   Int_t ResetHdNdEpBkg() {if(fHdNdEpBkg) delete fHdNdEpBkg; fHdNdEpBkg=NULL; return 0;}
   Int_t SetTrueTau(Float_t truetau) {fTrueTau=truetau; return 0;}
 
-  virtual Int_t SimulateDataSamples(Float_t meanGwithUnits=0,TRandom* rdm=NULL);
+  virtual Int_t SimulateDataSamples(Float_t meanGwithUnits=0,TRandom3* rdm=NULL);
 
   // print data in the overview
   virtual void PrintData(Int_t level=0);
@@ -108,7 +108,7 @@ class Iact1dUnbinnedLkl : public virtual Lkl, public HdNdE
 
  protected:
           Int_t    InterpretInputString(TString inputString);
-  virtual Int_t    GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
+  virtual Int_t    GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff);
 
   virtual Bool_t   IsChecked() const                   {return Lkl::IsChecked() & HdNdE::IsHdNdESignalChecked();}
   virtual void     SetChecked(Bool_t status=kTRUE)     {Lkl::SetChecked(status); HdNdE::SetHdNdESignalChecked(status);}

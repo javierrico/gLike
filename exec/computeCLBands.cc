@@ -42,6 +42,7 @@
 #include "TFile.h"
 #include "TStyle.h"
 #include "TGraph.h"
+#include "TLine.h"
 #include "TEnv.h"
 #include "TROOT.h"
 #include "TSystem.h"
@@ -65,6 +66,7 @@ int main(int argc, char* argv[])
 {
   TString configFileName="$GLIKESYS/rcfiles/jointLklDM.rc";
   Int_t nSimuFiles=300;
+  TString limitName="Limit";
   // check input parameters
   for (int i = 1; i < argc; ++i) {
     TString arg = argv[i];
@@ -77,6 +79,9 @@ int main(int argc, char* argv[])
     } 
     if (arg == "--nsimufiles") {
       nSimuFiles = atof(argv[i+1]);
+    }
+    if (arg == "--limitname") {
+      limitName = argv[i+1];
     }
   }
   setDefaultStyle();
@@ -208,7 +213,6 @@ int main(int argc, char* argv[])
       TCanvas* canvas  = (TCanvas*) infile->Get("limcanvas");
       TGraph*  graph   = (TGraph*)  canvas->FindObject(isDecay? "grtaulim": "grsvlim");
 
-      Char_t line[256];
       for(Int_t ival=0;ival<graph->GetN();ival++)
         {
           Double_t mass = graph->GetX()[ival];
@@ -247,8 +251,10 @@ int main(int argc, char* argv[])
 
       // sort elements and fill them into histogram
       sort(svLimDist[imass].begin(),svLimDist[imass].end());
-      hsvLimDist[imass] = new TH1D(Form("hsvLimDist%02d",imass),Form("hsvLimDist%02d",imass),nbins,svLimDist[imass][0]*0.99,svLimDist[imass][svLimDist[imass].size()-1]*1.01);
+      hsvLimDist[imass] = new TH1D(Form("hsvLimDist%02d",imass,massval[imass]),Form("95%% %s Distribution for mass %.1f GeV",(isDecay? "#tau_{DM}^{LL}" : "<#sigma v>^{UL}"),massval[imass]),nbins,svLimDist[imass][0]*0.8,svLimDist[imass][svLimDist[imass].size()-1]*1.2);
       hsvLimDist[imass]->SetStats(0);
+      hsvLimDist[imass]->SetXTitle(Form("95%% %s [%s]",(isDecay? "#tau_{DM}^{LL}" : "<#sigma v>^{UL}"),(isDecay? "s" : "cm^{3}/s")));
+      hsvLimDist[imass]->SetYTitle("# of Entries");
 
       for(UInt_t ival=0;ival<svLimDist[imass].size();ival++)
         hsvLimDist[imass]->Fill(svLimDist[imass][ival]);
@@ -339,11 +345,41 @@ int main(int argc, char* argv[])
       TCanvas* c = new TCanvas("canvas","limits distributions",ncols*250,nlines*250);
       c->Divide(ncols,nlines);
 
+      // result
+      TFile* f = TFile::Open(dataPath+label+"_Data_limits.root", "READ");
+      TCanvas* lim = (TCanvas*)f->Get("limcanvas");
+      TGraph* grsvlim = (TGraph*)lim->GetPrimitive(isDecay? "grtaulim": "grsvlim");
+      grsvlim->SetName(isDecay? "grtaulim": "grsvlim");
+      grsvlim->SetLineColor(kBlack);
+      grsvlim->SetLineWidth(2);
+
       // loop over masses and plot histos
       for(Int_t imass=shift;imass<nmass;imass++)
         {         
           c->cd(imass+1);
           hsvLimDist[imass]->DrawCopy("e");
+	  TLine* line_02275 = new TLine(sv2sigmaL[imass],0,sv2sigmaL[imass],(hsvLimDist[imass]->GetMaximum()+2)*1.1);
+	  TLine* line_1587 = new TLine(sv1sigmaL[imass],0,sv1sigmaL[imass],(hsvLimDist[imass]->GetMaximum()+2)*1.1);
+	  TLine* line_5 = new TLine(sv0sigma[imass],0,sv0sigma[imass],(hsvLimDist[imass]->GetMaximum()+2)*1.1);
+	  TLine* line_8414 = new TLine(sv1sigmaR[imass],0,sv1sigmaR[imass],(hsvLimDist[imass]->GetMaximum()+2)*1.1);
+	  TLine* line_97725 = new TLine(sv2sigmaR[imass],0,sv2sigmaR[imass],(hsvLimDist[imass]->GetMaximum()+2)*1.1);
+	  TLine* line_data = new TLine(grsvlim->GetY()[imass],0,grsvlim->GetY()[imass],(hsvLimDist[imass]->GetMaximum()+2)*1.1);
+	  line_02275->SetLineStyle(2);
+	  line_02275->SetLineColor(5);
+	  line_02275->Draw("same");
+	  line_1587->SetLineColor(3);
+	  line_1587->SetLineStyle(2);
+	  line_1587->Draw("same");
+	  line_5->SetLineStyle(2);
+	  line_5->Draw("same");
+	  line_8414->SetLineColor(3);
+	  line_8414->SetLineStyle(2);
+	  line_8414->Draw("same");
+	  line_97725->SetLineStyle(2);
+	  line_97725->SetLineColor(5);
+	  line_97725->Draw("same");
+	  line_data->SetLineColor(kRed);
+	  line_data->Draw("same");
           gPad->SetLogy();
           gPad->SetLogx();
         }
@@ -353,7 +389,9 @@ int main(int argc, char* argv[])
       // bands
       Int_t npnts = gsv0sigma->GetN();
       TGraph* band1sigma = new TGraph(2*npnts+1);
+      band1sigma->SetNameTitle("band1sigma","band1sigma");
       TGraph* band2sigma = new TGraph(2*npnts+1);
+      band2sigma->SetNameTitle("band2sigma","band2sigma");
 
       for(Int_t imass=0;imass<npnts;imass++)
         {
@@ -364,14 +402,6 @@ int main(int argc, char* argv[])
         }
       band1sigma->SetPoint(2*npnts,gsv1sigmaL->GetX()[0],gsv1sigmaL->GetY()[0]);
       band2sigma->SetPoint(2*npnts,gsv2sigmaL->GetX()[0],gsv2sigmaL->GetY()[0]);
-
-      // result
-      TFile* f = TFile::Open(dataPath+label+"_Data_limits.root", "READ");
-      TCanvas* lim = (TCanvas*)f->Get("limcanvas");
-      TGraph* grsvlim = (TGraph*)lim->GetPrimitive(isDecay? "grtaulim": "grsvlim");
-      grsvlim->SetName(isDecay? "grtaulim": "grsvlim");
-      grsvlim->SetLineColor(kBlack);
-      grsvlim->SetLineWidth(2);
 
       band1sigma->SetFillColorAlpha(3,0.35);
       band2sigma->SetFillColorAlpha(5,0.35);
@@ -420,7 +450,7 @@ int main(int argc, char* argv[])
       limleg->SetMargin(0.40);
       limleg->SetBorderSize(0);
 
-      if(grsvlim)    limleg->AddEntry(grsvlim,"Limit","l");
+      if(grsvlim)    limleg->AddEntry(grsvlim,limitName,"l");
       if(gsv0sigma)  limleg->AddEntry(gsv0sigma,"H_{0} median","l");
       if(band1sigma) limleg->AddEntry(band1sigma,"H_{0} 68% containment","f");
       if(band2sigma) limleg->AddEntry(band2sigma,"H_{0} 95% containment","f");

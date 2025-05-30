@@ -7,3 +7,25 @@
 .#README.md
 *_C.d
 **/my*
+.vscode/
+build/
+plots/
+DM/dNdEpSignal/
+exported_files/
+
+# Keep track of existing files while avoiding users to
+# push unwanted/private files related to their analysis
+rcfiles/*
+!rcfiles/jointLklDM.rc
+!rcfiles/LAT_dSph_2015_jointLklDM.rc
+data/*
+!data/root
+data/root/*
+!data/root/genericIact_dataIRF_01.root
+!data/root/genericIact_dataIRF_02.root
+!data/fits
+data/fits/*
+!data/fits/obs_id_23523_unbinned_spectrum.fits
+!data/fits/obs_id_23526_unbinned_spectrum.fits
+!data/fits/obs_id_23559_unbinned_spectrum.fits
+!data/fits/obs_id_23592_unbinned_spectrum.fits

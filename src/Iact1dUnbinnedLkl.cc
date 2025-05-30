@@ -964,7 +964,7 @@ Int_t Iact1dUnbinnedLkl::SetMigMatrix(TH2F* provMM)
 // Return 0 in case of success
 //        1 otherwise
 //
-Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
+Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom3* rdm)
 {
   if(meanGwithUnits<0) meanGwithUnits=0;
   
@@ -986,8 +986,8 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm
     }
 
   // compute weights for different pdf components
-  if(!rdm) rdm = gRandom;
-  TRandom*  saverdm = gRandom;
+  if(!rdm) rdm = (TRandom3*)gRandom;
+  TRandom3*  saverdm = (TRandom3*)gRandom;
   gRandom = rdm;
 
   TH1F* realHdNdEpBkg       = NULL;
@@ -1125,7 +1125,7 @@ Int_t Iact1dUnbinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm
 // and fHdNdEpSignalOff the expected distribution of signal events in the total Off region
 // (total meaning that if tau=3 the effective area to consder is that of the three subregions)
 //
-Int_t Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
+Int_t Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
 {
   // create new histos with contents of the existing ones
   if(fHdNdEpBkg) hdNdEpBkg = new TH1F(*fHdNdEpBkg);

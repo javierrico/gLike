@@ -582,7 +582,7 @@ TH1F* Iact1dBinnedLkl::GetHdNdEpOff(Bool_t isDifferential,Int_t nbins) const
 // Returns: 0 in case of success
 //          1 otherwise
 //
-Int_t Iact1dBinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
+Int_t Iact1dBinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom3* rdm)
 {
   // basic check
   if(fTauEDepFluct && !fdNdEpBkgFromOff)
@@ -622,7 +622,7 @@ Int_t Iact1dBinnedLkl::SimulateDataSamples(Float_t meanGwithUnits,TRandom* rdm)
 // and fHdNdEpSignalOff the expected distribution of signal events in the total Off region
 // (total meaning that if tau=3 the effective area to consder is that of the three subregions)
 //
-Int_t Iact1dBinnedLkl::GetRealBkgAndGoffHistos(TRandom* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
+Int_t Iact1dBinnedLkl::GetRealBkgAndGoffHistos(TRandom3* rdm,TH1F*& hdNdEpBkg,TH1F*& hdNdEpSignalOff) 
 {
   // if fHdNdBkg was provided as input, use global normalization
   if(!fdNdEpBkgFromOff) return Iact1dUnbinnedLkl::GetRealBkgAndGoffHistos(rdm,hdNdEpBkg,hdNdEpSignalOff);
